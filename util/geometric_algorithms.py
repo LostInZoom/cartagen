@@ -1,4 +1,5 @@
 from shapely.geometry import Point, Polygon, LineString
+import math
 
 def get_shortest_edge_length(geom: LineString):
     min_length = float('inf')
@@ -19,6 +20,19 @@ def get_linestring_segments(line: LineString):
         prev_coord = coord
 
     return segments
+
+# resample a LineString with at least one vertex every max_distance
+def resampling_line(line, max_distance):
+    resampled = []
+    prev_point = line.coords[0]
+    resampled.append(prev_point)
+    for i in range (1,len(line.coords)-1):
+        next_point = line.coords[i]
+        dist = LineString([prev_point,next_point]).length
+        fseg = dist / max_distance
+        # TODO
+
+    return LineString(resampled)
 
 def main():
     line = LineString([Point(0.0, 1.0), (2.0, 3.0), Point(5.0, 5.0)])

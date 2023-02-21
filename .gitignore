@@ -1,1 +1,5 @@
 .venv/
+.idea/
+util/__pycache__/
+evaluation/__pycache__/
+evaluation/constraint_monitors/__pycache__/
