@@ -338,7 +338,7 @@ if __name__ == '__main__':
     import geopandas
 
 
-    zipfile = "zip://C:/Users/gtouya/workspace/CartAGen4Py/data/test_squaring.zip"
+    zipfile = "zip:///home/justinberli/Documents/Python Packages/CartAGen4Py/CartAGen4Py/data/test_squaring.zip"
     df = geopandas.read_file(zipfile)
     polygons = df.geometry
 

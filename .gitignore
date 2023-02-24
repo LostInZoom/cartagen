@@ -3,3 +3,6 @@
 util/__pycache__/
 evaluation/__pycache__/
 evaluation/constraint_monitors/__pycache__/
+
+# Folder created by setuptools for the pip package creation
+build/
