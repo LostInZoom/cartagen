@@ -2,8 +2,6 @@
 
 import numpy as np
 
-
-
 class Squarer:
     """Initialize squaring object, with default weights and tolerance set in the constructor
     """
