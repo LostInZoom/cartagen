@@ -1,6 +1,7 @@
 import sys
 from setuptools import setup
 
+
 if sys.version_info[:2] < (3, 8):
     error = ('cartagen4py requires Python 3.8 or later (%d.%d detected).' % sys.version_info[:2])
     sys.stderr.write(error + "\n")
