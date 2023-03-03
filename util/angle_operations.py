@@ -1,6 +1,6 @@
 # This file contains functions that provide angle operations
 
-from shapely import Point
+from shapely.geometry import Point
 import numpy as np
 
 def angle_3_pts(point1, point2, point3):

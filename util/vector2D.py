@@ -1,8 +1,9 @@
 import math
+from shapely.geometry import Point
 
 class Vector2D:
-    x
-    y
+    x=0.0
+    y=0.0
 
     # constructor with shapely points
     def __init__(self, point1, point2):
