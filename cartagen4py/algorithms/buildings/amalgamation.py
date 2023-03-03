@@ -1,7 +1,7 @@
 # This file contains several algorithms to amalgamate or aggregate two or more buildings
 
-from shapely import Polygon
-from util import morpho_math, segment, vector2D
+from shapely.geometry import Polygon,MultiPolygon,Point
+from util import morpho_math, Vector2D
 import math
 
 # This the amalgamation algorithm from Damen et al. 2008 (https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113)
@@ -16,7 +16,7 @@ def morphological_amalgamation(buildings, buffer_size, edge_length):
 
     if(merged.geom_type == 'Polygon'):
         clusters.append(merged)
-    else if (merged.geom_type == 'MultiPolygon'):
+    elif (merged.geom_type == 'MultiPolygon'):
         for simple in merged.geoms:
             clusters.append(simple)
     
@@ -28,7 +28,7 @@ def morphological_amalgamation(buildings, buffer_size, edge_length):
 
 def __edge_removal(polygon, edge_length):
     # first filter unnecessary vertices with a Douglas & Peucker filter with a very small threshold
-    filtered = shapely.simplify(polygon, 0.2)
+    filtered = polygon.simplify(0.2)
 
     # then initialise the final list of vertices and add the first vertex
     final_coords = []
@@ -71,7 +71,7 @@ def __edge_removal(polygon, edge_length):
             # add translated and then lastVertex to the list of vertices
             final_coords.append(translated.coords)
             final_coords.append(last_vertex)
-        else if(angle < 3*math.pi/4):
+        elif(angle < 3*math.pi/4):
             # it is a corner case
             # get the intersection point of previousEdge and nextEdge considered as straight lines
             intersection = previousEdge.straight_line_intersection(nextEdge)
