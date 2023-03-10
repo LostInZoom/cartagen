@@ -1,15 +1,20 @@
 # this file define the Segment class, which representation a mathematical segment
 
 from shapely.geometry import Point
-import angle_operations
+from util import angle_operations
 import math
 import numpy as np
 
 # get the list of segments of a linestring or a polygon
 def get_segment_list(geometry):
+    coords = []
+    if(geometry.geom_type == 'LineString'):
+        coords = geometry.coords
+    elif(geometry.geom_type == 'Polygon'):
+        coords = geometry.exterior.coords
     segment_list = []
-    for i in range(1,len(geometry.coords)-1):
-        segment_list.append(Segment(geometry.coords[i-1],geometry.coords[i]))
+    for i in range(1,len(coords)):
+        segment_list.append(Segment(coords[i-1],coords[i]))
     return segment_list
 
 class Segment:

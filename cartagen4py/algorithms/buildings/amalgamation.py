@@ -1,8 +1,10 @@
 # This file contains several algorithms to amalgamate or aggregate two or more buildings
 
 from shapely.geometry import Polygon,MultiPolygon,Point
-from util import morpho_math, Vector2D
+from util import morpho_math
+from util.vector2D import Vector2D
 import math
+from util.segment import get_segment_list
 
 # This the amalgamation algorithm from Damen et al. 2008 (https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113)
 def morphological_amalgamation(buildings, buffer_size, edge_length):
@@ -11,8 +13,8 @@ def morphological_amalgamation(buildings, buffer_size, edge_length):
     multipolygon = MultiPolygon(buildings)
 
     # make a morphological closing on the multipolygon
-    closed = morpho_math.closing_multi_polygon(multipolygon, buffer_size, cap_style="flat")
-    merged = morpho_math.opening(closed, buffer_size, cap_style="flat")
+    closed = morpho_math.closing_multi_polygon(multipolygon, buffer_size, cap_style=2)
+    merged = morpho_math.opening(closed, buffer_size, cap_style=2)
 
     if(merged.geom_type == 'Polygon'):
         clusters.append(merged)
@@ -32,10 +34,10 @@ def __edge_removal(polygon, edge_length):
 
     # then initialise the final list of vertices and add the first vertex
     final_coords = []
-    final_coords.append(filtered.coords[0])
+    final_coords.append(filtered.exterior.coords[0])
 
     # get the list of segments of the polygon
-    segment_list = segment.get_segment_list(polygon)
+    segment_list = get_segment_list(polygon)
 
     # then, loop on the segments to remove the ones that are too short
     previousEdge = segment_list[len(segment_list)-1]
@@ -96,4 +98,6 @@ def __edge_removal(polygon, edge_length):
             translated = vector.translate(Point(antepenultimate))
             final_coords.append(intersection.coords)
             final_coords.append(nextEdge.point2)
+    
+    return Polygon(final_coords)
 
