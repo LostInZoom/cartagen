@@ -1,4 +1,4 @@
-from shapely import Polygon
+from shapely.geometry import Polygon
 from util import morpho_math
 
 # computes the urban areas from a set of buildings, using a method from Boffet
@@ -13,6 +13,8 @@ def compute_boffet_urban_areas(buildings, dilation_size, erosion_size, simplific
     
     simplified = dilation.simplify(simplification_distance)
     closed = morpho_math.closing_multi_polygon(simplified, erosion_size)
+    if(closed is None):
+        return []
     simplified = closed.simplify(simplification_distance)
     final = simplified.buffer(0.0)
     

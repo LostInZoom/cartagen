@@ -64,15 +64,16 @@ def erosion(polygon, buffer_size, cap_style=1):
     if(eroded_outer is None):
         return None
     
+    eroded = eroded_outer
     # now handle the holes of the polygon
     if (len(polygon.interiors) > 0):
         for i in range(0,len(polygon.interiors)):
-            ring = polygon.interiors(i)
+            ring = polygon.interiors[i]
             poly = Polygon(ring)
             buffered = poly.buffer(buffer_size, cap_style)
             eroded = eroded.difference(buffered)
     
-    if(eroded.is_empty()):
+    if(eroded.is_empty):
         return None
     
     return eroded
@@ -107,12 +108,12 @@ def erosion_no_hole(polygon, buffer_size, cap_style=1):
 
     # then, if there are several inner rings, we have to join them as a multi-polygon
     rings = []
-    for i in range(0,num_rings-1):
+    for i in range(0,num_rings):
         ring = buffered_ring.interiors[i]
         poly = Polygon(ring)
         if(polygon.contains(poly)):
             rings.append(poly)
-
+    
     return MultiPolygon(rings)
 
 
