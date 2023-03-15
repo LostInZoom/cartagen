@@ -2,7 +2,7 @@ from evaluation.constraint_monitors.constraint_monitor import ConstraintMonitor
 from shapely.geometry import Point, Polygon, BaseGeometry
 from evaluation.constraint_satisfaction import ConstraintSatisfaction
 
-class BuildingGranularityMonitor(ConstraintMonitor):
+class BuildingPositionMonitor(ConstraintMonitor):
 
     epsilon = 1.0
 

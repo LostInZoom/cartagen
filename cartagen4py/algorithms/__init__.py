@@ -1,1 +1,2 @@
-from cartagen4py.algorithms.buildings import *
+from algorithms.buildings import *
+from algorithms.lines import *
