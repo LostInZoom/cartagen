@@ -6,14 +6,20 @@ class BuildingDisplacementRandom:
     """
         Initialize random displacement object, with default length displacement factor and number of iterations per building
     """
-    def __init__(self, max_trials=25, max_displacement=0.0002):
+    def __init__(self, max_trials=15, max_displacement=10):
         self.MAX_TRIALS = max_trials
         self.MAX_DISPLACEMENT = max_displacement
 
     def displace(self, buildings, roads, rivers):
         # Calculating the mean rate of overlapping buildings with othe buildings, roads and rivers
         # It represents the mean congestion of buildings within the building block
+        print("Launching random displacement.")
+        print("buildings: " + str(len(buildings)))
+        print("roads: " + str(len(roads)))
+        print("rivers: " + str(len(rivers)))
+        print("calculating rate mean...")
         rate_mean = self.__get_buildings_overlapping_rate_mean(buildings, roads, rivers)
+        print("rate mean: " + str(rate_mean))
 
         # Starting trial count
         trial = 0
@@ -71,22 +77,21 @@ class BuildingDisplacementRandom:
 
     # Calculate the area of overlapping between buildings, roads and rivers
     def __get_building_overlap(self, processed_building, buildings, roads, rivers):
-        distance = 0.0001
         geometry = None
 
         # For each buildings...
         for building in buildings:
             # Checking if it's not the same building
             if building != processed_building:
-                geometry = self.__get_overlapping_geometries(processed_building, building, distance, geometry)
+                geometry = self.__get_overlapping_geometries(processed_building, building, geometry)
         
         # For each road section
         for road in roads:
-            geometry = self.__get_overlapping_geometries(processed_building, road, distance, geometry)
+            geometry = self.__get_overlapping_geometries(processed_building, road, geometry)
 
         # For each river section
         for river in rivers:
-            geometry = self.__get_overlapping_geometries(processed_building, river, distance, geometry)
+            geometry = self.__get_overlapping_geometries(processed_building, river, geometry)
 
         # Returning the area of the geometry if it exists
         if (geometry is None) or (geometry.is_empty == True) or (geometry.area == 0):
@@ -94,12 +99,12 @@ class BuildingDisplacementRandom:
         else:
             return geometry.area
 
-    # Calculate the geometry of the intersection between a geographic object and a building if the building is closer to this object than a defined value
-    def __get_overlapping_geometries(self, processed_building, obj, distance, geometry):
-        # If the building is closer to the object than the distance variable
-        if processed_building.dwithin(obj, distance):
-            # Creating the intersection between the buffer around the object and the building
-            intersection = shapely.intersection(shapely.buffer(obj, distance), processed_building)
+    # Calculate the geometry of the intersection between a geographic object and a building if the building if it exists
+    def __get_overlapping_geometries(self, processed_building, obj, geometry):
+        # If the building intersects the object
+        if shapely.intersects(processed_building, obj):
+            # Creating the intersection between the building and the object
+            intersection = shapely.intersection(processed_building, obj)
             # If the geometry is empty, return the intersection...
             if geometry is None:
                 return intersection
