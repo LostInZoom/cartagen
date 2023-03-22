@@ -30,11 +30,11 @@ def calculate_network_faces(*networks):
     # Return a list of polygons representing the faces of the network
     return polygonize(network)
 
-# Returns a list of lists of objects grouped by the polygons formed by the networks faces
+# Returns a tuple with objects and faces polygons
 # TODO: Manage centroids that happens to be on the edges of the networks faces
 def network_partition(objects, *networks):
-    # Create an empty list to store future partitions
-    partition = []
+    # Create an empty tuple to store future partitions
+    partition = ([], [])
 
     # Calculate the network faces from the networks provided
     faces = calculate_network_faces(*networks)
@@ -58,4 +58,6 @@ def network_partition(objects, *networks):
             # Loop through those objects
             for i in intersects:
                 group.append(objects[i])
-            partition.append(group)
+            partition[0].append(group)
+            partition[1].append(face)
+    return partition
