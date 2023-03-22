@@ -1,33 +1,66 @@
 # This is an implementation of the random building displacement algorithm
 
 import random, math, shapely
+from cartagen4py.util.partitioning.network import network_partition
 
 class BuildingDisplacementRandom:
     """
         Initialize random displacement object, with default length displacement factor and number of iterations per building
     """
-    def __init__(self, max_trials=15, max_displacement=10, verbose=False):
+    def __init__(self, max_trials=25, max_displacement=10, network_partitioning=True, verbose=False):
         self.MAX_TRIALS = max_trials
         self.MAX_DISPLACEMENT = max_displacement
+        self.NETWORK_PARTITIONING = network_partitioning
         self.VERBOSE = verbose
 
-    def displace(self, buildings, roads, rivers):
-        # Calculating the mean rate of overlapping buildings with othe buildings, roads and rivers
-        # It represents the mean congestion of buildings within the building block
+    def displace(self, buildings, roads, rivers, *networks):
         if (self.VERBOSE):
             print("Launching random displacement.")
             print("buildings: " + str(len(buildings)))
             print("roads: " + str(len(roads)))
             print("rivers: " + str(len(rivers)))
-            print("calculating rate mean...")
+
+        if self.NETWORK_PARTITIONING:
+            if self.VERBOSE:
+                print("Creating the network partition.")
+            # Overwrite buildings with partitionned buildings
+            partitions = network_partition(buildings, *networks)
+            total_length = len(partitions[0])
+            if self.VERBOSE:
+                print("{0} partitions created.".format(total_length))
+
+            buildings = []
+            for i, partition in enumerate(partitions[0]):
+                if self.VERBOSE:
+                    print("Treating partition {0}/{1}".format(i + 1, total_length))
+                    print("    {0} buildings".format(len(partition)))
+
+                partition_roads = []
+                for road in roads:
+                    if road.intersects(partitions[1][i]):
+                        partition_roads.append(shapely.intersection(road, partitions[1][i]))
+                partition_rivers = []
+                for river in rivers:
+                    if river.intersects(partitions[1][i]):
+                        partition_rivers.append(shapely.intersection(river, partitions[1][i]))
+                buildings = buildings + self.__random_displacement(partition, partition_roads, partition_rivers)
+        else:
+            buildings = self.__random_displacement(buildings, roads, rivers)
+
+        return buildings
+
+    def __random_displacement(self, buildings, roads, rivers):
+        # Calculating the mean rate of overlapping buildings with other buildings, roads and rivers
+        # It represents the mean congestion of buildings within the building block
         rate_mean = self.__get_buildings_overlapping_rate_mean(buildings, roads, rivers)
 
         # Starting trial count
         trial = 0
+        if self.VERBOSE:
+            print("    rate mean:")
+            print("        {0}".format(rate_mean))
         # Launching the loop which will displace buildings randomly as long as the rate mean is above 0 and the max trial count is not exceeded
         while rate_mean > 0 and trial <= self.MAX_TRIALS:
-            if (self.VERBOSE):
-                print("TRIAL " + str(trial))
             # Selecting a random building index
             random_index = random.randint(0, len(buildings) - 1)
             random_building = buildings[random_index]
@@ -56,7 +89,9 @@ class BuildingDisplacementRandom:
                 else:
                     rate_mean = new_rate_mean
                     trial = 0
-                
+                    if self.VERBOSE:
+                        print("        {0}".format(rate_mean))
+
         return buildings
 
     # Calculate the overlapping mean rate
@@ -69,16 +104,12 @@ class BuildingDisplacementRandom:
 
         # For each building, calculating the area overlapping other buildings, roads and rivers depending on a distance value
         for b in buildings:
-            if (self.VERBOSE):
-                print("building " + str(nb))
             mean += self.__get_building_overlap(b, buildings, roads, rivers)
             nb += 1
+
         # Calculating the mean area
         if nb != 0:
             mean = mean/nb
-
-        if (self.VERBOSE):
-            print("rate mean: " + str(rate_mean))
 
         return mean
 
@@ -106,12 +137,10 @@ class BuildingDisplacementRandom:
         else:
             return geometry.area
 
-    # Calculate the geometry of the intersection between a geographic object and a building if the building if it exists
+    # Calculate the geometry of the intersection between a geographic object and a building
     def __get_overlapping_geometries(self, processed_building, obj, geometry, type):
         # If the building intersects the object
         if shapely.overlaps(processed_building, obj):
-            if (self.VERBOSE):
-                print("intersecting " + type)
             # Creating the intersection between the building and the object
             intersection = shapely.intersection(processed_building, obj)
             # If the geometry is empty, return the intersection...
