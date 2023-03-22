@@ -1,9 +1,9 @@
-import geopandas, shapely
-from cartagen4py.util.extent import *
+import shapely
 from shapely.ops import linemerge, unary_union, polygonize
+from cartagen4py.util.extent import *
 
 # Calculates the faces of one or multiple networks and return a list of polygons
-def network_partition(*networks):
+def calculate_network_faces(*networks):
     if len(networks) < 1:
         raise Exception('No networks provided, network partition cannot be created.')
 
@@ -29,3 +29,33 @@ def network_partition(*networks):
     network = linemerge(network)
     # Return a list of polygons representing the faces of the network
     return polygonize(network)
+
+# Returns a list of lists of objects grouped by the polygons formed by the networks faces
+# TODO: Manage centroids that happens to be on the edges of the networks faces
+def network_partition(objects, *networks):
+    # Create an empty list to store future partitions
+    partition = []
+
+    # Calculate the network faces from the networks provided
+    faces = calculate_network_faces(*networks)
+
+    # Calculate the centroids of each objects and store them in a list
+    centroids = []
+    for obj in objects:
+        centroid = shapely.centroid(obj)
+        centroids.append(centroid)
+
+    # Create the spatial index for the objects centroids
+    tree = shapely.STRtree(centroids)
+
+    # Loop through all network faces
+    for face in faces:
+        # Retrieve objects that intersects the considered network face
+        intersects = tree.query(face)
+        # If objects are intersecting the considered network face
+        if len(intersects) > 0:
+            group = []
+            # Loop through those objects
+            for i in intersects:
+                group.append(objects[i])
+            partition.append(group)
