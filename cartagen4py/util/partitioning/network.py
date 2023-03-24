@@ -36,17 +36,18 @@ def network_partition(objects, *networks):
     # Create an empty tuple to store future partitions
     partition = ([], [])
 
+    shapes = []
+    for network in networks:
+        shapes.append(network.geometry)
+
     # Calculate the network faces from the networks provided
-    faces = calculate_network_faces(*networks)
+    faces = calculate_network_faces(*shapes)
 
     # Calculate the centroids of each objects and store them in a list
-    centroids = []
-    for obj in objects:
-        centroid = shapely.centroid(obj)
-        centroids.append(centroid)
+    centroids = objects.centroid
 
     # Create the spatial index for the objects centroids
-    tree = shapely.STRtree(centroids)
+    tree = centroids.sindex
 
     # Loop through all network faces
     for face in faces:
@@ -54,10 +55,7 @@ def network_partition(objects, *networks):
         intersects = tree.query(face)
         # If objects are intersecting the considered network face
         if len(intersects) > 0:
-            group = []
-            # Loop through those objects
-            for i in intersects:
-                group.append(objects[i])
-            partition[0].append(group)
+            partition[0].append(intersects)
             partition[1].append(face)
+
     return partition
