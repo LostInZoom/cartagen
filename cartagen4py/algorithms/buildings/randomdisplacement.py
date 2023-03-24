@@ -31,20 +31,19 @@ class BuildingDisplacementRandom:
                 print("{0} partitions created.".format(total_length))
 
             for i, partition in enumerate(partitions[0]):
-                if i < 20:
-                    if self.VERBOSE:
-                        print("Treating partition {0}/{1}".format(i + 1, total_length))
-                        print("    {0} buildings".format(len(partition)))
+                if self.VERBOSE:
+                    print("Treating partition {0}/{1}".format(i + 1, total_length))
+                    print("    {0} buildings".format(len(partition)))
 
-                    partition_roads = []
-                    for road in roads.geometry:
-                        if road.intersects(partitions[1][i]):
-                            partition_roads.append(shapely.intersection(road, partitions[1][i]))
-                    partition_rivers = []
-                    for river in rivers.geometry:
-                        if river.intersects(partitions[1][i]):
-                            partition_rivers.append(shapely.intersection(river, partitions[1][i]))
-                    self.__random_displacement(partition, partition_roads, partition_rivers)
+                partition_roads = []
+                for road in roads.geometry:
+                    if road.intersects(partitions[1][i]):
+                        partition_roads.append(shapely.intersection(road, partitions[1][i]))
+                partition_rivers = []
+                for river in rivers.geometry:
+                    if river.intersects(partitions[1][i]):
+                        partition_rivers.append(shapely.intersection(river, partitions[1][i]))
+                self.__random_displacement(partition, partition_roads, partition_rivers)
         else:
             self.__random_displacement(buildings, roads, rivers)
 
