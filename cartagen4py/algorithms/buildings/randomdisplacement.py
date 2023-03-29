@@ -1,7 +1,7 @@
 # This is an implementation of the random building displacement algorithm
 
 import random, math, shapely
-from cartagen4py.util.partitioning.network import network_partition
+from util.partitioning.network import network_partition
 
 class BuildingDisplacementRandom:
     """

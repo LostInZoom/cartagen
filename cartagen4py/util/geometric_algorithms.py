@@ -34,10 +34,6 @@ def resampling_line(line, max_distance):
 
     return LineString(resampled)
 
-def main():
-    line = LineString([Point(0.0, 1.0), (2.0, 3.0), Point(5.0, 5.0)])
-    length = get_shortest_edge_length(line)
-    print(length)
-
-if __name__ == "__main__":
-    main()
+# for a 3d sequence of coordinates, returns the 2d sequence. Useful to convert 3d points to 2d points
+def to_2d(x, y, z):
+    return tuple(filter(None, [x, y]))

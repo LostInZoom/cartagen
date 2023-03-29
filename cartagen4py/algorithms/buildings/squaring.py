@@ -328,22 +328,3 @@ class Squarer:
                     new_s[idx_l][-1] = np.array(new_points[idx_p])
         return new_s
 
-
-
-# if __name__ == '__main__':
-#     from shapely.wkt import loads
-#     from shapely.geometry import Polygon, LineString
-#     import geopandas
-
-
-#     zipfile = "zip:///home/justinberli/Documents/Python Packages/CartAGen4Py/CartAGen4Py/data/test_squaring.zip"
-#     df = geopandas.read_file(zipfile)
-#     polygons = df.geometry
-
-#     #lines = [loads(wkt)]
-#     sq = Squarer(pfixe=5)
-#     with np.printoptions(precision=3, suppress=True):
-#         points = sq.square(polygons)
-
-#     new_s = sq.get_shapes_from_new_points(polygons, points)
-#     print(new_s)
