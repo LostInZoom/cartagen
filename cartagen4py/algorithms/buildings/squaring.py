@@ -328,8 +328,6 @@ class Squarer:
                     new_s[idx_l][-1] = np.array(new_points[idx_p])
         return new_s
 
-
-
 # if __name__ == '__main__':
 #     from shapely.wkt import loads
 #     from shapely.geometry import Polygon, LineString
