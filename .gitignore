@@ -8,4 +8,4 @@ evaluation/constraint_monitors/__pycache__/
 # Folder created by setuptools for the pip package creation
 build/
 
-test.py
+test*.py
