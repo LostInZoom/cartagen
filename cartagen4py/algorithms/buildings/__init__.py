@@ -1,3 +1,3 @@
 from .squaring import Squarer
-from .randomdisplacement import BuildingDisplacementRandom
+from .random_displacement import BuildingDisplacementRandom
 from .amalgamation import *
