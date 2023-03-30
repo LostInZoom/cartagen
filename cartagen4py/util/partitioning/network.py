@@ -1,6 +1,6 @@
 import shapely
 from shapely.ops import linemerge, unary_union, polygonize
-from cartagen4py.util.extent import *
+from util.extent import *
 
 # Calculates the faces of one or multiple networks and return a list of polygons
 def calculate_network_faces(*networks):

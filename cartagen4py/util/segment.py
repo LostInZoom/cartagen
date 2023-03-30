@@ -1,7 +1,7 @@
 # this file define the Segment class, which representation a mathematical segment
 
-from shapely.geometry import Point
-from cartagen4py.util import angle_operations
+from shapely.geometry import Point, LineString
+from util import angle_operations
 import math
 import numpy as np
 
@@ -39,6 +39,9 @@ class Segment:
     
     def get_coefC(self):
         return self.__coefC
+    
+    def get_geom(self):
+        return LineString([self.point1, self.point2])
 
     def orientation(self):
         xAxisPt = Point(self.point1[0] + 10.0, self.point1[1])
@@ -68,15 +71,3 @@ class Segment:
 
         return Point(x_intersection, y_intersection)
     
-if __name__ == '__main__':
-    segment1 = Segment((0,0),(10,0))
-    segment2 = Segment((5,-5),(5,5))
-    segment3 = Segment((0,0),(6,6))
-
-    print(segment1.length())
-    print(segment1.orientation())
-    print(segment2.length())
-    print(segment2.orientation())
-    print(segment3.length())
-    print(segment3.orientation())
-    print(segment1.straight_line_intersection(segment2))
