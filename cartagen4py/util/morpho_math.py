@@ -40,7 +40,7 @@ def erosion_multipolygon(multipolygon, buffer_size, cap_style=1):
     polygons = []
 
     for simple in multipolygon.geoms:
-        eroded = erosion(simple, cap_style)
+        eroded = erosion(simple, buffer_size, cap_style)
         if eroded is None:
             continue
         if(eroded.geom_type == 'Polygon'):

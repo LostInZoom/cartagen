@@ -17,6 +17,21 @@ def get_segment_list(geometry):
         segment_list.append(Segment(coords[i-1],coords[i]))
     return segment_list
 
+# get the list of segments in a polygon, including the inner rings. Returns a list of pairs (segment, n) n being -1 for segments 
+# in the outer ring, and i for the segments in inner rings (i is the index of the ring in the list of inner rings).
+def get_segment_list_polygon(geometry):
+    segment_list = []
+    coords_outer = geometry.exterior.coords
+    for i in range(1,len(coords_outer)):
+        segment_list.append((Segment(coords_outer[i-1],coords_outer[i]), -1))
+    if(len(geometry.interiors)>0):
+        index = 0
+        for interior in geometry.interiors:
+            for i in range(1,len(interior.coords)):
+                segment_list.append((Segment(interior.coords[i-1],interior.coords[i]),index))
+            index += 1
+    return segment_list
+
 class Segment:
     point1 = []
     point2 = []
