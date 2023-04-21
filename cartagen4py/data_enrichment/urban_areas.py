@@ -1,5 +1,5 @@
 from shapely.geometry import Polygon
-from util import morpho_math
+from cartagen4py.util import morpho_math
 
 # computes the urban areas from a set of buildings, using a method from Boffet
 def compute_boffet_urban_areas(buildings, dilation_size, erosion_size, simplification_distance = 2.0):

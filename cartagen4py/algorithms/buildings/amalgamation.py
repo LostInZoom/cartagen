@@ -1,10 +1,10 @@
 # This file contains several algorithms to amalgamate or aggregate two or more buildings
 
 from shapely.geometry import Polygon,MultiPolygon,Point
-from util import morpho_math
-from util.vector2D import Vector2D
+from cartagen4py.util import morpho_math
+from cartagen4py.util.vector2D import Vector2D
 import math
-from util.segment import get_segment_list
+from cartagen4py.util.segment import get_segment_list
 
 # This the amalgamation algorithm from Damen et al. 2008 (https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113)
 def morphological_amalgamation(buildings, buffer_size, edge_length):

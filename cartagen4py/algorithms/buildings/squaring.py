@@ -118,6 +118,7 @@ class Squarer:
         for idx_p in range(len(unik_points)):
             triplets = self.__get_angle_triplets(idx_p, unik_points)
             for t in triplets:
+                print(t)
                 v1, v2 = self.__get_vecs_around(t, unik_points)
                 n1, n2 = np.linalg.norm(v1), np.linalg.norm(v2)
                 v1n = v1 / n1 if n1 != 0. else np.array([0.,0.]) #n1
@@ -145,6 +146,7 @@ class Squarer:
         for i, p in enumerate(unik_points):
             self.Y[2*i] = p[0]
             self.Y[2*i+1] = p[1]
+        print(self.Y)
         #offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat)
         #for i, t in enumerate(self.indicesHrAig):
         #    v1, v2 = self.__get_vecs_around(t, unik_points)
@@ -197,7 +199,6 @@ class Squarer:
         wFlat = np.full(nb_flats, self.poids0)
         #wHr = np.full(nb_half_rights, self.poids45)
         self.P = np.diag(np.concatenate((wfix, wRight, wFlat)))
-
 
     ## new vectors
     def __partial_derivatives_dotp(self, points, indices):
