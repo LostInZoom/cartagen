@@ -9,3 +9,4 @@ evaluation/constraint_monitors/__pycache__/
 build/
 
 test*.py
+cartagen4py/test
