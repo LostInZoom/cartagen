@@ -55,6 +55,11 @@ class ConstraintMethod:
         self.__nodes = []
         self.__links = []
 
+        # Nodes that will accept constraints
+        self.__move_points = []
+        self.__stiff_points = []
+        self.__curve_points = []
+
     def generalize(self, network_partitioning=True):
         """
         Launch the constraint generalization on the added objects.
@@ -72,9 +77,6 @@ class ConstraintMethod:
         
         # Prepare points and shapes using their index
         self.__generate_point_list(objects)
-
-        # self.__generate_points_by_shape(objects)
-        # self.__generate_shapes_by_points(objects)
 
         # Flag spatially conflicting points depending on the distance parameter
         self.__calculate_spatial_conflicts()
@@ -169,10 +171,30 @@ class ConstraintMethod:
                 # Add the weight to the dict
                 w[name] = value
 
-                # Check if both stiffness and curvature are provided to raise an error
-                if geomtype in ['LineString', 'Polygon']:
+            # Check if movement weight is provided
+            if 'movement' not in w.keys():
+                raise Exception('{0} must have a movement constraint. A weight of -1 can be used to avoid this object from moving.'.format(geomtype))
+            
+            # Check if spatial weight is provided
+            if 'spatial' not in w.keys():
+                raise Exception('{0} must have a spatial constraint.'.format(geomtype))
+
+            # Linestring and polygon specific verifications
+            if geomtype in ['LineString', 'Polygon']:
+                # Check if the movement weight is -1 (infinite)
+                if w['movement'] == -1:
+                    # Raise an error if a stiffness or a curvature is also provided
+                    if 'stiffness' in w.keys():
+                        raise Exception('Immovable {0} (movement weight equal -1) cannot have a stiffness constraint.'.format(geomtype))
+                    if 'curvature' in w.keys():
+                        raise Exception('Immovable {0} (movement weight equal -1) cannot have a curvature constraint.'.format(geomtype))
+                else:
+                    # Check if neither stiffness nor curvature is provided
+                    if 'stiffness' not in w.keys() and 'curvature' not in w.keys():
+                        raise Exception('Movable {0} must have a stiffness or a curvature constraint.'.format(geomtype))
+                    # Check if both stiffness and curvature are provided
                     if (w.keys() >= {'curvature', 'stiffness'}):
-                        raise Exception('{0} cannot have both stiffness and curvature constraints.'.format(geomtype))
+                        raise Exception('Movable {0} cannot have both stiffness and curvature constraints.'.format(geomtype))
         return w
 
     def __calculate_spatial_conflicts(self):
@@ -239,21 +261,27 @@ class ConstraintMethod:
 
     def __build_Y(self):
         """
-        Build the observation matrix.
+        Build the observation vector.
         """
         points = self.__points
         nodes = self.__nodes
         links = self.__links
-        
-        nb = len(points)
-        self.__Y = numpy.zeros(2 * nb)
 
-        offset = 0
-        for o in points:
-            for i, p in enumerate(o):
-                self.__Y[offset + (2*i)] = p[0]
-                self.__Y[offset + (2*i+1)] = p[1]
-            offset += 2*len(o)
+        for oid, o in enumerate(self.__shapes):
+            weights = self.__WEIGHTS[oid]
+
+        
+        size = 2 * len(points) + 2 * len(nodes) + 3 * len(links)
+        
+        self.__Y = numpy.zeros(size)
+
+        for i, o in enumerate(points):
+            self.__Y[(2*i)] = o[0][0]
+            self.__Y[(2*i+1)] = o[0][1] 
+        
+        offset = 2*len(o)
+
+        print(self.__Y)
 
     def __build_P(self, weights):
         """
@@ -284,40 +312,40 @@ class ConstraintMethod:
             self.__shapes.append(o)
 
 
-    def __generate_points_by_shape(self, objects):
-        """
-        Create a list of dictionnaries where :
-        - The key is the tuple of each point coordinates of the objects (x, y)
-        - The value is a list of each shape index it belongs to.
-        """
-        for shapes in objects:
-            points = {}
-            for i, s in enumerate(shapes):
-                coordinates = self.__get_coordinates(s)
-                for p in coordinates:
-                    if p in points:
-                        if i not in points[p]:
-                            points[p].append(i)
-                    else:
-                        points[p] = [i]
-            self.__points.append(points)
+    # def __generate_points_by_shape(self, objects):
+    #     """
+    #     Create a list of dictionnaries where :
+    #     - The key is the tuple of each point coordinates of the objects (x, y)
+    #     - The value is a list of each shape index it belongs to.
+    #     """
+    #     for shapes in objects:
+    #         points = {}
+    #         for i, s in enumerate(shapes):
+    #             coordinates = self.__get_coordinates(s)
+    #             for p in coordinates:
+    #                 if p in points:
+    #                     if i not in points[p]:
+    #                         points[p].append(i)
+    #                 else:
+    #                     points[p] = [i]
+    #         self.__points.append(points)
     
-    def __generate_shapes_by_points(self):
-        """
-        Populate a list where each geometry is made of a list of index
-        of the points it is made of.
-        """
-        points = self.__points
+    # def __generate_shapes_by_points(self):
+    #     """
+    #     Populate a list where each geometry is made of a list of index
+    #     of the points it is made of.
+    #     """
+    #     points = self.__points
 
-        for i, shapes in enumerate(objects):
-            shape = []
-            for s in shapes:
-                points = []
-                coordinates = self.__get_coordinates(s)
-                for p in coordinates:
-                    points.append(self.__get_rank(self.__points[i], p))
-                shape.append(points)
-            self.__shapes.append(shape)
+    #     for i, shapes in enumerate(objects):
+    #         shape = []
+    #         for s in shapes:
+    #             points = []
+    #             coordinates = self.__get_coordinates(s)
+    #             for p in coordinates:
+    #                 points.append(self.__get_rank(self.__points[i], p))
+    #             shape.append(points)
+    #         self.__shapes.append(shape)
 
     def __get_rank(self, points, point):
         """
