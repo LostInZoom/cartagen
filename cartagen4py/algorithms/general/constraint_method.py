@@ -1,6 +1,6 @@
 # This is an implementation of the least squares method proposed by Lars E. Harrie (1999)
 
-import numpy, shapely
+import numpy, shapely, pprint
 from cartagen4py.util.partitioning.network import network_partition
 
 class ConstraintMethod:
@@ -56,9 +56,11 @@ class ConstraintMethod:
         self.__links = []
 
         # Nodes that will accept constraints
-        self.__move_points = []
-        self.__stiff_points = []
-        self.__curve_points = []
+        self.__constraints = {
+            'movement': [],
+            'stiffness': [],
+            'curvature': []
+        }
 
     def generalize(self, network_partitioning=True):
         """
@@ -67,16 +69,9 @@ class ConstraintMethod:
         # Checks if objects are present
         if len(self.__OBJECTS) < 1:
             raise Exception('No objects provided, cannot generalize.')
-
-        objects = []
-        for obj in self.__OBJECTS:
-            single = []
-            for i, o in obj.iterrows():
-                single.append(o.geometry)
-            objects.append(single)
         
         # Prepare points and shapes using their index
-        self.__generate_point_list(objects)
+        self.__generate_point_list()
 
         # Flag spatially conflicting points depending on the distance parameter
         self.__calculate_spatial_conflicts()
@@ -85,7 +80,7 @@ class ConstraintMethod:
         self.__build_Y()
 
         # Build the weighing matrice
-        # self.__build_P(self.__WEIGHTS)
+        self.__build_W()
 
         for i in range(self.MAX_ITER):
             pass
@@ -203,7 +198,7 @@ class ConstraintMethod:
         """
 
         # Check if the considered point is spatially conflicting with other points
-        def check_conflicts(p, oid, sid, pid):
+        def check_conflicts(p, oid, sid, pid, weight):
             point = shapely.Point(p)
             d = self.__DISTANCES[oid]
             # Loop through all objects
@@ -222,7 +217,7 @@ class ConstraintMethod:
                         if shapely.dwithin(point, shape, min_distance):
                             # Checks if the shape is a point
                             if len(s) == 1:
-                                self.__nodes.append((p, (oid, sid, pid), s[0], (oid1, sid1, 0), min_distance, shapely.distance(point, shape)))
+                                self.__nodes.append((p, (oid, sid, pid), s[0], (oid1, sid1, 0), min_distance, shapely.distance(point, shape), weight))
                             else:
                                 # Loop through all the points of the LineString or Polygon shape
                                 for pid1, p1 in enumerate(s):
@@ -241,73 +236,117 @@ class ConstraintMethod:
                                         if pdist1 < min_distance or pdist2 < min_distance or ldist < min_distance:
                                             # If the line distance is the smallest, insert a node to link spatial conflict
                                             if ldist < pdist1 and ldist < pdist2:
-                                                self.__links.append((p, (oid, sid, pid), p1, (oid1, sid1, pid1), p2, (oid1, sid1, pid1 + 1), min_distance, ldist))
+                                                self.__links.append((p, (oid, sid, pid), p1, (oid1, sid1, pid1), p2, (oid1, sid1, pid1 + 1), min_distance, ldist, weight))
                                             else:
                                                 # Determine which node is the closest
                                                 if pdist1 < pdist2:
-                                                    self.__nodes.append((p, (oid, sid, pid), p1, (oid1, sid1, pid1), min_distance, pdist1))
+                                                    self.__nodes.append((p, (oid, sid, pid), p1, (oid1, sid1, pid1), min_distance, pdist1, weight))
                                                 else:
-                                                    self.__nodes.append((p, (oid, sid, pid), p2, (oid1, sid1, pid1 + 1), min_distance, pdist2))
+                                                    self.__nodes.append((p, (oid, sid, pid), p2, (oid1, sid1, pid1 + 1), min_distance, pdist2, weight))
 
         # Loop through all objects
         for oid, o in enumerate(self.__shapes):
+            weight = self.__WEIGHTS[oid]['spatial']
             # Loop through all shapes
             for sid, s in enumerate(o):
                 # Loop through all points
                 for pid, p in enumerate(s):
                     # Check conflicts with other points
-                    check_conflicts(p, oid, sid, pid)
+                    check_conflicts(p, oid, sid, pid, weight)
             
 
     def __build_Y(self):
         """
         Build the observation vector.
         """
-        points = self.__points
-        nodes = self.__nodes
-        links = self.__links
-
-        for oid, o in enumerate(self.__shapes):
-            weights = self.__WEIGHTS[oid]
-
         
-        size = 2 * len(points) + 2 * len(nodes) + 3 * len(links)
-        
+        # Isolate movement constraints
+        movement = self.__constraints['movement']
+
+        # Set constraints size
+        constraints = 0
+        # Loop through all constraint that are not movement
+        for cname, clist in self.__constraints.items():
+            if cname != 'movement':
+                # Increment the number of point with constraints
+                constraints += len(clist)
+
+        # Define the size of the vector - movement x2 for x and y - nodes x2 and links x3 for the two and three points of the spatial relationship 
+        size = 2 * len(movement) + constraints + 2 * len(self.__nodes) + 3 * len(self.__links)
+        # Create a zero filled numpy array of the wanted shape
         self.__Y = numpy.zeros(size)
 
-        for i, o in enumerate(points):
+        # Add x and y value to the begining of the vector representing the movement constraint
+        for i, o in enumerate(movement):
             self.__Y[(2*i)] = o[0][0]
-            self.__Y[(2*i+1)] = o[0][1] 
-        
-        offset = 2*len(o)
+            self.__Y[(2*i+1)] = o[0][1]
 
-        print(self.__Y)
-
-    def __build_P(self, weights):
+    def __build_W(self):
         """
-        Build the weighting matrice.
+        Build the weighting matrix.
         """
-        points = list(self.__points)
-        self.__P = numpy.empty()
-        for i, o in enumerate(points):
-            weight = weights[i]
-            for w in weight:
-                if weight[w] >= 0:
-                    m = numpy.full()
 
-    def __generate_point_list(self, objects):
+        movement = []
+        # Loop through moving points
+        for p in self.__constraints['movement']:
+            # Add the weight value to the movement list two times for x and y
+            movement.extend([p[4], p[4]])
+        # Create a full matrix 
+        m = numpy.full(len(movement), movement)
+
+        constraints = []
+        # Loop through the non movement constraint
+        for cname, clist in self.__constraints.items():
+            # Check if the constraint is not movement and that some points are affected
+            if cname != 'movement' and len(clist) > 0:
+                points = []
+                # Loop through each point concerned by the constraint
+                for c in clist:
+                    # Append the weight to the list
+                    points.append(c[4])
+                # Create the matrix with the weights
+                constraints.append(numpy.full(len(points), points))
+
+        conflicts = []
+        # Loop through node to node conflicts
+        for n in self.__nodes:
+            # Add the two weights to the list
+            conflicts.extend([n[6], n[6]])
+        # Loop through node to link conflicts
+        for l in self.__links:
+            # Add the three weights to the list
+            conflicts.extend([l[8], l[8], l[8]])
+        # Create the spatial conflict weight matrix
+        spatial = numpy.full(len(conflicts), conflicts)
+
+        # Create the diagonal weighting matrix by concatenating movement matrix with others constraints and spatial conflicts matrices
+        self.__W = numpy.diag(numpy.concatenate((m, *constraints, spatial)))
+
+    def __generate_point_list(self):
         """
         Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
         Generate a nested list of objects composed of all points it is made of, sorted by shapes.
+        Generate lists of points that will accept constraints
         """
-        for oid, shapes in enumerate(objects):
+        def add_point_constraint(p, oid, sid, pid, pweights):
+            for cname, clist in self.__constraints.items():
+                # if cname == 'movement' and pweights['movement'] == -1:
+                #     continue
+                # else:
+                if cname in pweights.keys():
+                    w = numpy.inf if pweights[cname] == -1 else pweights[cname]
+                    self.__constraints[cname].append((p, oid, sid, pid, w))
+
+        for oid, shapes in enumerate(self.__OBJECTS):
+            weights = self.__WEIGHTS[oid]
             o = []
-            for sid, shape in enumerate(shapes):
+            for sid, shape in shapes.iterrows():
                 s = []
-                points = self.__get_coordinates(shape)
+                points = self.__get_coordinates(shape.geometry)
                 for pid, p in enumerate(points):
                     self.__points.append((p, oid, sid, pid))
                     s.append(p)
+                    add_point_constraint(p, oid, sid, pid, weights)
                 o.append(s)
             self.__shapes.append(o)
 
