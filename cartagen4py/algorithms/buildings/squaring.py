@@ -118,6 +118,7 @@ class Squarer:
         for idx_p in range(len(unik_points)):
             triplets = self.__get_angle_triplets(idx_p, unik_points)
             for t in triplets:
+                print(t)
                 v1, v2 = self.__get_vecs_around(t, unik_points)
                 n1, n2 = np.linalg.norm(v1), np.linalg.norm(v2)
                 v1n = v1 / n1 if n1 != 0. else np.array([0.,0.]) #n1
@@ -128,40 +129,40 @@ class Squarer:
                     self.indicesRight.append(t)
                 elif (cross <= self.flatTol):
                     self.indicesFlat.append(t)
-                elif (dot <= hrTol1 and dot >= hrTol2):
-                   self.indicesHrAig.append(t)
-                elif (dot >= -hrTol1 and dot <= -hrTol2):
-                   self.indicesHrObt.append(t)
-        #print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)}')
-        print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)} - HRa: {len(self.indicesHrAig)} - HRo: {len(self.indicesHrObt)}')
+                #elif (dot <= hrTol1 and dot >= hrTol2):
+                #    self.indicesHrAig.append(t)
+                #elif (dot >= -hrTol1 and dot <= -hrTol2):
+                #    self.indicesHrObt.append(t)
+        print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)}')
+        #print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)} - HRa: {len(self.indicesHrAig)} - HRo: {len(self.indicesHrObt)}')
 
 
     def __get_Y(self, unik_points):
         """ Observation vector
         """
         nb_points = len(unik_points)
-        #self.Y = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat))
-        self.Y = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrObt) + len(self.indicesHrAig))
+        self.Y = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat))
+        #self.Y = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrObt) + len(self.indicesHrAig))
         for i, p in enumerate(unik_points):
             self.Y[2*i] = p[0]
             self.Y[2*i+1] = p[1]
-
-        offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat)
-        for i, t in enumerate(self.indicesHrAig):
-           v1, v2 = self.__get_vecs_around(t, unik_points)
-           d = np.linalg.norm(v1) * np.linalg.norm(v2) * np.cos(np.pi / 4)
-           self.Y[offset + i] = d
-        offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrAig)
-        for i, t in enumerate(self.indicesHrObt):
-           v1, v2 = self.__get_vecs_around(t, unik_points)
-           d = np.linalg.norm(v1) * np.linalg.norm(v2) * np.cos(3 * np.pi / 4)
-           self.Y[offset + i] = d
+        print(self.Y)
+        #offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat)
+        #for i, t in enumerate(self.indicesHrAig):
+        #    v1, v2 = self.__get_vecs_around(t, unik_points)
+        #    d = np.linalg.norm(v1) * np.linalg.norm(v2) * np.cos(np.pi / 4)
+        #    self.Y[offset + i] = d
+        #offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrAig)
+        #for i, t in enumerate(self.indicesHrObt):
+        #    v1, v2 = self.__get_vecs_around(t, unik_points)
+        #    d = np.linalg.norm(v1) * np.linalg.norm(v2) * np.cos(3 * np.pi / 4)
+        #    self.Y[offset + i] = d
 
     # B = Y - S(Xcourant)
     def __get_B(self, points):
         nb_points = len(points)
-        #S = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat))
-        S = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrObt) + len(self.indicesHrAig))
+        S = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat))
+        #S = np.zeros(2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrObt) + len(self.indicesHrAig))
         for i, p in enumerate(points):
             S[2*i] = p[0]
             S[2*i+1] = p[1]
@@ -176,17 +177,15 @@ class Squarer:
             d = np.cross(v1, v2).item(0) 
             S[offset + i] = d
         offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat)
-
-
-        for i, t in enumerate(self.indicesHrAig):
-           v1, v2 = self.__get_vecs_around(t, points)
-           d = v1.dot(v2) 
-           S[offset + i] = d
-        offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrAig)
-        for i, t in enumerate(self.indicesHrObt):
-           v1, v2 = self.__get_vecs_around(t, points)
-           d = v1.dot(v2) 
-           S[offset + i] = d
+        #for i, t in enumerate(self.indicesHrAig):
+        #    v1, v2 = self.__get_vecs_around(t, points)
+        #    d = v1.dot(v2) 
+        #    S[offset + i] = d
+        #offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat) + len(self.indicesHrAig)
+        #for i, t in enumerate(self.indicesHrObt):
+        #    v1, v2 = self.__get_vecs_around(t, points)
+        #    d = v1.dot(v2) 
+        #    S[offset + i] = d
         return self.Y - S
 
     # Weight Matrix
@@ -194,12 +193,12 @@ class Squarer:
     def __get_P(self):
         nb_points = len(self.point_shapes)
         nb_rights, nb_flats =  len(self.indicesRight), len(self.indicesFlat)
-        nb_half_rights = len(self.indicesHrAig) + len(self.indicesHrObt)
+        #nb_half_rights = len(self.indicesHrAig) + len(self.indicesHrObt)
         wfix = np.full(2*nb_points, self.poidsPtfFixe)
         wRight = np.full(nb_rights, self.poids90)
         wFlat = np.full(nb_flats, self.poids0)
-        wHr = np.full(nb_half_rights, self.poids45)
-        self.P = np.diag(np.concatenate((wfix, wRight, wFlat, wHr)))
+        #wHr = np.full(nb_half_rights, self.poids45)
+        self.P = np.diag(np.concatenate((wfix, wRight, wFlat)))
 
     ## new vectors
     def __partial_derivatives_dotp(self, points, indices):
@@ -256,37 +255,20 @@ class Squarer:
         id = np.identity(2 * nb_points)
         partialR = self.__partial_derivatives_dotp(points, self.indicesRight)
         partialCross = self.__partial_derivatives_cross(points, self.indicesFlat)
-        partialHr1 = self.__partial_derivatives_dotp(points, self.indicesHrAig)
-        partialHr2 = self.__partial_derivatives_dotp(points, self.indicesHrObt)
+        #partialHr1 = self.__partial_derivatives_dotp(points, self.indicesHrAig)
+        #partialHr2 = self.__partial_derivatives_dotp(points, self.indicesHrObt)
         a = np.vstack((id, partialR))
         if isinstance(partialCross, np.ndarray):
             a = np.vstack((a, partialCross))
-        if isinstance(partialHr1, np.ndarray):
-           a = np.vstack((a, partialHr1))
-        if isinstance(partialHr1, np.ndarray):
-           a = np.vstack((a, partialHr2))
+        # if isinstance(partialHr1, np.ndarray):
+        #    a = np.vstack((a, partialHr1))
+        #if isinstance(partialHr1, np.ndarray):
+        #    a = np.vstack((a, partialHr2))
         return a
 
     def __compute_dx(self, points):
         A = self.__get_A(points)
         B = self.__get_B(points)
-        
-        print('------------------')
-        print('------------------')
-        print('Y')
-        print(self.Y)
-        print('------------------')
-        print('P')
-        print(self.P)
-        print('------------------')
-        print('A')
-        print(A)
-        print('------------------')
-        print('B')
-        print(B)
-        print('------------------')
-        print('------------------')
-
         atp = A.T @ self.P 
         atpa = atp @ A
         atpb = atp @ B
@@ -308,8 +290,7 @@ class Squarer:
         return np.array(unik_points)
     
     def square(self, shapes):
-        """
-        squares a collection of shapely multilinestrings or polygons
+        """squares a collection of shapely multilinestrings or polygons
         returns a numpy array of the points after the least square process
         """
         points = self.__prepare_square(shapes)
@@ -326,8 +307,7 @@ class Squarer:
 
     # rebuild shapes with updated points from least square process
     def get_shapes_from_new_points(self, original_shapes, new_points):
-        """
-        rebuild a list of coordinates from the original collection  of shapes
+        """rebuild a list of coordinates from the original collection  of shapes
         and the points obtained from the square process
         """
         unik_points = list(self.point_shapes)
@@ -348,4 +328,3 @@ class Squarer:
                 if r == 0 and is_poly:
                     new_s[idx_l][-1] = np.array(new_points[idx_p])
         return new_s
-
