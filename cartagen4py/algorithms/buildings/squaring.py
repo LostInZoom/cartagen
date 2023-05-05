@@ -261,16 +261,10 @@ class Squarer:
         a = np.vstack((id, partialR))
         if isinstance(partialCross, np.ndarray):
             a = np.vstack((a, partialCross))
-        else:
-            print('not array pc')
         if isinstance(partialHr1, np.ndarray):
            a = np.vstack((a, partialHr1))
-        else:
-            print('not array phr1')
         if isinstance(partialHr1, np.ndarray):
            a = np.vstack((a, partialHr2))
-        else:
-            print('not array phr2')
         return a
 
     def __compute_dx(self, points):
