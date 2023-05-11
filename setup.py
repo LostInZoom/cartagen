@@ -11,9 +11,9 @@ name = 'cartagen4py'
 version = '0.1.2'
 description = 'Python package to generalise geographic objects for cartographic purposes'
 url = 'https://github.com/LostInZoom/cartagen4py'
-author = 'Guillaume Touya'
+author = 'Guillaume Touya, Justin Berli'
 author_email = 'guillaume.touya@ign.fr'
-lic = 'GPLv3'
+lic = 'CeCILL-C'
 packages = [
     'cartagen4py',
     'cartagen4py.algorithms',
