@@ -28,7 +28,6 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink)
 
-
 class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
     """
     This is an example algorithm that takes a vector layer and
