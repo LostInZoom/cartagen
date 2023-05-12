@@ -27,6 +27,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink)
+from cartagen4py import Squarer
 
 
 class SquaringQGIS(QgsProcessingAlgorithm):
