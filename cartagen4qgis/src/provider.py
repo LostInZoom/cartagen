@@ -11,15 +11,6 @@
         copyright            : (C) 2023 by Guillaume Touya, Justin Berli
         email                : guillaume.touya@ign.fr
  ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 """
 
 __author__ = 'Guillaume Touya, Justin Berli'
@@ -31,8 +22,7 @@ __copyright__ = '(C) 2023 by Guillaume Touya, Justin Berli'
 __revision__ = '$Format:%H$'
 
 from qgis.core import QgsProcessingProvider
-from .cartagen4qgis_algorithm import CartAGen4QGISAlgorithm
-
+from .algorithms import *
 
 class CartAGen4QGISProvider(QgsProcessingProvider):
 
@@ -53,9 +43,8 @@ class CartAGen4QGISProvider(QgsProcessingProvider):
         """
         Loads all algorithms belonging to this provider.
         """
-        self.addAlgorithm(CartAGen4QGISAlgorithm())
-        # add additional algorithms here
-        # self.addAlgorithm(MyOtherAlgorithm())
+        self.addAlgorithm(SquaringQGIS())
+        self.addAlgorithm(BuildingSimplificationRuasQGIS())
 
     def id(self):
         """

@@ -11,15 +11,6 @@
         copyright            : (C) 2023 by Guillaume Touya, Justin Berli
         email                : guillaume.touya@ign.fr
  ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 """
 
 __author__ = 'Guillaume Touya, Justin Berli'
@@ -38,7 +29,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSink)
 
 
-class CartAGen4QGISAlgorithm(QgsProcessingAlgorithm):
+class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
     """
     This is an example algorithm that takes a vector layer and
     creates a new identical one.
@@ -129,7 +120,7 @@ class CartAGen4QGISAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Squaring'
+        return 'Ruas Simplification'
 
     def displayName(self):
         """
@@ -159,4 +150,4 @@ class CartAGen4QGISAlgorithm(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return CartAGen4QGISAlgorithm()
+        return BuildingSimplificationRuasQGIS()

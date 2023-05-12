@@ -10,3 +10,6 @@ build/
 
 test*.py
 cartagen4py/test
+
+# Removed qgis plugin template
+cartagen4qgis-template

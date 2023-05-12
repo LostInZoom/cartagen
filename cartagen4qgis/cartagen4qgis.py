@@ -11,15 +11,6 @@
         copyright            : (C) 2023 by Guillaume Touya, Justin Berli
         email                : guillaume.touya@ign.fr
  ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 """
 
 __author__ = 'Guillaume Touya, Justin Berli'
@@ -35,7 +26,7 @@ import sys
 import inspect
 
 from qgis.core import QgsProcessingAlgorithm, QgsApplication
-from .cartagen4qgis_provider import CartAGen4QGISProvider
+from cartagen4qgis.src.provider import CartAGen4QGISProvider
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 
