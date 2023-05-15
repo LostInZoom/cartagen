@@ -2,7 +2,7 @@
 
 import shapely, pprint
 import numpy as np
-from cartagen4py.util.partitioning.network import network_partition
+from cartagen4py.utils.partitioning.network import network_partition
 
 class ConstraintMethod:
     """

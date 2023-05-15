@@ -1,6 +1,6 @@
 # This file contains measures on buildings that can be used in constraints or inside algorithms.
-from cartagen4py.util.segment import *
-from cartagen4py.util.geometric_algorithms import to_2d
+from cartagen4py.utils.geometry.segment import *
+from cartagen4py.utils.geometry.line import to_2d
 from shapely.ops import nearest_points, transform
 
 def building_min_width(building):

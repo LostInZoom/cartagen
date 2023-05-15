@@ -1,2 +1,2 @@
-from .line_simplification import *
-from .line_smoothing import *
+from cartagen4py.algorithms.lines.line_simplification import *
+from cartagen4py.algorithms.lines.line_smoothing import *

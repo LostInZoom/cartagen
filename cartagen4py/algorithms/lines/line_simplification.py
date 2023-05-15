@@ -1,7 +1,7 @@
 # this file contains several line simplification algorithms, but not the Douglas & Peucker algorithm because it is already implemented in shapely
 
 from shapely.geometry import LineString, Point, Polygon, MultiPoint
-from cartagen4py.util.tessellation.hexagonal_tess import *
+from cartagen4py.utils.tessellation.hexagonal_tess import *
 from shapely.ops import nearest_points, transform
 
 # Visvalingam-Whyatt algorithm (1993)

@@ -1,7 +1,9 @@
 # this file contains building simplification algorithms
-from shapely.geometry import Polygon, Point, LinearRing
-from cartagen4py.util.segment import get_segment_list_polygon, Segment
 from math import atan2, pi, sqrt
+
+from shapely.geometry import Polygon, Point, LinearRing
+
+from cartagen4py.utils.geometry.segment import get_segment_list_polygon, Segment
 
 # Building simplification algorithm from (Ruas, 1988). Port of the CartAGen implementation of the algorithm.
 def building_simplification_ruas(building, edge_threshold, parallel_limit = 20 * pi / 180, orthogonal_limit = 20 * pi / 180):
