@@ -2,10 +2,7 @@ __author__ = 'Guillaume Touya, Justin Berli'
 __date__ = '2023-05-11'
 __copyright__ = '(C) 2023 by Guillaume Touya, Justin Berli'
 
-try:
-    import cartagen4py
-except:
-    print('cartagen4py python library is not installed.')
+import cartagen4py
 
 def classFactory(iface):
     """

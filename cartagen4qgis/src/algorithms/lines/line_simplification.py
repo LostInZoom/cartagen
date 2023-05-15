@@ -25,12 +25,12 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm, QgsFeature, QgsGeometry
 from qgis.core import QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterNumber
 
-from cartagen4py.algorithms import building_simplification_ruas
+from cartagen4py.algorithms import visvalingam_whyatt
 from shapely.wkt import loads
 
-class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
+class VisvalingamWhyattQGIS(QgsProcessingAlgorithm):
     """
-    Simplify buildings
+    Simplify lines using the Visvalingam-Whyatt algorithm
     """
 
     # Constants used to refer to parameters and outputs. They will be
@@ -39,7 +39,7 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
 
     OUTPUT = 'OUTPUT'
     INPUT = 'INPUT'
-    THRESHOLD = 'THRESHOLD'
+    TOLERANCE = 'TOLERANCE'
 
     def initAlgorithm(self, config):
         """
@@ -51,17 +51,17 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUT,
-                self.tr('Input buildings'),
-                [QgsProcessing.TypeVectorPolygon]
+                self.tr('Input line'),
+                [QgsProcessing.TypeVectorLine]
             )
         )
 
         self.addParameter(
             QgsProcessingParameterNumber(
-                self.THRESHOLD,
-                self.tr('Edge threshold'),
+                self.TOLERANCE,
+                self.tr('Tolerance area'),
                 type=QgsProcessingParameterNumber.Integer,
-                defaultValue=5,
+                defaultValue=100,
                 optional=False
             )
         )
@@ -101,7 +101,7 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
             wkt = feature.geometry().asWkt()
             shapely_geom = loads(wkt)
 
-            simplified = building_simplification_ruas(shapely_geom, self.parameterAsInt(parameters,self.THRESHOLD,context))
+            simplified = visvalingam_whyatt(shapely_geom, self.parameterAsInt(parameters,self.TOLERANCE,context))
 
             result = QgsFeature()
             result.setGeometry(QgsGeometry.fromWkt(simplified.wkt))
@@ -131,7 +131,7 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Ruas simplification'
+        return 'Visvalingam-Whyatt simplification'
 
     def displayName(self):
         """
@@ -155,10 +155,10 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Buildings'
+        return 'Lines'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return BuildingSimplificationRuasQGIS()
+        return VisvalingamWhyattQGIS()

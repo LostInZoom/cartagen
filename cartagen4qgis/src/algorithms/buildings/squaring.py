@@ -22,13 +22,11 @@ __copyright__ = '(C) 2023 by Guillaume Touya, Justin Berli'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink)
-from cartagen4py import Squarer
+from qgis.core import QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm, QgsFeature, QgsGeometry
+from qgis.core import QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterNumber
 
+from cartagen4py.algorithms import Squarer
+from shapely.wkt import loads
 
 class SquaringQGIS(QgsProcessingAlgorithm):
     """
@@ -41,6 +39,16 @@ class SquaringQGIS(QgsProcessingAlgorithm):
 
     OUTPUT = 'OUTPUT'
     INPUT = 'INPUT'
+    MAX_ITERATION = 'MAX_ITERATION'
+    NORM_TOLERANCE = 'NORM_TOLERANCE'
+    RIGHT_TOLERANCE = 'RIGHT_TOLERANCE'
+    FLAT_TOLERANCE = 'FLAT_TOLERANCE'
+    HALF_RIGHT_TOLERANCE = 'HALF_RIGHT_TOLERANCE'
+    WEIGHT_FIX = 'WEIGHT_FIX'
+    WEIGHT_90 = 'WEIGHT_90'
+    WEIGHT_0 = 'WEIGHT_0'
+    WEIGHT_45 = 'WEIGHT_45'
+    THRESHOLD = 'THRESHOLD'
 
     def initAlgorithm(self, config):
         """
@@ -48,13 +56,102 @@ class SquaringQGIS(QgsProcessingAlgorithm):
         with some other properties.
         """
 
-        # We add the input vector features source. It can have any kind of
-        # geometry.
+        # We add the input vector features source.
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUT,
-                self.tr('Input layer'),
-                [QgsProcessing.TypeVectorAnyGeometry]
+                self.tr('Input buildings'),
+                [QgsProcessing.TypeVectorPolygon]
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.MAX_ITERATION,
+                self.tr('Maximum number of iterations'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=1000,
+                optional=False
+            )
+        )
+
+        normtol = QgsProcessingParameterNumber(
+            self.NORM_TOLERANCE,
+            self.tr('Norm tolerance'),
+            type=QgsProcessingParameterNumber.Double,
+            defaultValue=0.05,
+            optional=False
+        )
+        normtol.setMetadata({'widget_wrapper':{ 'decimals': 2 }})
+        self.addParameter(normtol)
+
+        righttol = QgsProcessingParameterNumber(
+            self.RIGHT_TOLERANCE,
+            self.tr('Right angle tolerance'),
+            type=QgsProcessingParameterNumber.Double,
+            defaultValue=10,
+            optional=False
+        )
+        righttol.setMetadata({'widget_wrapper':{ 'decimals': 2 }})
+        self.addParameter(righttol)
+
+        flattol = QgsProcessingParameterNumber(
+            self.FLAT_TOLERANCE,
+            self.tr('Flat angle tolerance'),
+            type=QgsProcessingParameterNumber.Double,
+            defaultValue=10,
+            optional=False
+        )
+        flattol.setMetadata({'widget_wrapper':{ 'decimals': 2 }})
+        self.addParameter(flattol)
+
+        hrtol = QgsProcessingParameterNumber(
+            self.HALF_RIGHT_TOLERANCE,
+            self.tr('45° and 135° angle tolerance'),
+            type=QgsProcessingParameterNumber.Double,
+            defaultValue=7,
+            optional=False
+        )
+        hrtol.setMetadata({'widget_wrapper':{ 'decimals': 2 }})
+        self.addParameter(hrtol)
+
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.WEIGHT_FIX,
+                self.tr('Fixed points weight'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=5,
+                optional=False
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.WEIGHT_90,
+                self.tr('Right angles weight'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=100,
+                optional=False
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.WEIGHT_0,
+                self.tr('Flat angles weight'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=50,
+                optional=False
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.WEIGHT_45,
+                self.tr('45° and 135° angles weight'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=10,
+                optional=False
             )
         )
 
@@ -64,7 +161,7 @@ class SquaringQGIS(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Squared buildings')
+                self.tr('Squared')
             )
         )
 
@@ -85,13 +182,28 @@ class SquaringQGIS(QgsProcessingAlgorithm):
         total = 100.0 / source.featureCount() if source.featureCount() else 0
         features = source.getFeatures()
 
+        sq = Squarer(
+            max_iteration=self.MAX_ITERATION, norm_tolerance=self.NORM_TOLERANCE,
+            right_tolerance=self.RIGHT_TOLERANCE, flat_tolerance=self.FLAT_TOLERANCE, half_right_tolerance=self.HALF_RIGHT_TOLERANCE,
+            fixed_weight=self.WEIGHT_FIX, right_weight=self.WEIGHT_90, flat_weight=self.WEIGHT_0, half_right_weight=self.WEIGHT_45
+        )
+
         for current, feature in enumerate(features):
             # Stop the algorithm if cancel button has been clicked
             if feedback.isCanceled():
                 break
 
+            wkt = feature.geometry().asWkt()
+            shapely_geom = loads(wkt)
+
+            simplified = building_simplification_ruas(shapely_geom, self.parameterAsInt(parameters,self.THRESHOLD,context))
+
+            result = QgsFeature()
+            result.setGeometry(QgsGeometry.fromWkt(simplified.wkt))
+            result.setAttributes(feature.attributes())
+
             # Add a feature in the sink
-            sink.addFeature(feature, QgsFeatureSink.FastInsert)
+            sink.addFeature(result, QgsFeatureSink.FastInsert)
 
             # Update the progress bar
             feedback.setProgress(int(current * total))
@@ -102,7 +214,9 @@ class SquaringQGIS(QgsProcessingAlgorithm):
         # statistics, etc. These should all be included in the returned
         # dictionary, with keys matching the feature corresponding parameter
         # or output names.
-        return {self.OUTPUT: dest_id}
+        return {
+            self.OUTPUT: dest_id
+        }
 
     def name(self):
         """

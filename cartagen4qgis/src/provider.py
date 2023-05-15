@@ -43,8 +43,13 @@ class CartAGen4QGISProvider(QgsProcessingProvider):
         """
         Loads all algorithms belonging to this provider.
         """
+
+        # Buildings
         self.addAlgorithm(SquaringQGIS())
         self.addAlgorithm(BuildingSimplificationRuasQGIS())
+
+        # Lines
+        self.addAlgorithm(VisvalingamWhyattQGIS())
 
     def id(self):
         """
