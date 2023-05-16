@@ -2,14 +2,14 @@ import math
 
 import numpy as np
 from shapely.geometry import LineString, Point, MultiLineString
-from shapely import  ops
+from shapely import ops
 import geopandas as gpd
 
 from cartagen4py.utils.geometry.angle import angle_3_pts
 
 class Stroke:
     COUNTER = 0
-    def __init__(self,network,root):
+    def __init__(self, network, root):
         self.network = network
         self.root=root
         self.features = []
@@ -260,7 +260,6 @@ class Stroke:
         return liste
     
 class StrokeNetwork:
-    
     def __init__(self,features):
             #Initialisation from a list of shapely geometry with the correct attributes
           self.features = features
@@ -296,29 +295,31 @@ class StrokeNetwork:
                 stroke.one_side_stroke(-1, attributeNames, deviatAngle, deviatSum);
                 #// add the stroke to the strokes set
                 self.strokes.append(stroke);
-                
-    def save_strokes_shp(self,path):
-        #Save a shapefile of stroke eometry in the desired folder
-        stroke_list=self.strokes
-        array=[]
-        i=0
-        for stroke in stroke_list:
+    
+    def __reconstruct_strokes(self, strokes):
+        array = []
+        for i, stroke in enumerate(strokes):
             listline=[]
             section=""
-            j=0
-            for seg in stroke.features:
+            for j, seg in enumerate(stroke.features):
                 listline+=[seg]
-                j+=1
-                section+=str(seg.id)
-                if j<len(stroke.features):
-                    section+=","
-
+                section += str(seg.id)
+                if j < len(stroke.features):
+                    section += ","
             multi_line = MultiLineString(listline)
             merged_line = ops.linemerge(multi_line)
-            array+=[[i,merged_line,section]]
-            i+=1
+            array += [[i,merged_line,section]]
+        return array
+
+    def save_strokes_shp(self,path):
+        #Save a shapefile of stroke eometry in the desired folder
+        strokes_list = self.strokes
+        array = self.__reconstruct_strokes(strokes_list)
         gdf = gpd.GeoDataFrame(array,  columns = ['id', 'geom',"section"],crs="epsg:2154",geometry="geom")   
         gdf.to_file(path, driver='ESRI Shapefile')
+
+    def get_strokes(self):
+        return self.__reconstruct_strokes(self.strokes)
 
                 
 
