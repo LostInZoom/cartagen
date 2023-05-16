@@ -246,7 +246,7 @@ class Squarer:
             dfy = p[0] - pr[0]
             m[i][2*idx_suiv] = dfx
             m[i][2*idx_suiv + 1] = dfy
-        return 
+        return m
 
 
     def __get_A(self, points):
