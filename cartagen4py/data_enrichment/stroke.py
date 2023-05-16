@@ -1,11 +1,12 @@
 import math
+
 import numpy as np
 from shapely.geometry import LineString, Point, MultiLineString
 from shapely import  ops
 import geopandas as gpd
-from cartagen4py.util.geometric_algorithms.angle_operation import angle_3_pts
 
-    
+from cartagen4py.utils.geometry.angle import angle_3_pts
+
 class Stroke:
     COUNTER = 0
     def __init__(self,network,root):
@@ -267,7 +268,7 @@ class StrokeNetwork:
           self.id = 0;
           self.strokes = []
           
-    def __init__(self,shapefile,attributeNames):
+    def __init__(self, shapefile, attributeNames):
         #Initialisation from a geopanda dataframe and the liste of desired attribute name
         features=[]
         for idx in shapefile.index: 
@@ -281,7 +282,7 @@ class StrokeNetwork:
         self.id = 0;
         self.strokes = []
 
-    def buildStrokes(self,attributeNames, deviatAngle,deviatSum) :
+    def buildStrokes(self, attributeNames, deviatAngle, deviatSum) :
     #loop on the network features
         for obj in self.features :
                 #test if the feature has already been treated
