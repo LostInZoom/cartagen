@@ -1,1 +1,1 @@
-from cartagen4py.utils.tessellation.hexagonal_tess import *
+from cartagen4py.utils.tessellation.hexagonal import *

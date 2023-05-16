@@ -50,6 +50,7 @@ class CartAGen4QGISProvider(QgsProcessingProvider):
 
         # Lines
         self.addAlgorithm(VisvalingamWhyattQGIS())
+        self.addAlgorithm(RaposoSimplificationQGIS())
 
     def id(self):
         """
