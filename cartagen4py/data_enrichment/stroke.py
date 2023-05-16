@@ -1,21 +1,10 @@
 import math
 import numpy as np
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString, Point, MultiLineString
 from shapely import  ops
 import geopandas as gpd
-#from cartagen4py.util.geometric_algorithms.angle_operation import angle_3_pts
-#AC IMPORT A CORRIGER POUR EVITER DOUBLON DE CODE. 
-def angle_3_pts(point1, point2, point3):
+from cartagen4py.util.geometric_algorithms.angle_operation import angle_3_pts
 
-        angle1 = angle_2_pts(point2, point1)
-        angle2 = angle_2_pts(point2, point3)
-    
-        return angle2 - angle1
-    
-def angle_2_pts(point1, point2):
-        x = point2.x - point1.x
-        y = point2.y - point1.y
-        return np.arctan2(y, x)
     
 class Stroke:
     COUNTER = 0
@@ -35,7 +24,6 @@ class Stroke:
         coord_fin1 = temp_geom.coords[-1]
         coord_ini2 = geom_foll.coords[0]
         coord_fin2 = geom_foll.coords[-1]
-        
         coord_inter = None
         
         if coord_ini2==coord_ini1:
@@ -57,9 +45,7 @@ class Stroke:
         if coord_inter is None:
             return -1.0
         
-    
         v1g1, v2g1, v1g2, v2g2 = None, None, None, None
-        
         # define the node to compute the angle
         # get the first vertex on geometry 1
         if inter_geom1:
@@ -88,19 +74,16 @@ class Stroke:
                 v2g2 = Point(geom_foll.coords[-3])
     
         # now, compute interAngle between geom and geomFoll
-       
         inter_angle = angle_3_pts(v1g1,  Point(coord_inter), v1g2)
         # put the angle between -pi and pi
         if inter_angle > math.pi:
-            inter_angle -= 2 * math.pi
-            
+            inter_angle -= 2 * math.pi    
         #case where both geometries have only 2 vertices
         if ((v2g1 is None) and (v2g2 is None)) :
           #then, there is good continuity if the angle is < 45°
           if ((inter_angle < (-angleThresh)) or (inter_angle > angleThresh)) :
             return math.pi - abs(inter_angle)
           return -1.0
-
         #case where geom has 2 vertices
         elif (v2g1 is None):
           angleTotalDiff = 0.0
@@ -115,14 +98,11 @@ class Stroke:
           #il y a bonne continuité si l'angle est < 45° et la différence desangles < à 30°
           if (((inter_angle < (-angleThresh)) or (inter_angle > angleThresh)) and (angleTotalDiff < sumThresh)):
             return 2 * angleTotalDiff
-          print("Je retourne -1 là",((inter_angle < (-angleThresh)) or (inter_angle > angleThresh)),(angleTotalDiff < sumThresh))
           return -1.0;
-    
         #case where geomFoll has 2 vertices
         elif (v2g2 is None):
           angleTotalDiff = 0.0
           #on calcule angleGeom2
-
           angleGeom1 = angle_3_pts(v2g1, v1g1,  Point(coord_inter))
           #on calcule l'écart entre les angles
           angleDiff = max(angleGeom1, inter_angle)- min(angleGeom1, inter_angle)
@@ -134,7 +114,6 @@ class Stroke:
           if (((inter_angle < (-angleThresh)) or (inter_angle > angleThresh)) and (angleTotalDiff < sumThresh)) :
             return 2 * angleTotalDiff
           return -1.0
-    
         #general case
         else:
           angleTotalDiff1 = angleTotalDiff2 = 0.0
@@ -146,7 +125,6 @@ class Stroke:
             angleTotalDiff1 = abs(angleDiff1 - 2 * math.pi)
           else :
             angleTotalDiff1 = angleDiff1
-    
           #on calcule l'écart entre les angles
           DiffAngles2 = max(angleGeom2, inter_angle)-min(angleGeom2, inter_angle)
           if (DiffAngles2 > math.pi):
@@ -189,12 +167,12 @@ class Stroke:
                   followers.remove(a);
                   continue;
                   #check if it belongs to this stroke
-            if (a in self.features):#COR
+            if (a in self.features):
              #remove it from the set
                  followers.remove(a);
                  continue;
             #check if it belongs to the network
-            if (not a in self.network.features) :#COR
+            if (not a in self.network.features) :
             #// remove it from the set
                 followers.remove(a);
       
@@ -225,7 +203,6 @@ class Stroke:
                   if (diffContinuity < minDiff) :
                       #this is the current best continuity update the difference
                       minDiff = diffContinuity;
-                      
                       #change the bestSegment
                       bestSegment = follower;
         if (((continuity) and not bestSegment in self.network.groupedFeatures) or (minDiff < deviatAngle)) :
@@ -240,7 +217,7 @@ class Stroke:
         if (node is None):
             return;
         followers =[]
-        for arc in self.network.features:#COR
+        for arc in self.network.features:
             if arc.coords[0]==node or arc.coords[-1]==node:
                 followers.append(arc)
         followers.remove(self.root)
@@ -257,14 +234,14 @@ class Stroke:
                     self.features.insert(0, best)
                 else:
                     self.features.append(best)
-                self.network.groupedFeatures.append(best)#COR 
+                self.network.groupedFeatures.append(best) 
                 #get the followers of 'best'
                 followers=[]
                 nextNode = best.coords[0];
                 if (node==nextNode):
                     nextNode = best.coords[-1];
                     
-                for arc in self.network.features:#COR
+                for arc in self.network.features:
                     if arc.coords[0]==nextNode or arc.coords[-1]==nextNode:
                         followers.append(arc)
                 followers.remove(best)
@@ -284,13 +261,14 @@ class Stroke:
 class StrokeNetwork:
     
     def __init__(self,features):
-          #Si features est une liste mais mantenant on veut que ce soit un geopanda et on fabrique la liste comme on veut. 
+            #Initialisation from a list of shapely geometry with the correct attributes
           self.features = features
           self.groupedFeatures = []
           self.id = 0;
           self.strokes = []
           
     def __init__(self,shapefile,attributeNames):
+        #Initialisation from a geopanda dataframe and the liste of desired attribute name
         features=[]
         for idx in shapefile.index: 
             elem=shapefile.geometry[idx]
@@ -319,6 +297,7 @@ class StrokeNetwork:
                 self.strokes.append(stroke);
                 
     def save_strokes_shp(self,path):
+        #Save a shapefile of stroke eometry in the desired folder
         stroke_list=self.strokes
         array=[]
         i=0
