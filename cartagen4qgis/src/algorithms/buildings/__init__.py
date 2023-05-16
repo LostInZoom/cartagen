@@ -1,2 +1,3 @@
-from .squaring import SquaringQGIS
+from .displacement import BuildingDisplacementRandomQGIS
 from .simplification import BuildingSimplificationRuasQGIS
+from .squaring import SquaringQGIS

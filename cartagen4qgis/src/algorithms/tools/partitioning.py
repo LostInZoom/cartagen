@@ -22,15 +22,27 @@ __copyright__ = '(C) 2023 by Guillaume Touya, Justin Berli'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm, QgsFeature, QgsGeometry
-from qgis.core import QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterNumber
+from qgis.core import (
+    QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm,
+    QgsFeature, QgsGeometry, QgsProcessingParameterDefinition,
+    QgsWkbTypes
+)
+from qgis.core import (
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterBoolean,
+    QgsProcessingParameterNumber,
+    QgsProcessingParameterDistance,
+    QgsProcessingParameterMultipleLayers
+)
 
-from cartagen4py import building_simplification_ruas
+from cartagen4py.utils import calculate_network_faces
+from shapely import Polygon
 from shapely.wkt import loads
 
-class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
+class NetworkFacesQGIS(QgsProcessingAlgorithm):
     """
-    Simplify buildings
+    Create the network faces
     """
 
     # Constants used to refer to parameters and outputs. They will be
@@ -39,7 +51,6 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
 
     OUTPUT = 'OUTPUT'
     INPUT = 'INPUT'
-    THRESHOLD = 'THRESHOLD'
 
     def initAlgorithm(self, config):
         """
@@ -49,19 +60,10 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
 
         # We add the input vector features source.
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
+            QgsProcessingParameterMultipleLayers(
                 self.INPUT,
-                self.tr('Input buildings'),
-                [QgsProcessing.TypeVectorPolygon]
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterNumber(
-                self.THRESHOLD,
-                self.tr('Edge threshold'),
-                type=QgsProcessingParameterNumber.Integer,
-                defaultValue=5,
+                self.tr('Input lines'),
+                layerType=QgsProcessing.TypeVectorLine,
                 optional=False
             )
         )
@@ -72,7 +74,7 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Simplified')
+                self.tr('Faces')
             )
         )
 
@@ -84,34 +86,27 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
         # Retrieve the feature source and sink. The 'dest_id' variable is used
         # to uniquely identify the feature sink, and must be included in the
         # dictionary returned by the processAlgorithm function.
-        source = self.parameterAsSource(parameters, self.INPUT, context)
+        source = self.parameterAsLayerList(parameters, self.INPUT, context)
         (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT,
-                context, source.fields(), source.wkbType(), source.sourceCrs())
+                context, source[0].fields(), QgsWkbTypes.Polygon, source[0].sourceCrs())
 
-        # Compute the number of steps to display within the progress bar and
-        # get features from source
-        total = 100.0 / source.featureCount() if source.featureCount() else 0
-        features = source.getFeatures()
+        network_list = []
+        for layer in source:
+            features = []
+            for feature in layer.getFeatures():
+                wkt = feature.geometry().asWkt()
+                shapely_geom = loads(wkt)
+                features.append(shapely_geom)
+            network_list.append(features)
 
-        for current, feature in enumerate(features):
-            # Stop the algorithm if cancel button has been clicked
-            if feedback.isCanceled():
-                break
+        partitions = calculate_network_faces(*network_list)
 
-            wkt = feature.geometry().asWkt()
-            shapely_geom = loads(wkt)
-
-            simplified = building_simplification_ruas(shapely_geom, self.parameterAsInt(parameters,self.THRESHOLD,context))
-
+        for polygon in partitions:
             result = QgsFeature()
-            result.setGeometry(QgsGeometry.fromWkt(simplified.wkt))
-            result.setAttributes(feature.attributes())
+            result.setGeometry(QgsGeometry.fromWkt(polygon.wkt))
 
             # Add a feature in the sink
             sink.addFeature(result, QgsFeatureSink.FastInsert)
-
-            # Update the progress bar
-            feedback.setProgress(int(current * total))
 
         # Return the results of the algorithm. In this case our only result is
         # the feature sink which contains the processed features, but some
@@ -131,7 +126,7 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Ruas simplification'
+        return 'Calculate network faces'
 
     def displayName(self):
         """
@@ -155,10 +150,10 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Buildings'
+        return 'Partitioning'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return BuildingSimplificationRuasQGIS()
+        return NetworkFacesQGIS()

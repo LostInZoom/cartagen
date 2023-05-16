@@ -47,10 +47,14 @@ class CartAGen4QGISProvider(QgsProcessingProvider):
         # Buildings
         self.addAlgorithm(SquaringQGIS())
         self.addAlgorithm(BuildingSimplificationRuasQGIS())
+        # self.addAlgorithm(BuildingDisplacementRandomQGIS())
 
         # Lines
         self.addAlgorithm(VisvalingamWhyattQGIS())
         self.addAlgorithm(RaposoSimplificationQGIS())
+
+        # Tools
+        self.addAlgorithm(NetworkFacesQGIS())
 
     def id(self):
         """

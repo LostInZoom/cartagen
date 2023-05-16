@@ -25,7 +25,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm, QgsFeature, QgsGeometry, QgsProcessingParameterDefinition
 from qgis.core import QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterNumber
 
-from cartagen4py.algorithms import Squarer
+from cartagen4py import Squarer
 from shapely import Polygon
 from shapely.wkt import loads
 

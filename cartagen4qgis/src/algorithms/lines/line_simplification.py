@@ -25,7 +25,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm, QgsFeature, QgsGeometry
 from qgis.core import QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterNumber, QgsProcessingParameterBoolean
 
-from cartagen4py.algorithms import visvalingam_whyatt, raposo_simplification
+from cartagen4py import visvalingam_whyatt, raposo_simplification
 from shapely.wkt import loads
 
 class VisvalingamWhyattQGIS(QgsProcessingAlgorithm):
