@@ -50,12 +50,13 @@ class HexagonalTessellation:
         hexagons = []
         for cell in self.cells:
             hexagons.append(cell.get_geometry())
+            
         tree = self.__get_STRtree(hexagons)
+        hids = tree.query(Point(point))
 
-        polygons = tree.query(Point(point))
-        for polygon in polygons:
-            id = hexagons.index(polygon)
-            cells.append(self.cells[id])
+        for hid in hids:
+            cells.append(self.cells[hid])
+            
         return cells
     
     def __get_STRtree(self, hexagons):

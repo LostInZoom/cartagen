@@ -1,10 +1,12 @@
 # This file contains several algorithms to amalgamate or aggregate two or more buildings
 
-from shapely.geometry import Polygon,MultiPolygon,Point
-from cartagen4py.util import morpho_math
-from cartagen4py.util.vector2D import Vector2D
 import math
-from cartagen4py.util.segment import get_segment_list
+
+from shapely.geometry import Polygon,MultiPolygon,Point
+
+from cartagen4py.utils.math.morphology import closing_multi_polygon, opening
+from cartagen4py.utils.math.vector import Vector2D
+from cartagen4py.utils.geometry.segment import get_segment_list
 
 # This the amalgamation algorithm from Damen et al. 2008 (https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113)
 def morphological_amalgamation(buildings, buffer_size, edge_length):
@@ -13,8 +15,8 @@ def morphological_amalgamation(buildings, buffer_size, edge_length):
     multipolygon = MultiPolygon(buildings)
 
     # make a morphological closing on the multipolygon
-    closed = morpho_math.closing_multi_polygon(multipolygon, buffer_size, cap_style=2)
-    merged = morpho_math.opening(closed, buffer_size, cap_style=2)
+    closed = closing_multi_polygon(multipolygon, buffer_size, cap_style=2)
+    merged = opening(closed, buffer_size, cap_style=2)
 
     if(merged.geom_type == 'Polygon'):
         clusters.append(merged)

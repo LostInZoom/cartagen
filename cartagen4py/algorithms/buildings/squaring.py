@@ -1,21 +1,25 @@
 # This is an implementation of the least squares based squaring algorithm proposed by Lokhat & Touya (https://hal.science/hal-02147792)
-
 import numpy as np
 
 class Squarer:
     """Initialize squaring object, with default weights and tolerance set in the constructor
     """
-    def __init__(self, max_iter=1000, norm_tol=0.05,rtol=10, ftol=0.11, hrtol=7, pfixe=5, p90=100, p0=50, p45=10, switch_new=False):
+    def __init__(
+            self, max_iteration=1000, norm_tolerance=0.05,
+            right_tolerance=10, flat_tolerance=10, half_right_tolerance=7,
+            fixed_weight=5, right_weight=100, flat_weight=50, half_right_weight=10, switch_new=False
+        ):
+
         self.SWITCH_NEW = switch_new
-        self.MAX_ITER = max_iter
-        self.NORM_DIFF_TOL = norm_tol
-        self.rightTol = rtol # 10 90° angles tolerance
-        self.flatTol = ftol # 0.11 flat angles tolerance
-        self.semiRightTol = hrtol # 7 45/135° angles tolerance
-        self.poidsPtfFixe = pfixe #5
-        self.poids90 = p90 #100
-        self.poids0 = p0 #50
-        self.poids45 = p45 #10
+        self.MAX_ITERATION = max_iteration
+        self.NORM_TOLERANCE = norm_tolerance
+        self.right_tolerance = right_tolerance # 10 90° angles tolerance
+        self.flat_tolerance = flat_tolerance # 10 flat angles tolerance
+        self.half_right_tolerance = half_right_tolerance # 7 45/135° angles tolerance
+        self.fixed_weight = fixed_weight #5
+        self.right_weight = right_weight #100
+        self.flat_weight = flat_weight #50
+        self.half_right_weight = half_right_weight #10
 
         self.point_shapes = {}
         self.__lines_pindex = []
@@ -112,9 +116,10 @@ class Squarer:
 
     def __idx_angles_remarquables(self, unik_points):
         #unik_points = list(self.point_shapes)
-        rTol = np.cos((np.pi / 2) - self.rightTol * np.pi / 180)
-        hrTol1 = np.cos((np.pi / 4) - self.semiRightTol * np.pi / 180)
-        hrTol2 = np.cos((np.pi / 4) + self.semiRightTol * np.pi / 180)
+        rTol = np.cos((np.pi / 2) - self.right_tolerance * np.pi / 180)
+        fTol = np.deg2rad(self.flat_tolerance)
+        hrTol1 = np.cos((np.pi / 4) - self.half_right_tolerance * np.pi / 180)
+        hrTol2 = np.cos((np.pi / 4) + self.half_right_tolerance * np.pi / 180)
         for idx_p in range(len(unik_points)):
             triplets = self.__get_angle_triplets(idx_p, unik_points)
             for t in triplets:
@@ -126,7 +131,7 @@ class Squarer:
                 cross = np.cross(v1n, v2n).item(0)
                 if (np.abs(dot) <= rTol):
                     self.indicesRight.append(t)
-                elif (cross <= self.flatTol):
+                elif (cross <= fTol):
                     self.indicesFlat.append(t)
                 #elif (dot <= hrTol1 and dot >= hrTol2):
                 #    self.indicesHrAig.append(t)
@@ -167,12 +172,12 @@ class Squarer:
         offset = 2 * nb_points
         for i, t in enumerate(self.indicesRight):
             v1, v2 = self.__get_vecs_around(t, points)
-            d = v1.dot(v2) 
+            d = v1.dot(v2)
             S[offset + i] = d
         offset = 2 * nb_points + len(self.indicesRight)
         for i, t in enumerate(self.indicesFlat):
             v1, v2 = self.__get_vecs_around(t, points)
-            d = np.cross(v1, v2).item(0) 
+            d = np.cross(v1, v2).item(0)
             S[offset + i] = d
         offset = 2 * nb_points + len(self.indicesRight) + len(self.indicesFlat)
         #for i, t in enumerate(self.indicesHrAig):
@@ -192,12 +197,11 @@ class Squarer:
         nb_points = len(self.point_shapes)
         nb_rights, nb_flats =  len(self.indicesRight), len(self.indicesFlat)
         #nb_half_rights = len(self.indicesHrAig) + len(self.indicesHrObt)
-        wfix = np.full(2*nb_points, self.poidsPtfFixe)
-        wRight = np.full(nb_rights, self.poids90)
-        wFlat = np.full(nb_flats, self.poids0)
-        #wHr = np.full(nb_half_rights, self.poids45)
+        wfix = np.full(2*nb_points, self.fixed_weight)
+        wRight = np.full(nb_rights, self.right_weight)
+        wFlat = np.full(nb_flats, self.flat_weight)
+        #wHr = np.full(nb_half_rights, self.half_right_weight)
         self.P = np.diag(np.concatenate((wfix, wRight, wFlat)))
-
 
     ## new vectors
     def __partial_derivatives_dotp(self, points, indices):
@@ -294,11 +298,11 @@ class Squarer:
         """
         points = self.__prepare_square(shapes)
         nb_points = len(points)
-        for i in range(self.MAX_ITER):
+        for i in range(self.MAX_ITERATION):
             dx = self.__compute_dx(points)
             points += dx.reshape((nb_points, 2))
             print(i, np.linalg.norm(dx, ord=np.inf))
-            if np.linalg.norm(dx, ord=np.inf) < self.NORM_DIFF_TOL:
+            if np.linalg.norm(dx, ord=np.inf) < self.NORM_TOLERANCE:
                 break
         self.nb_iters = i
         return points
@@ -327,4 +331,3 @@ class Squarer:
                 if r == 0 and is_poly:
                     new_s[idx_l][-1] = np.array(new_points[idx_p])
         return new_s
-

@@ -1,7 +1,7 @@
 # this file define the Segment class, which representation a mathematical segment
 
 from shapely.geometry import Point, LineString
-from cartagen4py.util import angle_operations
+from .angle import *
 import math
 import numpy as np
 
@@ -60,7 +60,7 @@ class Segment:
 
     def orientation(self):
         xAxisPt = Point(self.point1[0] + 10.0, self.point1[1])
-        return angle_operations.angle_3_pts(xAxisPt,Point(self.point1),Point(self.point2))
+        return angle_3_pts(xAxisPt,Point(self.point1),Point(self.point2))
     
     def length(self):
         return math.sqrt((self.point2[0]-self.point1[0])*(self.point2[0]-self.point1[0]) + (self.point2[1]-self.point1[1])*(self.point2[1]-self.point1[1]))

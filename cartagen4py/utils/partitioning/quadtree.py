@@ -1,4 +1,4 @@
-import pyqtree, shapely
+import shapely
 
 class QuadTree:
     """

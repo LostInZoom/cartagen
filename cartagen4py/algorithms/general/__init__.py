@@ -1,1 +1,1 @@
-from .constraint_method import ConstraintMethod
+from cartagen4py.algorithms.general.constraint import *

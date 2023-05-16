@@ -8,16 +8,27 @@ if sys.version_info[:2] < (3, 8):
 
 # General informations
 name = 'cartagen4py'
-version = '0.1.2'
+version = '0.1.9'
 description = 'Python package to generalise geographic objects for cartographic purposes'
 url = 'https://github.com/LostInZoom/cartagen4py'
-author = 'Guillaume Touya'
+author = 'Guillaume Touya, Justin Berli'
 author_email = 'guillaume.touya@ign.fr'
-lic = 'GPLv3'
+lic = 'CeCILL-C'
 packages = [
     'cartagen4py',
     'cartagen4py.algorithms',
-    'cartagen4py.algorithms.buildings'
+    'cartagen4py.algorithms.buildings',
+    'cartagen4py.algorithms.general',
+    'cartagen4py.algorithms.lines',
+    'cartagen4py.data_enrichment',
+    'cartagen4py.evaluation',
+    'cartagen4py.processes',
+    'cartagen4py.utils',
+    'cartagen4py.utils.clustering',
+    'cartagen4py.utils.geometry',
+    'cartagen4py.utils.math',
+    'cartagen4py.utils.partitioning',
+    'cartagen4py.utils.tessellation',
 ]
 
 # Requirements and dependencies
