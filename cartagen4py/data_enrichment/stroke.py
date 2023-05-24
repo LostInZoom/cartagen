@@ -21,10 +21,10 @@ class Stroke:
         angleThresh = deviatAngle / 180.0 * math.pi;
         sumThresh = deviatAngle / 180.0 * math.pi;
     
-        coord_ini1 = temp_geom.coords[0]
-        coord_fin1 = temp_geom.coords[-1]
-        coord_ini2 = geom_foll.coords[0]
-        coord_fin2 = geom_foll.coords[-1]
+        coord_ini1 = temp_geom["geom"].coords[0]
+        coord_fin1 = temp_geom["geom"].coords[-1]
+        coord_ini2 = geom_foll["geom"].coords[0]
+        coord_fin2 = geom_foll["geom"].coords[-1]
         coord_inter = None
         
         if coord_ini2==coord_ini1:
@@ -50,29 +50,29 @@ class Stroke:
         # define the node to compute the angle
         # get the first vertex on geometry 1
         if inter_geom1:
-            v1g1 = Point(temp_geom.coords[1])
+            v1g1 = Point(temp_geom["geom"].coords[1])
         else:
-            v1g1 = Point(temp_geom.coords[-2])
+            v1g1 = Point(temp_geom["geom"].coords[-2])
             
         # get the first vertex on geometry 2
         if inter_geom2:
-            v1g2 = Point(geom_foll.coords[1])
+            v1g2 = Point(geom_foll["geom"].coords[1])
         else:
-            v1g2 = Point(geom_foll.coords[-2])
+            v1g2 = Point(geom_foll["geom"].coords[-2])
             
         # if nbVert1 > 2, get the second vertex in geometry 1
-        if len(temp_geom.coords) > 2:
+        if len(temp_geom["geom"].coords) > 2:
             if inter_geom1:
-                v2g1 = Point(temp_geom.coords[2])
+                v2g1 = Point(temp_geom["geom"].coords[2])
             else:
-                v2g1 = Point(temp_geom.coords[-3])
+                v2g1 = Point(temp_geom["geom"].coords[-3])
     
         # if nbVert2 > 2, get the second vertex in geometry 2
-        if len(geom_foll.coords) > 2:
+        if len(geom_foll["geom"].coords) > 2:
             if inter_geom2:
-                v2g2 = Point(geom_foll.coords[2])
+                v2g2 = Point(geom_foll["geom"].coords[2])
             else:
-                v2g2 = Point(geom_foll.coords[-3])
+                v2g2 = Point(geom_foll["geom"].coords[-3])
     
         # now, compute interAngle between geom and geomFoll
         inter_angle = angle_3_pts(v1g1,  Point(coord_inter), v1g2)
@@ -141,14 +141,14 @@ class Stroke:
         loopFoll = []
         for attribute in attributeNames:
             # get the attribute value for 'arc'
-            value = getattr(arc,attribute)
+            value = arc[attribute]
             if len(followers) != 0:
                 # loop on the followers to filter them
                 loopFoll = []
                 loopFoll+=followers
                 for a in loopFoll:
                     # get the value of a for attribute
-                    valueA = getattr(a,attribute)
+                    valueA = a[attribute]
                     if value != valueA:
                         # remove 'a' from the followers set
                         followers.remove(a)
@@ -214,12 +214,12 @@ class Stroke:
     def one_side_stroke(self, side, attributeNames,deviatAngle,deviatSum):
         #get the following network segments of the root of this stroke
         node =None        
-        node = self.root.coords[side]
+        node = self.root["geom"].coords[side]
         if (node is None):
             return;
         followers =[]
         for arc in self.network.features:
-            if arc.coords[0]==node or arc.coords[-1]==node:
+            if arc["geom"].coords[0]==node or arc["geom"].coords[-1]==node:
                 followers.append(arc)
         followers.remove(self.root)
         next1 = self.root
@@ -238,12 +238,12 @@ class Stroke:
                 self.network.groupedFeatures.append(best) 
                 #get the followers of 'best'
                 followers=[]
-                nextNode = best.coords[0];
+                nextNode = best["geom"].coords[0];
                 if (node==nextNode):
-                    nextNode = best.coords[-1];
+                    nextNode = best["geom"].coords[-1];
                     
                 for arc in self.network.features:
-                    if arc.coords[0]==nextNode or arc.coords[-1]==nextNode:
+                    if arc["geom"].coords[0]==nextNode or arc["geom"].coords[-1]==nextNode:
                         followers.append(arc)
                 followers.remove(best)
                 #if there is no follower, break
@@ -255,7 +255,7 @@ class Stroke:
     def __str__(self):
         liste=""
         for elem in self.features: 
-            liste+=str(elem.id)
+            liste+=str(elem["id"])
             liste+=","
         return liste
     
@@ -271,21 +271,25 @@ class StrokeNetwork:
         #Initialisation from a geopanda dataframe and the liste of desired attribute name
         features=[]
         for idx in shapefile.index: 
-            elem=shapefile.geometry[idx]
-            elem.id=shapefile.id[idx]
+            elem={}
+            elem["geom"]=shapefile.geometry[idx]
+            elem["id"]=shapefile.id[idx]
+
             for attr in attributeNames:
-                setattr(elem,attr,getattr(shapefile,attr)[idx])
+                elem[attr]=getattr(shapefile,attr)[idx]
+                #setattr(elem,attr,)
             features+=[elem]
         self.features = features
         self.groupedFeatures = []
         self.id = 0;
         self.strokes = []
 
+
     def buildStrokes(self, attributeNames, deviatAngle, deviatSum) :
     #loop on the network features
         for obj in self.features :
                 #test if the feature has already been treated
-                if obj in self.groupedFeatures:
+                if obj in self.groupedFeatures :
                     continue
                 #build a new stroke object
                 stroke = Stroke(self, obj)
@@ -302,10 +306,11 @@ class StrokeNetwork:
             listline=[]
             section=""
             for j, seg in enumerate(stroke.features):
-                listline+=[seg]
-                section += str(seg.id)
+                listline+=[seg["geom"]]
+                section += str(seg["id"])
                 if j < len(stroke.features):
                     section += ","
+            print(listline)
             multi_line = MultiLineString(listline)
             merged_line = ops.linemerge(multi_line)
             array += [[i,merged_line,section]]

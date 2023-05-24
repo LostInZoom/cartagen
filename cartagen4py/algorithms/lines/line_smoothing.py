@@ -1,8 +1,8 @@
 # This file contains line smoothing algorithms
 
-from shapely import LineString, Point
+from shapely.geometry import LineString, Point
 from math import pi, sqrt, exp
-from cartagen4py.util.geometric_algorithms import densify_geometry, to_2d, get_index_of_vertex
+from cartagen4py.utils.geometry.line import densify_geometry, to_2d, get_index_of_vertex
 
 # Compute the gaussian smoothing of a set of a LineString. Sigma is the gaussian filter parameter, and threshold is the subsampling parameter
 # This code is a port from the GaussianFilter class in the GeOxygene Java library.
