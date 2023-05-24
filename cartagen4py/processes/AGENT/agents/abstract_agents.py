@@ -1,7 +1,7 @@
 import itertools
 
 class Agent:
-    newid = itertools.count().next
+    newid = itertools.count()
     id
     lifecycle = None
     satisfaction = 1.0
@@ -10,9 +10,10 @@ class Agent:
     deleted = False
     meso_agent = None
     feature = None
+    type = ""
 
     def __init__(self, feature):
-        self.id = Agent.newid()
+        self.id = next(Agent.newid)
         self.feature = feature
 
     def clean(self):
@@ -31,6 +32,7 @@ class Agent:
         imp_sum = 0.0
         for constraint in self.constraints:
             constraint.compute_satisfaction()
+            print("satisfaction for constraint {}: {}".format(constraint.type, constraint.satisfaction))
             sum += constraint.satisfaction * constraint.importance
             imp_sum += constraint.importance
         
@@ -41,10 +43,6 @@ class Agent:
         self.satisfaction = sum / imp_sum
 
         return self.satisfaction
-    
-    def remove_action(self, action):
-        if(action in self.actions_to_try):
-            self.actions_to_try.remove(action)
 
     # the best action to try is the one whose proposing constraint has 1/ the higher priority and 2/ the higher weight
     # the action proposal is an array with [action, constraint, weight]
@@ -57,6 +55,11 @@ class Agent:
         for i in range(0,len(self.actions_to_try)):
             action_to_try = self.actions_to_try[i]
             constraint = action_to_try[1]
+
+            # check if constraint is satisfied
+            if(constraint.satisfaction >= 100.0):
+                continue
+            
             # check priority
             if(constraint.priority < max_priority):
                 continue
@@ -78,10 +81,21 @@ class Agent:
         if (self.deleted):
             return
         
+        self.actions_to_try = []
         for constraint in self.constraints:
             if constraint.satisfaction >= 100:
                 continue
 
             constraint.compute_priority()
             constraint.compute_actions()
-            self.actions_to_try.append(constraint.actions)
+            for action in constraint.actions:
+                self.actions_to_try.append(action)
+
+    def remove_action_to_try(self, action_to_remove):
+        index = 0
+        for action in self.actions_to_try:
+            if action[0].name == action_to_remove[0].name:
+                break
+            index += 1
+        if index < len(self.actions_to_try):
+            del self.actions_to_try[index]

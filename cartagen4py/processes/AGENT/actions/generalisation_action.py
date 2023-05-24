@@ -4,6 +4,7 @@ class GeneralisationAction():
     constraint = None
     agent = None
     restriction = -1
+    name = ""
 
     def __init__(self, constraint, agent, weight):
         self.weight = weight
@@ -24,6 +25,7 @@ class DeletionAction(GeneralisationAction):
         self.weight = weight
         self.agent = agent
         self.constraint = constraint
+        self.name="Deletion"
     
     def compute(self):
         """Compute the action, i.e. triggers the algorithm."""

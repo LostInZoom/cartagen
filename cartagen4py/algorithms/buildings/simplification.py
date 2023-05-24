@@ -109,6 +109,9 @@ def __delete_side_polygon(polygon, segment, ring_index, parallel_limit, orthogon
     if(abs(angle) < parallel_limit):
         if(a_ == b_):
             return False, polygon
+        # this case removes two vertices so we need at least 6 in the ring
+        if(len(ring.coords) == 5):
+            return False, polygon
 
         # compute the projections
         aux_a = ((b[0] - b_[0]) * (a_[0] - b_[0])
