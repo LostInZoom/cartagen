@@ -26,6 +26,16 @@ def closing(polygon, buffer_size, cap_style=1):
     return closed
 
 def opening(polygon, buffer_size, cap_style=1):
+    if (polygon.geom_type == 'Polygon'):
+        return opening_simple(polygon, buffer_size, cap_style)
+
+    polygons = []
+    if (polygon.geom_type == 'MultiPolygon'):
+        for simple in polygon.geoms:
+            polygons.append(opening_simple(simple, buffer_size, cap_style))
+    return MultiPolygon(polygons)
+
+def opening_simple(polygon, buffer_size, cap_style=1):
     eroded = erosion(polygon, buffer_size, cap_style)
 
     if (eroded is None):
