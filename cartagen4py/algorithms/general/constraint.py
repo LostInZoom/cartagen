@@ -89,10 +89,6 @@ class ConstraintMethod:
         nb_points = len(points)
         # Calculate dx as long as the maximum iteration is not reached
         for i in range(self.MAX_ITER):
-            # Recalculate distances between conflicting nodes after the first iteration
-            if i > 0:
-                self.__update_distances(points)
-
             # Apply the least square method
             dx = self.__compute_dx(points)
             # Reshape the matrix
@@ -100,10 +96,14 @@ class ConstraintMethod:
             # Calculate the norm
             norm = np.linalg.norm(dx, ord=np.inf)
             if self.VERBOSE:
+                pass
                 print(norm)
             # Break the loop if the norm is below the tolerance threshold
             if norm < self.NORM_TOLERANCE:
                 break
+            else:
+                # Recalculate distances between conflicting nodes after the first iteration
+                self.__update_distances(points)
 
         # Recreate objects geometries
         result = self.__reconstruct_geometries(points)
@@ -223,31 +223,28 @@ class ConstraintMethod:
         """
         Build the observation vector.
         """
-        # Set constraints size
-        constraints = 0
-        # Loop through all constraint that are not movement
-        for cname, clist in self.__constraints.items():
-            if cname != 'movement':
-                constraints += len(clist)
-
+        stiffness = self.__constraints['stiffness']
         nodes = self.__nodes
         links = self.__links
 
-        # Define the size of the vector - movement x2 for x and y - nodes x2 and links x3 for the two and three points of the spatial relationship 
-        size = 2 * len(points) + constraints + len(nodes) + len(links)
+        # Define the size of the vector
+        size = 2 * len(points) + 2 * len(stiffness) + len(nodes) + len(links)
         # Create a zero filled np array of the wanted shape
         Y = np.zeros(size)
 
         # Add x and y value to the begining of the vector representing the movement constraint
         for i, p in enumerate(points):
-            Y[(2*i)] = p[0]
-            Y[(2*i+1)] = p[1]
+            Y[2 * i] = p[0]
+            Y[2 * i + 1] = p[1]
 
         offset = 2 * len(points)
-        for i, p in enumerate(self.__constraints['stiffness']):
-            print(p)
+        for i, p in enumerate(stiffness):
+            valid, current, dx, dy = self.__calculate_stiffness(p, points)
+            if valid:
+                Y[offset + 2 * i] = dx
+                Y[offset + 2 * i + 1] = dy
 
-        offset += constraints
+        offset += 2 * len(stiffness)
         # Add minimum distance between close nodes
         for i, n in enumerate(nodes):
             Y[offset + i] = n[2]
@@ -267,25 +264,26 @@ class ConstraintMethod:
         nodes = self.__nodes
         links = self.__links
 
-        S = np.zeros(2 * len(points) + len(stiffness) + len(nodes) + len(links))
+        S = np.zeros(2 * len(points) + 2 * len(stiffness) + len(nodes) + len(links))
 
         for i, p in enumerate(points):
             S[2 * i] = p[0]
             S[2 * i + 1] = p[1]
 
         offset = 2 * len(points)
-        for i, s in enumerate(stiffness):
-            pass
+        for i, p in enumerate(stiffness):
+            valid, current, dx, dy = self.__calculate_stiffness(p, points)
+            if valid:
+                S[offset + 2 * i] = dx
+                S[offset + 2 * i + 1] = dy
 
-        offset += len(stiffness)
+        offset += 2 * len(stiffness)
         for i, n in enumerate(nodes):
-            pass
-            #S[offset + i] = n[3]
+            S[offset + i] = n[3]
 
         offset += len(nodes)
         for i, l in enumerate(links):
-            pass
-            #S[offset + i] = l[4]
+            S[offset + i] = l[4]
 
         return self.__Y - S
 
@@ -310,7 +308,7 @@ class ConstraintMethod:
                 p = []
                 # Loop through each point concerned by the constraint
                 for c in clist:
-                    p.append(c[1])
+                    p.extend([c[1], c[1]])
                 # Create the matrix with the weights
                 constraints.append(np.full(len(p), p))
 
@@ -361,25 +359,13 @@ class ConstraintMethod:
         """
         stiff_points = self.__constraints['stiffness']
         shapes = self.__shapes
-        m = np.zeros((len(stiff_points), 2 * len(points)))
+        m = np.zeros((2 * len(stiff_points), 2 * len(points)))
 
-        for i, point in enumerate(stiff_points):
-            current_id = point[0]
-            position = self.__points[current_id]
-            oid, sid, pid = position[0], position[1], position[2]
-            shape = shapes[oid][sid]
-            pid1 = pid + 1
-            
-            x0, y0 = points[current_id][0], points[current_id][1]
-            if pid1 < len(shape):
-                next_id = shape[pid1] 
-                x1, y1 = points[next_id][0], points[next_id][1]
-                dx = x1 - x0
-                dy = y1 - y0
-                m[i][2 * current_id] = dx
-                m[i][2 * current_id + 1] = dy
-                m[i][2 * next_id] = dx
-                m[i][2 * next_id + 1] = dy
+        for i, p in enumerate(stiff_points):
+            valid, current, dx, dy = self.__calculate_stiffness(p, points)
+            if valid:
+                m[2 * i][2 * current] = dx
+                m[2 * i + 1][2 * current + 1] = dy
 
         return m
 
@@ -573,6 +559,28 @@ class ConstraintMethod:
                 for p in s:
                     # Check conflicts with other points
                     check_conflicts(p)
+
+    def __calculate_stiffness(self, point, points):
+        """
+        Estimate the stiffness by calculating the amount of movement between following point on a shape 
+        """
+        current_id = point[0]
+        position = self.__points[current_id]
+        oid, sid, pid = position[0], position[1], position[2]
+        shape = self.__shapes[oid][sid]
+        pid1 = pid + 1
+        x0, y0 = points[current_id][0], points[current_id][1]
+        dx = dy = None
+        if pid1 < len(shape):
+            valid = True
+            next_id = shape[pid1] 
+            x1, y1 = points[next_id][0], points[next_id][1]
+            dx = np.abs(x1 - x0)
+            dy = np.abs(y1 - y0)
+        else:
+            valid = False
+
+        return valid, current_id, dx, dy
 
     def __update_distances(self, points):
         """
