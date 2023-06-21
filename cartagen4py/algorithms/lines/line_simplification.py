@@ -110,7 +110,7 @@ def raposo_simplification(line, initial_scale, final_scale, centroid=True, toble
     if(twod_final_point.coords[0] not in final_coords):
         final_coords.append(twod_final_point.coords[0])
     
-    print(final_coords)
+    # print(final_coords)
     return LineString(final_coords)
 
 def __compute_raposo_width(line,initial_scale,final_scale):
