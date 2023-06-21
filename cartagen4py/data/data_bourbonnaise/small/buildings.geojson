@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "buildings_simple",
+"name": "buildings",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
 "features": [
 { "type": "Feature", "properties": { "osm_id": "548870646", "code": 1500, "fclass": "building", "name": null, "type": null, "osm_id_2": "82336728", "code_2": 1003, "fclass_2": "village", "population": 0, "name_2": "Le Mayet-de-Montagne", "osm_id_3": "548870762", "code_3": 1500, "fclass_3": "building", "name_3": null, "type_2": null, "osm_id_2_2": "82336728", "code_2_2": 1003, "fclass_2_2": "village", "populati_1": 0, "name_2_2": "Le Mayet-de-Montagne" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 402205.479954772512428, 5799899.660502543672919 ], [ 402216.411528768425342, 5799902.374724037945271 ], [ 402218.014529435895383, 5799896.625072391703725 ], [ 402207.517101454082876, 5799893.653885154984891 ], [ 402205.479954772512428, 5799899.660502543672919 ] ] ] } },

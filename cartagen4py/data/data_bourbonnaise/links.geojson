@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "lid": 0 }, "geometry": { "type": "LineString", "coordinates": [ [ 402118.847371457726695, 5799974.59075088892132 ], [ 402116.905221859342419, 5799978.289279254153371 ] ] } },
+{ "type": "Feature", "properties": { "lid": 1 }, "geometry": { "type": "LineString", "coordinates": [ [ 402126.897101355949417, 5799978.536696918308735 ], [ 402124.839254912629258, 5799982.455552319064736 ] ] } }
+]
+}
