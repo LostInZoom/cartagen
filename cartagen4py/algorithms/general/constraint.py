@@ -1,6 +1,6 @@
 # This is an implementation of the least squares method proposed by Lars E. Harrie (1999)
 
-import shapely, pprint
+import shapely, pprint, geopandas
 import numpy as np
 from cartagen4py.utils.partitioning.network import network_partition
 
@@ -80,6 +80,9 @@ class ConstraintMethod:
         # Flag spatially conflicting points depending on the distance parameter
         self.__calculate_spatial_conflicts(points)
 
+        # Debugging tool to visualize spatial conflicts
+        self.__export_spatial_conflicts(points)
+
         # Build the observation matrix
         self.__build_Y(points)
 
@@ -92,11 +95,10 @@ class ConstraintMethod:
             # Apply the least square method
             dx = self.__compute_dx(points)
             # Reshape the matrix
-            points += dx.reshape((nb_points, 2))
+            points += dx.reshape(nb_points, 2)
             # Calculate the norm
             norm = np.linalg.norm(dx, ord=np.inf)
             if self.VERBOSE:
-                pass
                 print(norm)
             # Break the loop if the norm is below the tolerance threshold
             if norm < self.NORM_TOLERANCE:
@@ -201,22 +203,22 @@ class ConstraintMethod:
             if 'spatial' not in w.keys():
                 raise Exception('{0} must have a spatial constraint.'.format(geomtype))
 
-            # Linestring and polygon specific verifications
-            if geomtype in ['LineString', 'Polygon']:
-                # Check if the movement weight is -1 (infinite)
-                if w['movement'] == -1:
-                    # Raise an error if a stiffness or a curvature is also provided
-                    if 'stiffness' in w.keys():
-                        raise Exception('Immovable {0} (movement weight equal -1) cannot have a stiffness constraint.'.format(geomtype))
-                    if 'curvature' in w.keys():
-                        raise Exception('Immovable {0} (movement weight equal -1) cannot have a curvature constraint.'.format(geomtype))
-                else:
-                    # Check if neither stiffness nor curvature is provided
-                    if 'stiffness' not in w.keys() and 'curvature' not in w.keys():
-                        raise Exception('Movable {0} must have a stiffness or a curvature constraint.'.format(geomtype))
-                    # Check if both stiffness and curvature are provided
-                    if (w.keys() >= {'curvature', 'stiffness'}):
-                        raise Exception('Movable {0} cannot have both stiffness and curvature constraints.'.format(geomtype))
+            # # Linestring and polygon specific verifications
+            # if geomtype in ['LineString', 'Polygon']:
+            #     # Check if the movement weight is -1 (infinite)
+            #     if w['movement'] == -1:
+            #         # Raise an error if a stiffness or a curvature is also provided
+            #         if 'stiffness' in w.keys():
+            #             raise Exception('Immovable {0} (movement weight equal -1) cannot have a stiffness constraint.'.format(geomtype))
+            #         if 'curvature' in w.keys():
+            #             raise Exception('Immovable {0} (movement weight equal -1) cannot have a curvature constraint.'.format(geomtype))
+            #     else:
+            #         # Check if neither stiffness nor curvature is provided
+            #         if 'stiffness' not in w.keys() and 'curvature' not in w.keys():
+            #             raise Exception('Movable {0} must have a stiffness or a curvature constraint.'.format(geomtype))
+            #         # Check if both stiffness and curvature are provided
+            #         if (w.keys() >= {'curvature', 'stiffness'}):
+            #             raise Exception('Movable {0} cannot have both stiffness and curvature constraints.'.format(geomtype))
         return w
 
     def __build_Y(self, points):
@@ -239,10 +241,9 @@ class ConstraintMethod:
 
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
-            valid, current, dx, dy = self.__calculate_stiffness(p, points)
-            if valid:
-                Y[offset + 2 * i] = dx
-                Y[offset + 2 * i + 1] = dy
+            current, dx, dy = self.__calculate_stiffness(p, points)
+            Y[offset + 2 * i] = dx
+            Y[offset + 2 * i + 1] = dy
 
         offset += 2 * len(stiffness)
         # Add minimum distance between close nodes
@@ -272,10 +273,9 @@ class ConstraintMethod:
 
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
-            valid, current, dx, dy = self.__calculate_stiffness(p, points)
-            if valid:
-                S[offset + 2 * i] = dx
-                S[offset + 2 * i + 1] = dy
+            current, dx, dy = self.__calculate_stiffness(p, points)
+            S[offset + 2 * i] = dx
+            S[offset + 2 * i + 1] = dy
 
         offset += 2 * len(stiffness)
         for i, n in enumerate(nodes):
@@ -362,10 +362,9 @@ class ConstraintMethod:
         m = np.zeros((2 * len(stiff_points), 2 * len(points)))
 
         for i, p in enumerate(stiff_points):
-            valid, current, dx, dy = self.__calculate_stiffness(p, points)
-            if valid:
-                m[2 * i][2 * current] = dx
-                m[2 * i + 1][2 * current + 1] = dy
+            current, dx, dy = self.__calculate_stiffness(p, points)
+            m[2 * i][2 * current] = dx
+            m[2 * i + 1][2 * current + 1] = dy
 
         return m
 
@@ -447,6 +446,7 @@ class ConstraintMethod:
                 / np.sqrt(np.square(y2 - h - y1) / np.square(x1 - x2) + 1)
             )
 
+            # Filling the matrix with the partial derivatives
             m[offset + i][n[0]] = u
             m[offset + i][n[0] + 1] = v
             m[offset + i][n[1]] = w
@@ -480,7 +480,7 @@ class ConstraintMethod:
                 points = self.__get_coordinates(shape.geometry)
                 for pid, p in enumerate(points):
                     if geomtype == 'Polygon' and pid >= (len(points) - 1):
-                        pass
+                        continue
                     else:
                         unique_points.append(p)
                         self.__points.append((oid, sid, pid))
@@ -497,59 +497,76 @@ class ConstraintMethod:
         Retrieve conflicting pairs of nodes and nodes, or nodes and links.
         """
 
-        def retrieve_nodes_links(shape, p, min_dist, weight):
+        def add_node_to_node(c):
+            add = True
+            for n in self.__nodes:
+                if (c[0] == n[0] and c[1] == n[1]) or (c[0] == n[1] and c[1] == n[0]):
+                    add = False
+            if add:
+                self.__nodes.append(c)
+
+        def retrieve_nodes_links(shape, geomtype, p, min_dist, weight):
             point = shapely.Point(points[p])
             # Loop through all the points of the LineString or Polygon shape
             for pid1, p1 in enumerate(shape):
+                notlast = True
                 # Check if it's not the last point of the shape
                 if pid1 < (len(shape) - 1):
                     p2 = shape[pid1 + 1]
-                    # Retrieve the current and next point, calculate the line between them
-                    point1 = shapely.Point(points[p1])
-                    point2 = shapely.Point(points[p2])
-                    line = shapely.LineString([point1, point2])
-                    # Calculate the distance between the point and point 1 and 2, and with the line
-                    pdist1 = shapely.distance(point, point1)
-                    pdist2 = shapely.distance(point, point2)
-                    ldist = shapely.distance(point, line)
-                    # First, checks if one of the three distance is below the minimum distance threshold
-                    if pdist1 < min_dist or pdist2 < min_dist or ldist < min_dist:
-                        # If the line distance is the smallest, insert a node to link spatial conflict
-                        if ldist < pdist1 and ldist < pdist2:
-                            self.__links.append([p, p1, p2, min_dist, ldist, weight])
+                else:
+                    notlast = False
+                    if geomtype == 'Polygon':
+                        p2 = shape[0]
+                    else:
+                        continue
+                # Retrieve the current and next point, calculate the line between them
+                point1 = shapely.Point(points[p1])
+                point2 = shapely.Point(points[p2])
+                line = shapely.LineString([point1, point2])
+                # Calculate the distance between the point and point 1 and 2, and with the line
+                pdist1 = shapely.distance(point, point1)
+                pdist2 = shapely.distance(point, point2)
+                ldist = shapely.distance(point, line)
+                # First, re-checks if one of the three distance is below the minimum distance threshold
+                if pdist1 < min_dist or pdist2 < min_dist or ldist < min_dist:
+                    # If the line distance is the smallest, insert a node to link spatial conflict
+                    if ldist < pdist1 and ldist < pdist2:
+                        self.__links.append([p, p1, p2, min_dist, ldist, weight])
+                    else:
+                        # Determine which node is the closest
+                        if pdist1 < pdist2:
+                            add_node_to_node([p, p1, min_dist, pdist1, weight])
                         else:
-                            # Determine which node is the closest
-                            if pdist1 < pdist2:
-                                self.__nodes.append([p, p1, min_dist, pdist1, weight])
-                            else:
-                                self.__nodes.append([p, p2, min_dist, pdist2, weight])
+                            if notlast:
+                                add_node_to_node([p, p2, min_dist, pdist2, weight])
 
         # Check if the considered point is spatially conflicting with other points
         def check_conflicts(p):
             point = shapely.Point(points[p])
             oid, sid, pid = self.__points[p][0], self.__points[p][1], self.__points[p][2]
-            d = self.__DISTANCES[oid]
+            dmin = self.__DISTANCES[oid]
             weight = self.__WEIGHTS[oid]['spatial']
             # Loop through all objects
             for oid1, o in enumerate(self.__shapes):
                 # Loop through all shapes
                 for sid1, s in enumerate(o):
-                    # If the shape is not the same as the concerned point
-                    if oid != oid1 and sid != sid1:
-                        # Retrieve the distance value associated with this object
-                        d1 = self.__DISTANCES[oid1]
-                        # Select the highest distance of the two
-                        min_dist = max(d, d1)
+                    # Checks if the shape is not the same as the concerned point
+                    if oid1 == oid and sid1 == sid:
+                        continue
+                    else:
                         # Retrieve the geometry of the shape
                         shape = self.__OBJECTS[oid1].geometry[sid1]
                         # Checks if that shape is within the minimum distance before retrieving pairs of nodes and links
-                        if shapely.dwithin(point, shape, min_dist):
+                        if shapely.dwithin(point, shape, dmin):
+                            # Stores the geometry type
+                            geomtype = shape.geom_type
                             # Checks if the shape is a point
-                            if len(s) == 1:
+                            if geomtype == 'Point':
                                 distance = shapely.distance(point, shape)
-                                self.__nodes.append([p, s[0], min_dist, distance, weight])
+                                self.__nodes.append([p, s[0], dmin, distance, weight])
+                            # If it's not, checking if it's closer to a node or a segment
                             else:
-                                retrieve_nodes_links(s, p, min_dist, weight)
+                                retrieve_nodes_links(s, geomtype, p, dmin, weight)
 
         # Loop through all objects
         for o in self.__shapes:
@@ -562,7 +579,8 @@ class ConstraintMethod:
 
     def __calculate_stiffness(self, point, points):
         """
-        Estimate the stiffness by calculating the amount of movement between following point on a shape 
+        Estimate the stiffness by calculating the amount of movement between following point on a shape.
+        TODO: Only working for buildings
         """
         current_id = point[0]
         position = self.__points[current_id]
@@ -570,17 +588,18 @@ class ConstraintMethod:
         shape = self.__shapes[oid][sid]
         pid1 = pid + 1
         x0, y0 = points[current_id][0], points[current_id][1]
-        dx = dy = None
-        if pid1 < len(shape):
-            valid = True
-            next_id = shape[pid1] 
-            x1, y1 = points[next_id][0], points[next_id][1]
-            dx = np.abs(x1 - x0)
-            dy = np.abs(y1 - y0)
-        else:
-            valid = False
 
-        return valid, current_id, dx, dy
+        if pid < (len(shape) - 1):
+            pid1 = pid + 1
+        else:
+            pid1 = 0
+
+        next_id = shape[pid1] 
+        x1, y1 = points[next_id][0], points[next_id][1]
+        dx = np.abs(x1 - x0)
+        dy = np.abs(y1 - y0)
+
+        return current_id, dx, dy
 
     def __update_distances(self, points):
         """
@@ -592,13 +611,15 @@ class ConstraintMethod:
             v = np.array([x2 - x1, y2 - y1])
             norm = np.linalg.norm(v)
             self.__nodes[i][3] = norm
+            #print('{0} to {1} = {2}'.format(n[0], n[1], norm))
 
         for i, n in enumerate(self.__links):
             n0 = np.array(points[n[0]])
             n1 = np.array(points[n[1]])
             n2 = np.array(points[n[2]])
             d = np.linalg.norm(np.cross(n2 - n1, n1 - n0)) / np.linalg.norm(n2 - n1)
-            self.__links[i][4] = norm
+            self.__links[i][4] = d
+            #print('{0} to {1} and {2} = {3}'.format(n[0], n[1], n[2], d))
 
     def __get_coordinates(self, shape):
         """
@@ -639,3 +660,52 @@ class ConstraintMethod:
                     # Update the geometry of the shape
                     self.__RESULTS[oid].loc[sid, 'geometry'] = geometry
         return self.__OBJECTS
+
+    def __export_spatial_conflicts(self, points):
+        pointslist = []
+        shape_id = 0
+        for o in self.__shapes:
+            for s in o:
+                for p in s:
+                    pointslist.append({
+                    'id' : p,
+                    'object' : shape_id,
+                    'geometry' : shapely.Point(points[p])
+                }) 
+                shape_id += 1         
+
+        points_gdf = geopandas.GeoDataFrame(pointslist, crs=3857)
+
+        nodes = []
+        for i, node in enumerate(self.__nodes):
+            nodes.append({
+                'nid0': node[0],
+                'nid1': node[1],
+                'group': i,
+                'geometry': shapely.LineString([points[node[0]], points[node[1]]])
+            })
+
+        if len(nodes) > 0:
+            nodes_gdf = geopandas.GeoDataFrame(nodes, crs=3857)
+            nodes_gdf.to_file("cartagen4py/data/data_bourbonnaise/nodes.geojson", driver="GeoJSON")
+
+        links = []
+        for lid, link in enumerate(self.__links):
+            p0 = shapely.Point(points[link[0]])
+            p1 = shapely.Point(points[link[1]])
+            p2 = shapely.Point(points[link[2]])
+            line = shapely.LineString([p1, p2])
+            dist = line.project(p0)
+            projected = line.interpolate(dist)
+            links.append({
+                'lid': lid,
+                'geometry': shapely.LineString([p0, projected])
+            })
+
+        if len(links) > 0:
+            links_gdf = geopandas.GeoDataFrame(links, crs=3857)
+            links_gdf.to_file("cartagen4py/data/data_bourbonnaise/links.geojson", driver="GeoJSON")
+        
+        points_gdf.to_file("cartagen4py/data/data_bourbonnaise/points_nodes.geojson", driver="GeoJSON")
+        
+        
