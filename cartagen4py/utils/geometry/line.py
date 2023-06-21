@@ -84,3 +84,19 @@ def geometry_flatten(geom):
 
 def geometry_len(geom):
   return sum(len(g.coords) for g in geometry_flatten(geom))
+
+# Gets the nearest point of the geometry to a point. If the point is a vertex, it is not chosen.
+def get_nearest_vertex(geometry, point):
+    min_dist = float('inf')
+    nearest = None
+   
+    for vertex in geometry.coords:
+        vertex_pt = Point(vertex)
+        distance = vertex_pt.distance(point)
+        if distance == 0:
+            continue
+        if distance < min_dist:
+            min_dist = distance
+            nearest = vertex_pt
+    
+    return nearest

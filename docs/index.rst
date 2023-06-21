@@ -11,7 +11,7 @@ Apply map generalisation operations
 
 Orchestrate multiple algorithms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+.. image:: img/agents_micro.png
 
 Enrich your cartographic data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -23,8 +23,11 @@ Evaluate your generalised map
 
 
 .. toctree::
+   :caption: Installation Guide
    :caption: User Guide
+   :caption: Cartagen4qgis plugin
    :hidden:
 
    installation
    user_guide
+   cartagen4qgis
