@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="3.30.2-'s-Hertogenbosch">
+<qgis version="3.30.3-'s-Hertogenbosch">
   <identifier></identifier>
   <parentidentifier></parentidentifier>
   <language></language>

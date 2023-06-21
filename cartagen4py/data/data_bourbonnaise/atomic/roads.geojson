@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "roads",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1 }, "geometry": { "type": "LineString", "coordinates": [ [ 402101.445746701967437, 5799970.17129001673311 ], [ 402136.012233912071679, 5799988.322641748003662 ], [ 402163.791693953040522, 5799992.268587776459754 ] ] } }
+]
+}
