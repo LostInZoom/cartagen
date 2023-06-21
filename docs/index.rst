@@ -7,7 +7,7 @@ cartagen4py
 
 Apply map generalisation operations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. image:: img/building_simplification.png
+.. image:: img/buiding_simplification.png
 
 Orchestrate multiple algorithms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
