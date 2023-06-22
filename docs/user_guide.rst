@@ -10,7 +10,7 @@ Operations for lines
 
 .. method:: visvalingam_whyatt(line, area_tolerance)
 
-    Returns a simplified version of the line using the Visvalingam-Whyatt algorithm '(Visvalingam & Whyatt, 1993) <https://www.tandfonline.com/doi/abs/10.1179/000870493786962263?journalCode=ycaj20>'.
+    Returns a simplified version of the line using the Visvalingam-Whyatt algorithm '(Visvalingam & Whyatt, 1993) <https://www.tandfonline.com/doi/abs/10.1179/000870493786962263?journalCode=ycaj20>'_.
     The area_tolerance is the minimum area of the triangle formed by three consecutive vertices, to keep the middle vertex in the simplified line.
 
 .. code-block:: pycon
