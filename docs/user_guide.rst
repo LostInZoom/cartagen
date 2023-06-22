@@ -1,9 +1,9 @@
-======================
+==========================
 User Guide for cartagen4py
-======================
+==========================
 
 Apply map generalisation operations
-------------------------------
+-----------------------------------
 
 Operations for lines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -33,10 +33,10 @@ Operations for groups of objects
 
 
 Enrich your data prior to map generalisation
-------------------------------
+--------------------------------------------
 
 Extracting implicit geographic structures
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 Measures on map features
@@ -44,4 +44,4 @@ Measures on map features
 
 
 Apply map generalisation complex processes
-------------------------------
+------------------------------------------

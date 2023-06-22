@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import cartagen4py as c4
 import geopandas as gp
 
@@ -22,3 +23,5 @@ original = lines.plot(edgecolor='gray',linewidth=1)
 generalized.plot(ax=original, edgecolor='red', linewidth=1)
 original.axes.get_xaxis().set_visible(False)
 original.axes.get_yaxis().set_visible(False)
+
+plt.show()

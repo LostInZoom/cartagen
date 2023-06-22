@@ -1,4 +1,5 @@
 matplotlib
+numpy
 geopandas
 shapely
 cartagen4py

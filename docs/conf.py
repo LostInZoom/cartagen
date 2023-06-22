@@ -16,7 +16,10 @@ release = '0.1'
 
 master_doc = 'index'
 source_suffix = '.rst'
-extensions = ['sphinx.ext.autodoc']
+extensions = [
+    'sphinx.ext.autodoc',
+    'matplotlib.sphinxext.plot_directive'
+]
 
 templates_path = ['_templates']
 exclude_patterns = []
