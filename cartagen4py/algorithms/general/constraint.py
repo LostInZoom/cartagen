@@ -3,53 +3,52 @@
 import shapely, pprint, geopandas
 import numpy as np
 from cartagen4py.utils.partitioning.network import network_partition
+np.set_printoptions(suppress=True)
 
 class ConstraintMethod:
     """
-    TODO: Remove infinite movement constraint
     Initialize constraint method object, with default constraints
     Parameters
     ----------
     default_distance : int optional
-        This is the default distance for the buffers created to detect spatial conflicts.
-        This value will be used with all objects added to the generalization if no distance is provided.
-        
+        This is the default distance for the detection of spatial conflicts.        
     """
-    def __init__(self, default_distance=5, max_iteration=1000, norm_tolerance=0.05, verbose=False):
+    def __init__(self, max_iteration=1000, default_distance=5, default_conflict_weight=15, norm_tolerance=0.05, verbose=False):
         self.MAX_ITER = max_iteration
         self.DEFAULT_DISTANCE = default_distance
+        self.DEFAULT_CONFLICT_WEIGHT = default_conflict_weight
         self.NORM_TOLERANCE = norm_tolerance
         self.VERBOSE = verbose
 
         self.__ALLOWED_WEIGHTS = {
-            'Point': ['movement', 'spatial'],
-            'LineString': ['movement', 'stiffness', 'curvature', 'spatial'],
-            'Polygon': ['movement', 'stiffness', 'curvature', 'spatial']
+            'Point': ['movement'],
+            'LineString': ['movement', 'stiffness', 'curvature'],
+            'Polygon': ['movement', 'stiffness', 'curvature']
         }
 
         self.__DEFAULT_WEIGHTS = {
             # By default, points can move and are influenced by spatial conflicts
             'Point': {
-                'movement': 50,
-                'spatial': 50
+                'movement': 1
             },
             # By default, lines are immovable (-1 correspond to positive infinite)
             'LineString': {
-                'movement': -1,
-                'spatial': 50
+                'movement': 1
             },
             # By default, polygons can move and are stiff, i.e. their internal geometry must be invariant
             'Polygon': {
-                'movement': 50,
-                'stiffness': 200,
-                'spatial': 50
+                'movement': 1,
+                'stiffness': 10
             }
         }
+
+        self.__DISTANCES = np.ndarray((0, 0))
+        self.__CONFLICTS = np.ndarray((0, 0))
         
         self.__OBJECTS = []
         self.__RESULTS = []
         self.__WEIGHTS = []
-        self.__DISTANCES = []
+        # self.__DISTANCES = []
         self.__SHAPE_COUNT = 0
         
         self.__points = []
@@ -66,53 +65,7 @@ class ConstraintMethod:
             'curvature': []
         }
 
-    def generalize(self, network_partitioning=True):
-        """
-        Launch the constraint generalization on the added objects.
-        """
-        # Checks if objects are present
-        if len(self.__OBJECTS) < 1:
-            raise Exception('No objects provided, cannot generalize.')
-        
-        # Prepare points and shapes using their index
-        points = self.__generate_point_list()
-
-        # Flag spatially conflicting points depending on the distance parameter
-        self.__calculate_spatial_conflicts(points)
-
-        # Debugging tool to visualize spatial conflicts
-        self.__export_spatial_conflicts(points)
-
-        # Build the observation matrix
-        self.__build_Y(points)
-
-        # Build the weighing matrice
-        self.__build_W(points)
-
-        nb_points = len(points)
-        # Calculate dx as long as the maximum iteration is not reached
-        for i in range(self.MAX_ITER):
-            # Apply the least square method
-            dx = self.__compute_dx(points)
-            # Reshape the matrix
-            points += dx.reshape(nb_points, 2)
-            # Calculate the norm
-            norm = np.linalg.norm(dx, ord=np.inf)
-            if self.VERBOSE:
-                print(norm)
-            # Break the loop if the norm is below the tolerance threshold
-            if norm < self.NORM_TOLERANCE:
-                break
-            else:
-                # Recalculate distances between conflicting nodes after the first iteration
-                self.__update_distances(points)
-
-        # Recreate objects geometries
-        result = self.__reconstruct_geometries(points)
-
-        return result
-
-    def add(self, *objects, distance=None, **weights):
+    def add(self, *objects, **weights):
         """
         Add one or multiple geographic object for preparation before the generalization. If multiple objects are provided, they must have the same geometry type.
         Parameters
@@ -148,16 +101,12 @@ class ConstraintMethod:
             
             # Check if weights are correctly specified
             w = self.__reconstruct_weights(geometry, **weights)
+
             self.__WEIGHTS.append(w)
 
             # Create a new field and populate it with a unique id based on the total number of shapes
             count = self.__SHAPE_COUNT
             o.insert(0, 'cid', range(count, count + len(o)))
-
-            if distance is None:
-                self.__DISTANCES.append(self.DEFAULT_DISTANCE)
-            else:
-                self.__DISTANCES.append(distance)
             
             # Increment the number of shapes
             self.__SHAPE_COUNT += len(o)
@@ -198,28 +147,94 @@ class ConstraintMethod:
             # Check if movement weight is provided
             if 'movement' not in w.keys():
                 raise Exception('{0} must have a movement constraint. A weight of -1 can be used to avoid this object from moving.'.format(geomtype))
-            
-            # Check if spatial weight is provided
-            if 'spatial' not in w.keys():
-                raise Exception('{0} must have a spatial constraint.'.format(geomtype))
 
-            # # Linestring and polygon specific verifications
-            # if geomtype in ['LineString', 'Polygon']:
-            #     # Check if the movement weight is -1 (infinite)
-            #     if w['movement'] == -1:
-            #         # Raise an error if a stiffness or a curvature is also provided
-            #         if 'stiffness' in w.keys():
-            #             raise Exception('Immovable {0} (movement weight equal -1) cannot have a stiffness constraint.'.format(geomtype))
-            #         if 'curvature' in w.keys():
-            #             raise Exception('Immovable {0} (movement weight equal -1) cannot have a curvature constraint.'.format(geomtype))
-            #     else:
-            #         # Check if neither stiffness nor curvature is provided
-            #         if 'stiffness' not in w.keys() and 'curvature' not in w.keys():
-            #             raise Exception('Movable {0} must have a stiffness or a curvature constraint.'.format(geomtype))
-            #         # Check if both stiffness and curvature are provided
-            #         if (w.keys() >= {'curvature', 'stiffness'}):
-            #             raise Exception('Movable {0} cannot have both stiffness and curvature constraints.'.format(geomtype))
         return w
+
+    def add_spatial_conflicts(self, distances, spatial_weights):
+        nb_obj = len(self.__OBJECTS)
+        sd = distances.shape
+        sw = spatial_weights.shape
+        xd, yd, xw, yw = sd[0], sd[1], sw[0], sw[1]
+
+        if xd != xw or yd != yw:
+            raise Exception("The distances matrix and the spatial weights matrix must have the same dimensions.")
+        else:
+            if xd != yd:
+                raise Exception("The spatial conflict matrix must be square.")
+            else:
+                dimension_error = False
+                if xd != nb_obj:
+                    dimension_error = True
+                if yd != nb_obj:
+                    dimension_error = True
+                if dimension_error:
+                    raise Exception("The provided matrix must have both dimensions equal to the number of provided objects.")
+
+        self.__DISTANCES = distances
+        self.__CONFLICTS = spatial_weights
+
+    def __set_default_spatial_conflicts(self):
+        dimension = self.__DISTANCES.shape[0]
+        for i in range(dimension):
+            for j in range(dimension):
+                if i != j:
+                    if self.__DISTANCES[i][j] == 0:
+                        self.__DISTANCES[i][j] = self.DEFAULT_DISTANCE
+                    if self.__CONFLICTS[i][j] == 0:
+                        self.__CONFLICTS[i][j] = self.DEFAULT_CONFLICT_WEIGHT
+
+
+    def generalize(self, network_partitioning=False):
+        """
+        Launch the constraint generalization on the added objects.
+        """
+        # Checks if objects are present
+        if len(self.__OBJECTS) < 1:
+            raise Exception('No objects provided, cannot generalize.')
+
+        self.__set_default_spatial_conflicts()
+        print(self.__DISTANCES)
+        print(self.__CONFLICTS)
+        
+        # Prepare points and shapes using their index
+        points = self.__generate_point_list()
+
+        # Flag spatially conflicting points depending on the distance parameter
+        self.__calculate_spatial_conflicts(points)
+
+        # Debugging tool to visualize spatial conflicts
+        self.__export_spatial_conflicts(points)
+
+        # Build the observation matrix
+        self.__build_Y(points)
+
+        # Build the weighing matrice
+        self.__build_W(points)
+
+        nb_points = len(points)
+        # Calculate dx as long as the maximum iteration is not reached
+        for i in range(self.MAX_ITER):
+            # Apply the least square method
+            dx = self.__compute_dx(points)
+
+            # Reshape the matrix
+            points += dx.reshape(nb_points, 2)
+
+            # Calculate the norm
+            norm = np.linalg.norm(dx, ord=np.inf)
+            if self.VERBOSE:
+                print(norm)
+            # Break the loop if the norm is below the tolerance threshold
+            if norm < self.NORM_TOLERANCE:
+                break
+
+            # Recalculate distances between conflicting nodes after the first iteration
+            self.__update_distances(points)
+
+        # Recreate objects geometries
+        result = self.__reconstruct_geometries(points)
+
+        return result
 
     def __build_Y(self, points):
         """
@@ -241,7 +256,9 @@ class ConstraintMethod:
 
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
-            current, dx, dy = self.__calculate_stiffness(p, points)
+            current_id = p[0]
+            next_id = self.__get_next_point_in_shape(current_id, points)
+            dx, dy = self.__calculate_stiffness(current_id, next_id, points)
             Y[offset + 2 * i] = dx
             Y[offset + 2 * i + 1] = dy
 
@@ -273,7 +290,9 @@ class ConstraintMethod:
 
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
-            current, dx, dy = self.__calculate_stiffness(p, points)
+            current_id = p[0]
+            next_id = self.__get_next_point_in_shape(current_id, points)
+            dx, dy = self.__calculate_stiffness(current_id, next_id, points)
             S[offset + 2 * i] = dx
             S[offset + 2 * i + 1] = dy
 
@@ -351,6 +370,7 @@ class ConstraintMethod:
         A = np.vstack((identity, stiffness))
         spatial = self.__build_spatial(points)
         A = np.vstack((A, spatial))
+
         return A
 
     def __build_stiffness(self, points):
@@ -358,16 +378,17 @@ class ConstraintMethod:
         Create a matrix for the stiffness constraint.
         """
         stiff_points = self.__constraints['stiffness']
-        shapes = self.__shapes
         m = np.zeros((2 * len(stiff_points), 2 * len(points)))
 
         for i, p in enumerate(stiff_points):
-            current, dx, dy = self.__calculate_stiffness(p, points)
-            m[2 * i][2 * current] = dx
-            m[2 * i + 1][2 * current + 1] = dy
+            current_id = p[0]
+            next_id = self.__get_next_point_in_shape(current_id, points)
+            m[2 * i][2 * current_id] = 1
+            m[2 * i][2 * next_id] = -1
+            m[2 * i + 1][2 * current_id + 1] = 1
+            m[2 * i + 1][2 * next_id + 1] = -1
 
         return m
-
 
     def __build_curvature(self):
         """
@@ -393,13 +414,18 @@ class ConstraintMethod:
             v = np.array([x2 - x1, y2 - y1])
             # Calculate the vector norm
             norm = np.linalg.norm(v)
-            # Filling the matrix with the influence of x and y on the vector norm
-            xi = np.abs(v[0]) / norm
-            yi = np.abs(v[1]) / norm
-            m[i][n[0]] = xi
-            m[i][n[0] + 1] = yi
-            m[i][n[1]] = xi
-            m[i][n[1] + 1] = yi
+
+            # Calculate equations factors
+            a = (x1 - x2) / norm
+            b = (y1 - y2) / norm
+            c = (x2 - x1) / norm
+            d = (y2 - y1) / norm
+
+            # Filling the matrix
+            m[i][2 * n[0]] = a
+            m[i][2 * n[0] + 1] = b
+            m[i][2 * n[1]] = c
+            m[i][2 * n[1] + 1] = d
 
         offset = len(nodes)
         # Loop through all node to link conflicts
@@ -418,41 +444,43 @@ class ConstraintMethod:
             # Calculate the equation factors
             h = 0.001
             u = (np.abs(a * (x0 + h) + b * y0 + c) - np.abs(a * (x0 - h) + b * y0 + c)) \
-                / np.sqrt(np.square(a) + np.square(b)) * 2 * h
+                / np.sqrt(a * a + b * b) * 2 * h
             v = (np.abs(a * x0 + b * (y0 + h) + c) - np.abs(a * x0 + b * (y0 - h) + c)) \
-                / np.sqrt(np.square(a) + np.square(b)) * 2 * h
+                / np.sqrt(a * a + b * b) * 2 * h
+
             w = 1 / (2 * h) * (
                 np.abs(y0 + x0 * (y2 - y1) / (x1 + h - x2) - y1 + (x1 + h) * (y1 - y2) / (x1 + h - x2)) \
-                / np.sqrt(np.square(y2 - y1) / np.square(x1 + h - x2) + 1) \
+                / np.sqrt((y2 - y1) * (y2 - y1) / ((x1 + h - x2) * (x1 + h - x2)) + 1) \
                 - np.abs(y0 + x0 * (y2 - y1) / (x1 - h - x2) - y1 + (x1 - h) * (y1 - y2) / (x1 - h - x2)) \
-                / np.sqrt(np.square(y2 - y1) / np.square(x1 - h - x2) + 1)
-            )
-            d = 1 / (2 * h) * (
-                np.abs(y0 + x0 * (y2 - (y1 + h)) / (x1 - x2) - y1 - h + x1 * (y1 + h - y2) / (x1 - x2)) \
-                / np.sqrt(np.square(y2 - (y1 + h)) / np.square(x1 - x2) + 1) \
-                - np.abs(y0 + x0 * (y2 - (y1 - h)) / (x1 - x2) - y1 + h + x1 * (y1 - h - y2) / (x1 - x2)) \
-                / np.sqrt(np.square(y2 - (y1 - h)) / np.square(x1 - x2) + 1)
-            )
-            e = 1 / (2 * h) * (
-                np.abs(y0 + x0 * (y2 - y1) / (x1 - (x2 + h)) - y1 + x1 * (y1 - y2) / (x1 - (x2 + h))) \
-                / np.sqrt(np.square(y2 - y1) / np.square(x1 - (x2 + h)) + 1) \
-                - np.abs(y0 + x0 * (y2 - y1) / (x1 - (x2 - h)) - y1 + x1 * (y1 - y2) / (x1 - (x2 - h))) \
-                / np.sqrt(np.square(y2 - y1) / np.square(x1 - (x2 - h)) + 1)
-            )
-            f = 1 / (2 * h) * (
-                np.abs(y0 + x0 * (y2 + h - y1) / (x1 - x2) - y1 + x1 * (y1 - (y2 + h)) / (x1 - x2)) \
-                / np.sqrt(np.square(y2 + h - y1) / np.square(x1 - x2) + 1) \
-                - np.abs(y0 + x0 * (y2 - h - y1) / (x1 - x2) - y1 + x1 * (y1 - (y2 - h)) / (x1 - x2)) \
-                / np.sqrt(np.square(y2 - h - y1) / np.square(x1 - x2) + 1)
+                / np.sqrt((y2 - y1) * (y2 - y1) / ((x1 - h - x2) * (x1 - h - x2)) + 1)
             )
 
+            d = 1 / (2 * h) * (
+                np.abs(y0 + x0 * (y2 - (y1 + h)) / (x1 - x2) - y1 - h + x1 * (y1 + h - y2) / (x1 - x2)) \
+                / np.sqrt((y2 - (y1 + h)) * (y2 - (y1 + h)) / ((x1 - x2) * (x1 - x2)) + 1) \
+                - np.abs(y0 + x0 * (y2 - (y1 - h)) / (x1 - x2) - y1 + h + x1 * (y1 - h - y2) / (x1 - x2)) \
+                / np.sqrt((y2 - (y1 - h)) * (y2  - (y1 - h)) / ((x1 - x2) * (x1 - x2)) + 1)
+            )
+
+            e = 1 / (2 * h) * (
+                np.abs(y0 + x0 * (y2 - y1) / (x1 - (x2 + h))- y1 + x1 * (y1 - y2) / (x1 - (x2 + h))) \
+                / np.sqrt((y2 - y1)* (y2 - y1) / ((x1 - (x2 + h)) * (x1 - (x2 + h))) + 1) \
+                - np.abs(y0 + x0 * (y2 - y1) / (x1 - (x2 - h)) - y1 + x1 * (y1 - y2) / (x1 - (x2 - h))) \
+                / np.sqrt((y2 - y1) * (y2 - y1) / ((x1 - (x2 - h)) * (x1 - (x2 - h))) + 1))
+
+            f = 1 / (2 * h) * (
+                np.abs(y0 + x0 * (y2 + h - y1) / (x1 - x2) - y1 + x1 * (y1 - (y2 + h)) / (x1 - x2)) \
+                / np.sqrt((y2 + h - y1) * (y2 + h - y1) / ((x1 - x2) * (x1 - x2)) + 1) \
+                - np.abs(y0 + x0 * (y2 - h - y1) / (x1 - x2) - y1 + x1 * (y1 - (y2 - h)) / (x1 - x2)) \
+                / np.sqrt((y2 - h - y1) * (y2 - y1 - h) / ((x1 - x2) * (x1 - x2)) + 1))
+
             # Filling the matrix with the partial derivatives
-            m[offset + i][n[0]] = u
-            m[offset + i][n[0] + 1] = v
-            m[offset + i][n[1]] = w
-            m[offset + i][n[1] + 1] = d
-            m[offset + i][n[2]] = e
-            m[offset + i][n[2] + 1] = f
+            m[offset + i][2 * n[0]] = u
+            m[offset + i][2 * n[0] + 1] = v
+            m[offset + i][2 * n[1]] = w
+            m[offset + i][2 * n[1] + 1] = d
+            m[offset + i][2 * n[2]] = e
+            m[offset + i][2 * n[2] + 1] = f
 
         return m
 
@@ -505,7 +533,7 @@ class ConstraintMethod:
             if add:
                 self.__nodes.append(c)
 
-        def retrieve_nodes_links(shape, geomtype, p, min_dist, weight):
+        def retrieve_nodes_links(shape, geomtype, p, conflict_dist, min_dist, weight):
             point = shapely.Point(points[p])
             # Loop through all the points of the LineString or Polygon shape
             for pid1, p1 in enumerate(shape):
@@ -528,7 +556,7 @@ class ConstraintMethod:
                 pdist2 = shapely.distance(point, point2)
                 ldist = shapely.distance(point, line)
                 # First, re-checks if one of the three distance is below the minimum distance threshold
-                if pdist1 < min_dist or pdist2 < min_dist or ldist < min_dist:
+                if pdist1 < conflict_dist or pdist2 < conflict_dist or ldist < conflict_dist:
                     # If the line distance is the smallest, insert a node to link spatial conflict
                     if ldist < pdist1 and ldist < pdist2:
                         self.__links.append([p, p1, p2, min_dist, ldist, weight])
@@ -544,8 +572,6 @@ class ConstraintMethod:
         def check_conflicts(p):
             point = shapely.Point(points[p])
             oid, sid, pid = self.__points[p][0], self.__points[p][1], self.__points[p][2]
-            dmin = self.__DISTANCES[oid]
-            weight = self.__WEIGHTS[oid]['spatial']
             # Loop through all objects
             for oid1, o in enumerate(self.__shapes):
                 # Loop through all shapes
@@ -554,19 +580,26 @@ class ConstraintMethod:
                     if oid1 == oid and sid1 == sid:
                         continue
                     else:
+                        # Getting the weight of the spatial conflict constraint from the matrix
+                        weight = self.__CONFLICTS[oid][oid1]
+                        # Getting the distance value from the distances matrix
+                        min_dist = self.__DISTANCES[oid][oid1]
+                        # Setting a distance equal to 1.5 times the min distance to retrieve conflicting objects
+                        conflict_dist = 1.5 * min_dist
+                        
                         # Retrieve the geometry of the shape
                         shape = self.__OBJECTS[oid1].geometry[sid1]
                         # Checks if that shape is within the minimum distance before retrieving pairs of nodes and links
-                        if shapely.dwithin(point, shape, dmin):
+                        if shapely.dwithin(point, shape, conflict_dist):
                             # Stores the geometry type
                             geomtype = shape.geom_type
                             # Checks if the shape is a point
                             if geomtype == 'Point':
                                 distance = shapely.distance(point, shape)
-                                self.__nodes.append([p, s[0], dmin, distance, weight])
+                                self.__nodes.append([p, s[0], min_dist, distance, weight])
                             # If it's not, checking if it's closer to a node or a segment
                             else:
-                                retrieve_nodes_links(s, geomtype, p, dmin, weight)
+                                retrieve_nodes_links(s, geomtype, p, conflict_dist, min_dist, weight)
 
         # Loop through all objects
         for o in self.__shapes:
@@ -577,29 +610,27 @@ class ConstraintMethod:
                     # Check conflicts with other points
                     check_conflicts(p)
 
-    def __calculate_stiffness(self, point, points):
-        """
-        Estimate the stiffness by calculating the amount of movement between following point on a shape.
-        TODO: Only working for buildings
-        """
-        current_id = point[0]
+    def __get_next_point_in_shape(self, current_id, points):
         position = self.__points[current_id]
         oid, sid, pid = position[0], position[1], position[2]
         shape = self.__shapes[oid][sid]
-        pid1 = pid + 1
-        x0, y0 = points[current_id][0], points[current_id][1]
 
+        pid1 = pid + 1
         if pid < (len(shape) - 1):
             pid1 = pid + 1
         else:
             pid1 = 0
 
-        next_id = shape[pid1] 
-        x1, y1 = points[next_id][0], points[next_id][1]
-        dx = np.abs(x1 - x0)
-        dy = np.abs(y1 - y0)
+        return shape[pid1]
 
-        return current_id, dx, dy
+    def __calculate_stiffness(self, current_id, next_id, points):
+        """
+        Estimate the stiffness by calculating the amount of movement between following point on a shape.
+        TODO: Only working for buildings
+        """
+        x0, y0 = points[current_id][0], points[current_id][1]
+        x1, y1 = points[next_id][0], points[next_id][1]
+        return x0 - x1, y0 - y1
 
     def __update_distances(self, points):
         """
@@ -609,17 +640,15 @@ class ConstraintMethod:
             n1, n2 = points[n[0]], points[n[1]]
             x1, x2, y1, y2 = n1[0], n2[0], n1[1], n2[1]
             v = np.array([x2 - x1, y2 - y1])
-            norm = np.linalg.norm(v)
-            self.__nodes[i][3] = norm
-            #print('{0} to {1} = {2}'.format(n[0], n[1], norm))
+            nodedistance = np.linalg.norm(v)
+            self.__nodes[i][3] = nodedistance
 
-        for i, n in enumerate(self.__links):
-            n0 = np.array(points[n[0]])
-            n1 = np.array(points[n[1]])
-            n2 = np.array(points[n[2]])
-            d = np.linalg.norm(np.cross(n2 - n1, n1 - n0)) / np.linalg.norm(n2 - n1)
-            self.__links[i][4] = d
-            #print('{0} to {1} and {2} = {3}'.format(n[0], n[1], n[2], d))
+        for i, l in enumerate(self.__links):
+            n0 = np.array(points[l[0]])
+            n1 = np.array(points[l[1]])
+            n2 = np.array(points[l[2]])
+            linkdistance = np.linalg.norm(np.cross(n2 - n1, n1 - n0)) / np.linalg.norm(n2 - n1)
+            self.__links[i][4] = linkdistance
 
     def __get_coordinates(self, shape):
         """

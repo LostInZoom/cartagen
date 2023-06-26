@@ -2,7 +2,13 @@
 "type": "FeatureCollection",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
 "features": [
-{ "type": "Feature", "properties": { "nid0": 0, "nid1": 5, "group": 0 }, "geometry": { "type": "LineString", "coordinates": [ [ 402133.763044243794866, 5799982.285343992523849 ], [ 402136.012233912071679, 5799988.322641748003662 ] ] } },
-{ "type": "Feature", "properties": { "nid0": 1, "nid1": 5, "group": 1 }, "geometry": { "type": "LineString", "coordinates": [ [ 402141.812774142017588, 5799986.231290021911263 ], [ 402136.012233912071679, 5799988.322641748003662 ] ] } }
+{ "type": "Feature", "properties": { "nid0": 10, "nid1": 38, "group": 0 }, "geometry": { "type": "LineString", "coordinates": [ [ 402239.488059209892526, 5799956.932358688674867 ], [ 402234.801508647447918, 5799959.646597751416266 ] ] } },
+{ "type": "Feature", "properties": { "nid0": 11, "nid1": 38, "group": 1 }, "geometry": { "type": "LineString", "coordinates": [ [ 402239.02051734860288, 5799957.269630954600871 ], [ 402234.801508647447918, 5799959.646597751416266 ] ] } },
+{ "type": "Feature", "properties": { "nid0": 12, "nid1": 38, "group": 2 }, "geometry": { "type": "LineString", "coordinates": [ [ 402239.443531413620804, 5799960.321142500266433 ], [ 402234.801508647447918, 5799959.646597751416266 ] ] } },
+{ "type": "Feature", "properties": { "nid0": 12, "nid1": 39, "group": 3 }, "geometry": { "type": "LineString", "coordinates": [ [ 402239.443531413620804, 5799960.321142500266433 ], [ 402237.317329139390495, 5799965.685381137765944 ] ] } },
+{ "type": "Feature", "properties": { "nid0": 13, "nid1": 39, "group": 4 }, "geometry": { "type": "LineString", "coordinates": [ [ 402241.079927928280085, 5799965.123260169290006 ], [ 402237.317329139390495, 5799965.685381137765944 ] ] } },
+{ "type": "Feature", "properties": { "nid0": 17, "nid1": 40, "group": 5 }, "geometry": { "type": "LineString", "coordinates": [ [ 402250.17473032604903, 5799972.848411454819143 ], [ 402250.107938631612342, 5799975.739322193898261 ] ] } },
+{ "type": "Feature", "properties": { "nid0": 20, "nid1": 64, "group": 6 }, "geometry": { "type": "LineString", "coordinates": [ [ 402266.494167676370125, 5799961.670232150703669 ], [ 402268.676029695896432, 5799966.456289951689541 ] ] } },
+{ "type": "Feature", "properties": { "nid0": 27, "nid1": 40, "group": 7 }, "geometry": { "type": "LineString", "coordinates": [ [ 402245.154221291304566, 5799977.232959779910743 ], [ 402250.107938631612342, 5799975.739322193898261 ] ] } }
 ]
 }
