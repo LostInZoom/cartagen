@@ -54,16 +54,17 @@ class ConstraintMethod:
         self.__points = []
         self.__shapes = []
 
-        # Nodes and links will be respectively populated with node to node and node to link spatial conflicts
-        self.__nodes = []
-        self.__links = []
-
-        # Nodes that will accept constraints
+        # Following contains all the object level constraints
         self.__constraints = {
             'movement': [],
             'stiffness': [],
             'curvature': []
         }
+
+        # Nodes and links will be respectively populated with node to node and node to link spatial conflicts
+        self.__nodes = []
+        self.__links = []
+
 
     def add(self, *objects, **weights):
         """
@@ -73,18 +74,14 @@ class ConstraintMethod:
         object : **Geopandas**, *GeoSerie*.
             One or multiple GeoSerie of geographic objects, can be points, lines or polygons (if multigeometry are provided, they will be exploded).
             If multiple objects are provided, they must be the same geometry type because the same constraints will be applied.
-        distance : **int**, *optional*.
-            The distance around the object to detect spatial conflicts. If no distance is provided, the default one from the class is used.
         weights : **int**, *optional*.
-            Specify a weight value for a specific constraint. A value of -1 is infinite. Possible weights:
+            Specify a weight value for a specific constraint. Possible weights:
             movement : **int**.
                 If an object is able to move, specify the weight of the movement constraint.
             stiffness : **int**.
-                If a polygon is able to move but is not flexible, specify the weight of the stiffness constraint. A point or line cannot have a stiffness constraint.
+                If a polygon is able to move but is not flexible, specify the weight of the stiffness constraint. A point cannot have a stiffness constraint.
             curvature : **int**.
                 If a line or polygon is flexible, specify the weight of the curvature constraint. A point cannot have a curvature constraint.
-            conflict : **int**.
-                If a point, line or polygon spatially conflicts with other objects (i.e. is within the distance parameter), specify the weight of the spatial conflict constraint.
         """
 
         geometry = None
@@ -135,7 +132,7 @@ class ConstraintMethod:
                 # Check if the weight is an integer
                 if isinstance(value, int):
                     # If it's a negative integer other than -1, raise an error
-                    if value < 0 and value != -1:
+                    if value < 0:
                         raise Exception('Provided weight ({0}) is negative.'.format(value))
                 # Raise an error if the weight is not an integer
                 else:
@@ -146,11 +143,23 @@ class ConstraintMethod:
 
             # Check if movement weight is provided
             if 'movement' not in w.keys():
-                raise Exception('{0} must have a movement constraint. A weight of -1 can be used to avoid this object from moving.'.format(geomtype))
+                # Add default movement weight to the dict
+                w['movement'] = self.__DEFAULT_WEIGHTS[geomtype]['movement']
 
         return w
 
     def add_spatial_conflicts(self, distances, spatial_weights):
+        """
+        Defines spatial conflict between pairs of geographic objects previously added.
+        Parameters
+        ----------
+        distances : **Numpy**, *ndarray*.
+            A numpy ndarray of dimension (x, x) where x is the number of objects added to the constraint method object before generalization.
+            Value at index (i, j) must be the same as the value at index (j, i) and represents the distance between geographic objects added
+            in the order they were added. 
+        spatial_weights : **Numpy**, *ndarray*.
+            Same as the distances matrix but the values represent the weight of the spatial conflict of the two considered objects.
+        """
         nb_obj = len(self.__OBJECTS)
         sd = distances.shape
         sw = spatial_weights.shape
@@ -193,8 +202,6 @@ class ConstraintMethod:
             raise Exception('No objects provided, cannot generalize.')
 
         self.__set_default_spatial_conflicts()
-        print(self.__DISTANCES)
-        print(self.__CONFLICTS)
         
         # Prepare points and shapes using their index
         points = self.__generate_point_list()
@@ -241,11 +248,12 @@ class ConstraintMethod:
         Build the observation vector.
         """
         stiffness = self.__constraints['stiffness']
+        curvature = self.__constraints['curvature']
         nodes = self.__nodes
         links = self.__links
 
         # Define the size of the vector
-        size = 2 * len(points) + 2 * len(stiffness) + len(nodes) + len(links)
+        size = 2 * len(points) +  2 * len(stiffness) + 3 * len(curvature) + len(nodes) + len(links)
         # Create a zero filled np array of the wanted shape
         Y = np.zeros(size)
 
@@ -257,12 +265,23 @@ class ConstraintMethod:
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
             current_id = p[0]
-            next_id = self.__get_next_point_in_shape(current_id, points)
-            dx, dy = self.__calculate_stiffness(current_id, next_id, points)
-            Y[offset + 2 * i] = dx
-            Y[offset + 2 * i + 1] = dy
-
+            apply, next_id = self.__get_next_point_in_shape(current_id, points)
+            if apply:
+                dx, dy = self.__calculate_stiffness(current_id, next_id, points)
+                Y[offset + 2 * i] = dx
+                Y[offset + 2 * i + 1] = dy
+        
         offset += 2 * len(stiffness)
+        for i, p in enumerate(curvature):
+            current_id = p[0]
+            apply, previous_id, next_id = self.__get_surrounding_points_in_shape(current_id, points)
+            if apply:
+                normp, normn, alpha = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                Y[offset + i] = alpha
+                Y[offset + i + 1] = normp
+                Y[offset + i + 2] = normn
+
+        offset += 3 * len(curvature)
         # Add minimum distance between close nodes
         for i, n in enumerate(nodes):
             Y[offset + i] = n[2]
@@ -279,10 +298,11 @@ class ConstraintMethod:
         Build the matrix B -> Y - S(X).
         """
         stiffness = self.__constraints['stiffness']
+        curvature = self.__constraints['curvature']
         nodes = self.__nodes
         links = self.__links
 
-        S = np.zeros(2 * len(points) + 2 * len(stiffness) + len(nodes) + len(links))
+        S = np.zeros(2 * len(points) + 2 * len(stiffness) + 3 * len(curvature) + len(nodes) + len(links))
 
         for i, p in enumerate(points):
             S[2 * i] = p[0]
@@ -291,12 +311,23 @@ class ConstraintMethod:
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
             current_id = p[0]
-            next_id = self.__get_next_point_in_shape(current_id, points)
-            dx, dy = self.__calculate_stiffness(current_id, next_id, points)
-            S[offset + 2 * i] = dx
-            S[offset + 2 * i + 1] = dy
+            apply, next_id = self.__get_next_point_in_shape(current_id, points)
+            if apply:
+                dx, dy = self.__calculate_stiffness(current_id, next_id, points)
+                S[offset + 2 * i] = dx
+                S[offset + 2 * i + 1] = dy
 
         offset += 2 * len(stiffness)
+        for i, p in enumerate(curvature):
+            current_id = p[0]
+            apply, previous_id, next_id = self.__get_surrounding_points_in_shape(current_id, points)
+            if apply:
+                normp, normn, alpha = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                S[offset + i] = alpha
+                S[offset + i + 1] = normp
+                S[offset + i + 2] = normn
+
+        offset += 3 * len(curvature)
         for i, n in enumerate(nodes):
             S[offset + i] = n[3]
 
@@ -310,6 +341,8 @@ class ConstraintMethod:
         """
         Build the weighting matrix.
         """
+        constraints = []
+
         movement = []
         # Loop through moving points
         for i, p in enumerate(points):
@@ -317,19 +350,19 @@ class ConstraintMethod:
             # Add the weight value to the movement list two times for x and y
             movement.extend([w, w])
         # Create a full matrix 
-        m = np.full(len(movement), movement)
+        constraints.append(np.full(len(movement), movement))
 
-        constraints = []
-        # Loop through the non movement constraint
-        for cname, clist in self.__constraints.items():
-            # Check if the constraint is not movement and that some points are affected
-            if cname != 'movement' and len(clist) > 0:
-                p = []
-                # Loop through each point concerned by the constraint
-                for c in clist:
-                    p.extend([c[1], c[1]])
-                # Create the matrix with the weights
-                constraints.append(np.full(len(p), p))
+        stiffness = []
+        # Loop through the stiffness constraint
+        for s in self.__constraints['stiffness']:
+            stiffness.extend([s[1], s[1]])
+        constraints.append(np.full(len(stiffness), stiffness))
+
+        curvature = [] 
+        # Loop through the curvature constraint
+        for c in self.__constraints['curvature']:
+            curvature.extend([c[1], c[1], c[1]])
+        constraints.append(np.full(len(curvature), curvature))
 
         conflicts = []
         # Loop through node to node conflicts
@@ -341,11 +374,10 @@ class ConstraintMethod:
             # Add the weight to the list
             conflicts.append(l[5])
         # Create the spatial conflict weight matrix
-        spatial = np.full(len(conflicts), conflicts)
+        constraints.append(np.full(len(conflicts), conflicts))
 
-        # Create the diagonal weighting matrix by concatenating movement matrix
-        # with others constraints and spatial conflicts matrices
-        self.__W = np.diag(np.concatenate((m, *constraints, spatial)))
+        # Create the diagonal weighting matrix by concatenating all constraints matrices
+        self.__W = np.diag(np.concatenate((constraints)))
 
     def __compute_dx(self, points):
         """
@@ -368,6 +400,8 @@ class ConstraintMethod:
         identity = np.identity(2 * len(points))
         stiffness = self.__build_stiffness(points)
         A = np.vstack((identity, stiffness))
+        curvature = self.__build_curvature(points)
+        A = np.vstack((A, curvature))
         spatial = self.__build_spatial(points)
         A = np.vstack((A, spatial))
 
@@ -377,23 +411,87 @@ class ConstraintMethod:
         """
         Create a matrix for the stiffness constraint.
         """
-        stiff_points = self.__constraints['stiffness']
-        m = np.zeros((2 * len(stiff_points), 2 * len(points)))
+        stiffness = self.__constraints['stiffness']
+        m = np.zeros((2 * len(stiffness), 2 * len(points)))
 
-        for i, p in enumerate(stiff_points):
+        for i, p in enumerate(stiffness):
             current_id = p[0]
-            next_id = self.__get_next_point_in_shape(current_id, points)
-            m[2 * i][2 * current_id] = 1
-            m[2 * i][2 * next_id] = -1
-            m[2 * i + 1][2 * current_id + 1] = 1
-            m[2 * i + 1][2 * next_id + 1] = -1
+            apply, next_id = self.__get_next_point_in_shape(current_id, points)
+            if apply:
+                m[2 * i][2 * current_id] = 1
+                m[2 * i][2 * next_id] = -1
+                m[2 * i + 1][2 * current_id + 1] = 1
+                m[2 * i + 1][2 * next_id + 1] = -1
 
         return m
 
-    def __build_curvature(self):
+    def __build_curvature(self, points):
         """
         Create a matrix for the curvature constraint.
         """
+        curvature = self.__constraints['curvature']
+        m = np.zeros((3 * len(curvature), 2 * len(points)))
+
+        for i, p in enumerate(curvature):
+            p0 = p[0]
+            apply, pp, pn = self.__get_surrounding_points_in_shape(p0, points)
+            if apply:
+                xp, yp = points[pp][0], points[pp][1]
+                x0, y0 = points[p0][0], points[p0][1]
+                xn, yn = points[pn][0], points[pn][1]
+
+                # Calculate equation factors for angles
+                normU = np.sqrt((x0 - xp) * (x0 - xp) + (y0 - yp) * (y0 - yp))
+                normW = np.sqrt((xn - x0) * (xn - x0) + (yn - y0) * (yn - y0))
+                a = (y0 - yn) / (normU * normW)
+                b = (-x0 + xn) / (normU * normW)
+                c = (-yp + yn) / (normU * normW)
+                d = (xp - xn) / (normU * normW)
+                e = (yp - y0) / (normU * normW)
+                f = (-xp + x0) / (normU * normW)
+
+                # Calculate equation factors for lengths
+                a1 = (xp - x0) / normU
+                b1 = (yp - y0) / normU
+                c1 = (x0 - xp) / normU
+                d1 = (y0 - yp) / normU
+                a2 = (xn - x0) / normW
+                b2 = (yn - y0) / normW
+                c2 = (x0 - xn) / normW
+                d2 = (y0 - yn) / normW
+
+                m[i]
+                m[i]
+                m[i]
+                m[i]
+                m[i]
+                m[i]
+                m[i + 1]
+                m[i + 1]
+                m[i + 1]
+                m[i + 1]
+                m[i + 2]
+                m[i + 2]
+                m[i + 2]
+                m[i + 2]
+
+                systeme.initMatriceA(3, 6);
+                systeme.setA(0, 0, a);
+                systeme.setA(0, 1, b);
+                systeme.setA(0, 2, c);
+                systeme.setA(0, 3, d);
+                systeme.setA(0, 4, e);
+                systeme.setA(0, 5, f);
+                systeme.setA(1, 0, a1);
+                systeme.setA(1, 1, b1);
+                systeme.setA(1, 2, c1);
+                systeme.setA(1, 3, d1);
+                systeme.setA(2, 4, a2);
+                systeme.setA(2, 5, b2);
+                systeme.setA(2, 2, c2);
+                systeme.setA(2, 3, d2);
+
+        return m
 
     def __build_spatial(self, points):
         """
@@ -614,23 +712,70 @@ class ConstraintMethod:
         position = self.__points[current_id]
         oid, sid, pid = position[0], position[1], position[2]
         shape = self.__shapes[oid][sid]
-
+        geomtype = self.__OBJECTS[oid].geometry[0].geom_type
+        
         pid1 = pid + 1
+        apply = True
+        next_id = None
         if pid < (len(shape) - 1):
-            pid1 = pid + 1
+            next_id = shape[pid + 1]
         else:
-            pid1 = 0
-
-        return shape[pid1]
+            if geomtype == 'Polygon':
+                next_id = shape[0]
+            else:
+                apply = False
+        
+        return apply, next_id
 
     def __calculate_stiffness(self, current_id, next_id, points):
         """
         Estimate the stiffness by calculating the amount of movement between following point on a shape.
-        TODO: Only working for buildings
         """
         x0, y0 = points[current_id][0], points[current_id][1]
         x1, y1 = points[next_id][0], points[next_id][1]
         return x0 - x1, y0 - y1
+
+    def __get_surrounding_points_in_shape(self, current_id, points):
+        position = self.__points[current_id]
+        oid, sid, pid = position[0], position[1], position[2]
+        shape = self.__shapes[oid][sid]
+        geomtype = self.__OBJECTS[oid].geometry[0].geom_type
+        
+        pid1 = pid + 1
+        apply = True
+        previous_id = None
+        next_id = None
+
+        if pid > 0 and pid < (len(shape) - 1):
+            previous_id = shape[pid - 1]
+            next_id = shape[pid + 1]
+        else:
+            if geomtype == 'Polygon':
+                if pid == 0:
+                    previous_id = shape[-1]
+                    next_id = shape[pid + 1]
+                elif pid == (len(shape) - 1):
+                    previous_id = shape[pid - 1]
+                    next_id = shape[0]
+            else:
+                apply = False
+        
+        return apply, previous_id, next_id
+
+    def __calculate_curvature(self, previous_id, current_id, next_id, points):
+        """
+        Estimate the curvature by calculating the angle formed by the point, its previous and its following point.
+        """
+        xp, yp = points[previous_id][0], points[previous_id][1]
+        x0, y0 = points[current_id][0], points[current_id][1]
+        xn, yn = points[next_id][0], points[next_id][1]
+        vp, vn = np.array([xp - x0, yp - y0]), np.array([xn - x0, yn - y0])
+        inner = np.inner(vp, vn)
+        normp, normn = np.linalg.norm(vp), np.linalg.norm(vn)
+        cos = inner / (normp * normn)
+        rad = np.arccos(np.clip(cos, -1.0, 1.0))
+
+        return rad, normp, normn
 
     def __update_distances(self, points):
         """
