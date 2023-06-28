@@ -439,57 +439,53 @@ class ConstraintMethod:
                 xp, yp = points[pp][0], points[pp][1]
                 x0, y0 = points[p0][0], points[p0][1]
                 xn, yn = points[pn][0], points[pn][1]
+                x0xp = x0 - xp
+                y0yp = y0 - yp
+                x0xn = x0 - xn
+                y0yn = y0 - yn
+                b = ((x0xp)**2 + (y0yp)**2)
+                d = ((x0xn)**2 + (y0yn)**2)
+                c = ((x0xp) * (y0yn) - (x0xn) * (y0yp))
+                bd = b * d
+                a = (bd)**(-0.5)
 
-                # Calculate equation factors for angles
-                normU = np.sqrt((x0 - xp) * (x0 - xp) + (y0 - yp) * (y0 - yp))
-                normW = np.sqrt((xn - x0) * (xn - x0) + (yn - y0) * (yn - y0))
-                a = (y0 - yn) / (normU * normW)
-                b = (-x0 + xn) / (normU * normW)
-                c = (-yp + yn) / (normU * normW)
-                d = (xp - xn) / (normU * normW)
-                e = (yp - y0) / (normU * normW)
-                f = (-xp + x0) / (normU * normW)
+                lp = ((x0 - xp)**2 + (y0 - yp)**2) ** 0.5
+                ln = ((xn - x0)**2 + (yn - y0)**2) ** 0.5
 
-                # Calculate equation factors for lengths
-                a1 = (xp - x0) / normU
-                b1 = (yp - y0) / normU
-                c1 = (x0 - xp) / normU
-                d1 = (y0 - yp) / normU
-                a2 = (xn - x0) / normW
-                b2 = (yn - y0) / normW
-                c2 = (x0 - xn) / normW
-                d2 = (y0 - yn) / normW
+                m[3 * i][2 * pp] = a * (-x0xp * c + y0yn * b) / b
+                m[3 * i][2 * pp + 1] = a * (-x0xn * b - y0yp * c) / b
+                m[3 * i][2 * p0] = a * ((-yp + yn) * bd + c * ((y0yp) * d + (x0xn) * b)) / bd
+                m[3 * i][2 * p0 + 1] = a * ((xp - xn) * bd + c * ((y0yp) * d + (y0yn) * b)) / bd
+                m[3 * i][2 * pn] = a * (-x0xn * c - y0yp * d) / d
+                m[3 * i][2 * pn + 1] = a * (x0xp * d - y0yn * c) / d
+                m[3 * i + 1][2 * pp] = (x0 - xp) / lp
+                m[3 * i + 1][2 * pp + 1] = (y0 - yp) / lp
+                m[3 * i + 1][2 * p0] = -(x0 - xp) / lp
+                m[3 * i + 1][2 * p0 + 1] = -(y0 - yp) / lp
+                m[3 * i + 2][2 * pn] = (xn - x0) / ln
+                m[3 * i + 2][2 * pn + 1] = (yn - y0) / ln
+                m[3 * i + 2][2 * p0] = -(xn - x0) / ln
+                m[3 * i + 2][2 * p0 + 1] = -(yn - y0) / ln
 
-                m[i]
-                m[i]
-                m[i]
-                m[i]
-                m[i]
-                m[i]
-                m[i + 1]
-                m[i + 1]
-                m[i + 1]
-                m[i + 1]
-                m[i + 2]
-                m[i + 2]
-                m[i + 2]
-                m[i + 2]
+                # # Calculate equation factors for angles
+                # normU = np.sqrt((x0 - xp) * (x0 - xp) + (y0 - yp) * (y0 - yp))
+                # normW = np.sqrt((xn - x0) * (xn - x0) + (yn - y0) * (yn - y0))
+                # a = (y0 - yn) / (normU * normW)
+                # b = (-x0 + xn) / (normU * normW)
+                # c = (-yp + yn) / (normU * normW)
+                # d = (xp - xn) / (normU * normW)
+                # e = (yp - y0) / (normU * normW)
+                # f = (-xp + x0) / (normU * normW)
 
-                systeme.initMatriceA(3, 6);
-                systeme.setA(0, 0, a);
-                systeme.setA(0, 1, b);
-                systeme.setA(0, 2, c);
-                systeme.setA(0, 3, d);
-                systeme.setA(0, 4, e);
-                systeme.setA(0, 5, f);
-                systeme.setA(1, 0, a1);
-                systeme.setA(1, 1, b1);
-                systeme.setA(1, 2, c1);
-                systeme.setA(1, 3, d1);
-                systeme.setA(2, 4, a2);
-                systeme.setA(2, 5, b2);
-                systeme.setA(2, 2, c2);
-                systeme.setA(2, 3, d2);
+                # # Calculate equation factors for lengths
+                # a1 = (xp - x0) / normU
+                # b1 = (yp - y0) / normU
+                # c1 = (x0 - xp) / normU
+                # d1 = (y0 - yp) / normU
+                # a2 = (xn - x0) / normW
+                # b2 = (yn - y0) / normW
+                # c2 = (x0 - xn) / normW
+                # d2 = (y0 - yn) / normW
 
         return m
 
@@ -766,16 +762,14 @@ class ConstraintMethod:
         """
         Estimate the curvature by calculating the angle formed by the point, its previous and its following point.
         """
-        xp, yp = points[previous_id][0], points[previous_id][1]
-        x0, y0 = points[current_id][0], points[current_id][1]
-        xn, yn = points[next_id][0], points[next_id][1]
-        vp, vn = np.array([xp - x0, yp - y0]), np.array([xn - x0, yn - y0])
-        inner = np.inner(vp, vn)
-        normp, normn = np.linalg.norm(vp), np.linalg.norm(vn)
-        cos = inner / (normp * normn)
-        rad = np.arccos(np.clip(cos, -1.0, 1.0))
-
-        return rad, normp, normn
+        pp = np.array((points[previous_id][0], points[previous_id][1]))
+        pc = np.array((points[current_id][0], points[current_id][1]))
+        pn = np.array((points[next_id][0], points[next_id][1]))
+        u = (pc - pp)
+        normu = np.linalg.norm(u)
+        v = (pn - pc)
+        normv = np.linalg.norm(v)
+        return np.cross(u / normu, v / normv), normu, normv
 
     def __update_distances(self, points):
         """
