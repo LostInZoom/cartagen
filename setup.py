@@ -37,6 +37,7 @@ install_requires = [
     'numpy',
     'shapely',
     'geopandas',
+    'matplotlib'
 ]
 
 # Meta informations
