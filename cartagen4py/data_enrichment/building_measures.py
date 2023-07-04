@@ -162,3 +162,18 @@ def building_congestion(building, triangulation, max_distance, nb_orientations=1
             congested[i] = projected_congestion
         
     return congested
+
+# computes the compactness of a polygon using the Miller index
+def polygon_compactness(polygon):
+    return 4 * pi * polygon.area / (polygon.length * polygon.length)
+
+# computes the elongation of a polygon
+def polygon_elongation(polygon):
+    mbr = polygon.minimum_rotated_rectangle
+    coords = mbr.exterior.coords
+    length1 = Point(coords[0]).distance(Point(coords[1]))
+    length2 = Point(coords[1]).distance(Point(coords[2]))
+    if(length1 < length2):
+        return length2 / length1
+    else:
+        return length1 / length2

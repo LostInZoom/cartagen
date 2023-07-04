@@ -2,6 +2,9 @@
 User Guide for cartagen4py
 ==========================
 
+Please note that this user guide is still under construction and some functions of the library are still not enough documented or not documented at all. 
+Feel free to contact us if you need documentation for a specific function.
+
 Apply map generalisation operations
 -----------------------------------
 
@@ -72,10 +75,54 @@ Since the beginning of research on the automation of map generalisation, the nec
 Extracting implicit geographic structures
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. method:: compute_boffet_urban_areas(buildings, dilation_size, erosion_size, simplification_distance = 2)
+
+    Computes the urban/built-up areas from a set of buildings, using a method from Boffet (2000). The algorithm computes buffers around each building ('dilation_size') and then merges all buffers.
+    The merged areas are then further refined with an erosion ('erosion_size') and a Douglas & Peucker simplification ('simplification_distance').
+
+.. code-block:: pycon
+
+  # compute the built-up areas with a 25 m buffer and a 10 m erosion
+  urbanareas = compute_boffet_urban_areas(polygons, 25.0, 10.0)
+
+.. plot:: code/compute_boffet_urban_areas.py
+
+Figure 4. Building polygons converted into built-up areas using the Boffet algorithm.
+
 
 Measures on map features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. method:: polygon_compactness(polygon)
+
+    Returns the compactness of a ''Polygon'' using the Miller index, i.e. 4.Pi.area / perimeter². This index gives a maximum value of 1 for circles.
+
+.. code-block:: pycon
+
+  >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
+  >>> polygon_compactness(polygon)
+  0.7853981633974483
+
+.. method:: polygon_elongation(polygon)
+
+    Returns the elongation of a ''Polygon'' using the measure from the AGENT project, i.e. the longest edge of the minimum bounding rectangle (MBR) divided by the shortest edge of the MBR.
+
+.. code-block:: pycon
+
+  >>> polygon = Polygon([(0, 0), (0, 10), (5, 10), (5, 0), (0, 0)])
+  >>> polygon_elongation(polygon)
+  2.0
+
+.. method:: building_min_width(building)
+
+    Returns the minimum width inside a building. The minimum width is the minimum distance between two edges of the buildings that are not adjacent. 
+    The measure was proposed during the AGENT project. 'building' should be a shapely ''Polygon''.
+
+.. code-block:: pycon
+
+  >>> polygon = Polygon([(0, 0), (0, 10), (2, 10), (2, 6), (5, 6), (5, 0), (0, 0)])
+  >>> building_min_width(polygon)
+  2.0
 
 Apply map generalisation complex processes
 ------------------------------------------
