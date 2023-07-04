@@ -284,12 +284,18 @@ class ConstraintMethod:
         offset += 3 * len(curvature)
         # Add minimum distance between close nodes
         for i, n in enumerate(nodes):
-            Y[offset + i] = n[2]
+            if n[3] > n[2]:
+                Y[offset + i] = n[3]
+            else:
+                Y[offset + i] = n[2]
 
         # Add minimum distance between close nodes and links
         offset += len(nodes)
         for i, l in enumerate(links):
-            Y[offset + i] = l[3]
+            if l[4] > l[3]:
+                Y[offset + i] = l[4]
+            else:
+                Y[offset + i] = l[3]
 
         self.__Y = Y
 
