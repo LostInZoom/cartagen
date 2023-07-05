@@ -1,0 +1,3 @@
+matplotlib
+cartagen4py
+sphinx-book-theme

@@ -21,7 +21,6 @@ Evaluate your generalised map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-
 .. toctree::
    :caption: Documentation
    :hidden:
