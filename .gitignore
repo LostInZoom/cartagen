@@ -8,7 +8,6 @@ evaluation/constraint_monitors/__pycache__/
 # Folder created by setuptools for the pip package creation
 build/
 
-embankment.py
 test
 test*.py
 cartagen4py/test
