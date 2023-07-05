@@ -25,6 +25,16 @@ Evaluate your generalised map
    :caption: Documentation
    :hidden:
 
-   Installation Guide <installation>
-   User Guide <user_guide>
-   Cartagen4qgis plugin <cartagen4qgis>
+   installation
+
+.. toctree::
+   :caption: User Guide
+   :hidden:
+
+   user_guide
+
+.. toctree::
+   :caption: cartagen4qgis
+   :hidden:
+
+   cartagen4qgis
