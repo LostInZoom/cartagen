@@ -1,3 +1,3 @@
-cartagen4py
 matplotlib
+cartagen4py
 sphinx-book-theme
