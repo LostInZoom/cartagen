@@ -22,15 +22,10 @@ Evaluate your generalised map
 
 
 .. toctree::
-   :caption: Documentation
+   :caption: cartagen4py
    :hidden:
 
    installation
-
-.. toctree::
-   :caption: User Guide
-   :hidden:
-
    user_guide
 
 .. toctree::
