@@ -1,8 +1,8 @@
 .. _user-guide:
 
-==========================
-User Guide for cartagen4py
-==========================
+==========
+User Guide
+==========
 
 Please note that this user guide is still under construction and some functions of the library are still not enough documented or not documented at all. 
 Feel free to contact us if you need documentation for a specific function.
