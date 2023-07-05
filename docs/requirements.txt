@@ -1,0 +1,6 @@
+numpy
+geopandas
+shapely
+cartagen4py
+matplotlib
+sphinx-book-theme
