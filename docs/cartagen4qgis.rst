@@ -1,5 +1,5 @@
 .. _cartagen4qgis:
 
 =============
-cartagen4qgis
+CartAGen4QGIS
 =============
