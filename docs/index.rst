@@ -21,11 +21,8 @@ Evaluate your generalised map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-
 .. toctree::
-   :caption: Installation Guide
-   :caption: User Guide
-   :caption: Cartagen4qgis plugin
+   :caption: Presentation
    :hidden:
 
    installation
