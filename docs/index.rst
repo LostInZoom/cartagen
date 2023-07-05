@@ -1,5 +1,5 @@
 ======================
-cartagen4py
+CartAGen4Py
 ======================
 
 `cartagen4py <https://github.com/LostInZoom/cartagen4py>`_ is an open Python library dedicated to cartogaphic generalisation. It is originally a port of the CartAGen Java platform, developed at IGN France and Univ. Gustave Eiffel.
