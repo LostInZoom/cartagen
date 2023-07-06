@@ -70,7 +70,7 @@ def erosion(polygon, buffer_size, cap_style=1):
     outer_ring = polygon.exterior
 
     # first erode the outer ring
-    eroded_outer = erosion_no_hole(Polygon(outer_ring), cap_style)
+    eroded_outer = erosion_no_hole(Polygon(outer_ring), buffer_size, cap_style)
     if(eroded_outer is None):
         return None
     
@@ -104,7 +104,7 @@ def erosion_no_hole(polygon, buffer_size, cap_style=1):
 
     # at this point, we are interested in the inner rings of buffer
     num_rings = len(buffered_ring.interiors)
-
+    
     # first, check if there is no ring
     if num_rings == 0:
         return None

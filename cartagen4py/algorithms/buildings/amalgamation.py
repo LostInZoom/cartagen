@@ -16,6 +16,7 @@ def morphological_amalgamation(buildings, buffer_size, edge_length):
 
     # make a morphological closing on the multipolygon
     closed = closing_multi_polygon(multipolygon, buffer_size, cap_style=2)
+    print(closed)
     merged = opening(closed, buffer_size, cap_style=2)
 
     if(merged.geom_type == 'Polygon'):

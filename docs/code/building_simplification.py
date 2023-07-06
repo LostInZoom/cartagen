@@ -10,7 +10,7 @@ geoms = [loads('Polygon Z ((395038.70000000001164153 6272970.90000000037252903, 
     
 simplified = []
 for geom in geoms:
-    simplified.append(c4.building_simplification_ruas(geom,10.5))
+    simplified.append(c4.building_simplification_ruas(geom,5.0))
 p1 = gp.GeoSeries(geoms)
 p2 = gp.GeoSeries(simplified)
 base = p1.plot()

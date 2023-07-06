@@ -68,6 +68,21 @@ Figure 3. Four buildings simplified with the Ruas algorithm.
 Operations for groups of objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
+
+    Amalgamates a group of building polygons using morphological operators, with the algorithm presented in '(Damen et al., 2008) <https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113>'_. 
+    The algorithm chains morphological opening and closing to amalgamate close buildings into a larger building area.
+    The 'buffer_size' is parameter used for the opening and closing operations. The 'edge_length' gives the length of edges that are later simplified in the amalgamated polygons.
+
+.. code-block:: pycon
+
+  >>> buildings = [Polygon([(1, 0), (9, 0), (9, 6), (1, 6), (1, 0)]),Polygon([(10, 0), (17, 0), (17, 6), (10, 6), (10, 0)])]
+  >>> morphological_amalgamation(buildings, 1.0, 1.0)
+  <POLYGON ((1.207 1.983, 2.547 5.885, 16.768 4.282, 15.42 0.148, 1.207 1.983))>
+
+.. plot:: code/building_amalgamation.py
+
+Figure 4. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 Enrich your data prior to map generalisation
 --------------------------------------------
@@ -89,7 +104,7 @@ Extracting implicit geographic structures
 
 .. plot:: code/compute_boffet_urban_areas.py
 
-Figure 4. Building polygons converted into built-up areas using the Boffet algorithm.
+Figure 5. Building polygons converted into built-up areas using the Boffet algorithm.
 
 
 Measures on map features
