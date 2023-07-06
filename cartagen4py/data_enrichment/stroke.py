@@ -4,6 +4,7 @@ import numpy as np
 from shapely.geometry import LineString, Point, MultiLineString
 from shapely import ops
 import geopandas as gpd
+import networkx as nx
 
 from cartagen4py.utils.geometry.angle import angle_3_pts
 
@@ -218,10 +219,9 @@ class Stroke:
         if (node is None):
             return;
         followers =[]
-        for arc in self.network.features:
-            if arc["geom"].coords[0]==node or arc["geom"].coords[-1]==node:
-                followers.append(arc)
-        followers.remove(self.root)
+        followers+=self.network.dic_neighbours[self.root["geom"].coords[side]]
+        if self.root in followers:
+            followers.remove(self.root)
         next1 = self.root
         continuity = True
         self.network.groupedFeatures.append(next1)
@@ -239,12 +239,13 @@ class Stroke:
                 #get the followers of 'best'
                 followers=[]
                 nextNode = best["geom"].coords[0];
+                
+                side2=0
                 if (node==nextNode):
                     nextNode = best["geom"].coords[-1];
+                    side2=-1 
                     
-                for arc in self.network.features:
-                    if arc["geom"].coords[0]==nextNode or arc["geom"].coords[-1]==nextNode:
-                        followers.append(arc)
+                followers+=self.network.dic_neighbours[best["geom"].coords[side2]]#AC
                 followers.remove(best)
                 #if there is no follower, break
                 if (len(followers)== 0):
@@ -283,6 +284,24 @@ class StrokeNetwork:
         self.groupedFeatures = []
         self.id = 0;
         self.strokes = []
+        self.dic_neighbours=StrokeNetwork.compute_neighbours(features)
+        
+    def compute_neighbours(network):
+        ntx=nx.DiGraph()
+        dic_neighbours={}
+        for edge in network:
+            ntx.add_edge(edge["geom"].coords[0],edge["geom"].coords[-1],elem=edge)
+            ntx.add_edge(edge["geom"].coords[-1],edge["geom"].coords[0],elem=edge)
+        for node in ntx.nodes:
+            dic_neighbours[node]=[]
+            for succnode in ntx.successors(node):
+                    if ntx.has_edge(node,succnode) :
+                        temp=ntx[node][succnode]["elem"]
+                        dic_neighbours[node].append(temp)
+                    if ntx.has_edge(succnode,node) : 
+                        temp=ntx[node][succnode]["elem"]
+                        dic_neighbours[node].append(temp)
+        return dic_neighbours
 
 
     def buildStrokes(self, attributeNames, deviatAngle, deviatSum) :
