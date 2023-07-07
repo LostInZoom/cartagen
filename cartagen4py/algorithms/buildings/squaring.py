@@ -1,5 +1,20 @@
 # This is an implementation of the least squares based squaring algorithm proposed by Lokhat & Touya (https://hal.science/hal-02147792)
 import numpy as np
+from shapely.geometry import Polygon
+
+# this function encapsulates the above class methods to square a collection of polygons and return the squared geometries.
+def square_polygon(polygons,max_iteration=1000, norm_tolerance=0.05,
+            right_tolerance=10, flat_tolerance=10,
+            fixed_weight=5, right_weight=100, flat_weight=50):
+    squarer = Squarer(max_iteration, norm_tolerance,
+            right_tolerance, flat_tolerance, 7,
+            fixed_weight, right_weight, flat_weight, 10)
+    new_points = squarer.square(polygons)
+    list_vertices = squarer.get_shapes_from_new_points(polygons, new_points)
+    new_geoms = []
+    for vertices in list_vertices:
+        new_geoms.append(Polygon(vertices))
+    return new_geoms
 
 class Squarer:
     """Initialize squaring object, with default weights and tolerance set in the constructor

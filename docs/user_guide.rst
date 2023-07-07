@@ -15,7 +15,7 @@ Operations for lines
 
 .. method:: visvalingam_whyatt(line, area_tolerance)
 
-    Returns a simplified version of the line using the Visvalingam-Whyatt algorithm '(Visvalingam & Whyatt, 1993) <https://www.tandfonline.com/doi/abs/10.1179/000870493786962263?journalCode=ycaj20>'_.
+    Returns a simplified version of the line using the Visvalingam-Whyatt algorithm `(Visvalingam & Whyatt, 1993) <https://www.tandfonline.com/doi/abs/10.1179/000870493786962263?journalCode=ycaj20>`_.
     The 'area_tolerance' is the minimum area of the triangle formed by three consecutive vertices, to keep the middle vertex in the simplified line.
 
 .. code-block:: pycon
@@ -31,7 +31,7 @@ Figure 1. Two polylines simplified with the Visvalingam-Whyatt algorithm.
 
 .. method:: raposo_simplification(line, initial_scale, final_scale, centroid=True, tobler=False)
 
-    Returns a simplified version of the line using the Raposo algorithm '(Raposo, 2013) <http://dx.doi.org/10.1080/15230406.2013.803707>'_.
+    Returns a simplified version of the line using the Raposo algorithm `(Raposo, 2013) <http://dx.doi.org/10.1080/15230406.2013.803707>`_.
     The algorithm uses an hexagonal tessallation, with a size related to the final scale, and it only retains one vertex per hexagonal cell.
     Be careful, it uses the scale as parameter. If the 'centroid' parameter is ''True'', the vertices inside an hexagon cell are replaced by the centroid of the cell; if it is ''False'', they are replaced by the nearest vertex to the centroid of the cell.
     The Raposo algorithm is dedicated to the simplification of natural lines such as rivers, lakes or forests.
@@ -46,7 +46,7 @@ Figure 1. Two polylines simplified with the Visvalingam-Whyatt algorithm.
 Figure 2. Two polylines simplified with the Raposo algorithm.
 
 Operations for polygons
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings. Only the algorithms that process one polygon at a time are documented in this section.
 
@@ -65,12 +65,26 @@ cartagen4py contains algorithms that process any type of polygons, and others sp
 
 Figure 3. Four buildings simplified with the Ruas algorithm.
 
+.. method:: square_polygon(polygons, max_iteration=1000, norm_tolerance=0.05, right_tolerance=10, flat_tolerance=10, fixed_weight=5, right_weight=100, flat_weight=50)
+
+    Squares the angles of a polygon using the algorithm from `(Lokhat & Touya, 2016) <https://josis.org/index.php/josis/article/view/72>`_. The algorithm is based on a least squares adjustment, where angles that are almost right or almost flat are adjusted to be exactly right, or exactly flat.
+
+.. code-block:: pycon
+
+  >>> building = Polygon([(0, 0), (0, 10), (9.8, 9.8), (10, 0), (0, 0)])
+  >>> square_polygon([building])
+  [POLYGON((-0.00002213 -0.00002213, 0.00000159  9.90002291, 9.89999763  9.89999763, 9.90002291  0.00000159, -0.00002213 -0.00002213))]
+
+.. plot:: code/building_squaring.py
+
+Figure 4. Four buildings squared with the algorithm from (Lokhat & Touya, 2016).
+
 Operations for groups of objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
 
-    Amalgamates a group of building polygons using morphological operators, with the algorithm presented in '(Damen et al., 2008) <https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113>'_. 
+    Amalgamates a group of building polygons using morphological operators, with the algorithm presented in `(Damen et al., 2008) <https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113>`_. 
     The algorithm chains morphological opening and closing to amalgamate close buildings into a larger building area.
     The 'buffer_size' is parameter used for the opening and closing operations. The 'edge_length' gives the length of edges that are later simplified in the amalgamated polygons.
 
@@ -82,7 +96,7 @@ Operations for groups of objects
 
 .. plot:: code/building_amalgamation.py
 
-Figure 4. Buildings amalgamated using the algorithm from Damen et al. (2008).
+Figure 5. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 Enrich your data prior to map generalisation
 --------------------------------------------
@@ -104,7 +118,7 @@ Extracting implicit geographic structures
 
 .. plot:: code/compute_boffet_urban_areas.py
 
-Figure 5. Building polygons converted into built-up areas using the Boffet algorithm.
+Figure 6. Building polygons converted into built-up areas using the Boffet algorithm.
 
 
 Measures on map features
