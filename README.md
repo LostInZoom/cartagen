@@ -1,6 +1,8 @@
 # CartAGen4Py
 Python open library for map generalisation, a port of the [CartAGen library](https://github.com/IGNF/CartAGen).
 
+Documentation is available [here](https://cartagen4py.readthedocs.io/en/latest/).
+
 This library is available on [PyPI](https://pypi.org/project/cartagen4py/): 
 `pip install cartagen4py`
 
