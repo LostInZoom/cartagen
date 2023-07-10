@@ -77,7 +77,7 @@ Figure 3. Four buildings simplified with the Ruas algorithm.
 
 .. plot:: code/building_squaring.py
 
-Figure 4. Four buildings squared with the algorithm from (Lokhat & Touya, 2016).
+Figure 4. Two buildings squared with the algorithm from (Lokhat & Touya, 2016).
 
 Operations for groups of objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
