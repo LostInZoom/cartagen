@@ -26,22 +26,6 @@ class ConstraintMethod:
             'Polygon': ['movement', 'stiffness', 'curvature']
         }
 
-        self.__DEFAULT_WEIGHTS = {
-            # By default, points can move and are influenced by spatial conflicts
-            'Point': {
-                'movement': 1
-            },
-            # By default, lines are immovable (-1 correspond to positive infinite)
-            'LineString': {
-                'movement': 1
-            },
-            # By default, polygons can move and are stiff, i.e. their internal geometry must be invariant
-            'Polygon': {
-                'movement': 1,
-                'stiffness': 10
-            }
-        }
-
         self.__DISTANCES = np.ndarray((0, 0))
         self.__CONFLICTS = np.ndarray((0, 0))
         
@@ -118,33 +102,29 @@ class ConstraintMethod:
         Reconstruct weights as a dict. Check whether weights are correcty set and/or apply default weights when needed
         """
         w = {}
-        # If no weights are provided, set weights to default
-        if len(weights) < 1:
-            w = self.__DEFAULT_WEIGHTS[geomtype]
-        else:
-            # Retrieve allowed weights for the given geometry type
-            allowed = self.__ALLOWED_WEIGHTS[geomtype]
-            for name, value in weights.items():
-                # If weight is not allowed, raise an error
-                if name not in allowed:
-                    raise Exception('{0} weight does not exists or cannot be applied to {1}.\n'.format(name, geomtype) +
-                        'Available weights for {0}: {1}'.format(geomtype, ', '.join(allowed)))
-                # Check if the weight is an integer
-                if isinstance(value, int):
-                    # If it's a negative integer other than -1, raise an error
-                    if value < 0:
-                        raise Exception('Provided weight ({0}) is negative.'.format(value))
-                # Raise an error if the weight is not an integer
-                else:
-                    raise Exception('Provided weight ({0}) is not an integer.'.format(value))
 
-                # Add the weight to the dict
-                w[name] = value
+        # Check if movement weight is provided and raise an error if not
+        if 'movement' not in w.keys():
+            raise Exception('You must provide a movement weight.')
 
-            # Check if movement weight is provided
-            if 'movement' not in w.keys():
-                # Add default movement weight to the dict
-                w['movement'] = self.__DEFAULT_WEIGHTS[geomtype]['movement']
+        # Retrieve allowed weights for the given geometry type
+        allowed = self.__ALLOWED_WEIGHTS[geomtype]
+        for name, value in weights.items():
+            # If weight is not allowed, raise an error
+            if name not in allowed:
+                raise Exception('{0} weight does not exists or cannot be applied to {1}.\n'.format(name, geomtype) +
+                    'Available weights for {0}: {1}'.format(geomtype, ', '.join(allowed)))
+            # Check if the weight is an integer
+            if isinstance(value, int):
+                # If it's a negative integer other than -1, raise an error
+                if value < 0:
+                    raise Exception('Provided weight ({0}) is negative.'.format(value))
+            # Raise an error if the weight is not an integer
+            else:
+                raise Exception('Provided weight ({0}) is not an integer.'.format(value))
+
+            # Add the weight to the dict
+            w[name] = value
 
         return w
 
