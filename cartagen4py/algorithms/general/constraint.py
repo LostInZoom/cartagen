@@ -32,7 +32,6 @@ class ConstraintMethod:
         self.__OBJECTS = []
         self.__RESULTS = []
         self.__WEIGHTS = []
-        # self.__DISTANCES = []
         self.__SHAPE_COUNT = 0
         
         self.__points = []
@@ -99,13 +98,9 @@ class ConstraintMethod:
 
     def __reconstruct_weights(self, geomtype, **weights):
         """
-        Reconstruct weights as a dict. Check whether weights are correcty set and/or apply default weights when needed
+        Reconstruct weights as a dict. Check whether weights are correcty set
         """
         w = {}
-
-        # Check if movement weight is provided and raise an error if not
-        if 'movement' not in w.keys():
-            raise Exception('You must provide a movement weight.')
 
         # Retrieve allowed weights for the given geometry type
         allowed = self.__ALLOWED_WEIGHTS[geomtype]
@@ -125,6 +120,10 @@ class ConstraintMethod:
 
             # Add the weight to the dict
             w[name] = value
+
+        # Check if movement weight is provided and raise an error if not
+        if 'movement' not in w.keys():
+            raise Exception('You must provide a movement weight.')
 
         return w
 
@@ -453,26 +452,6 @@ class ConstraintMethod:
                 m[3 * i + 2][2 * p0] = -(xn - x0) / ln
                 m[3 * i + 2][2 * p0 + 1] = -(yn - y0) / ln
 
-                # # Calculate equation factors for angles
-                # normU = np.sqrt((x0 - xp) * (x0 - xp) + (y0 - yp) * (y0 - yp))
-                # normW = np.sqrt((xn - x0) * (xn - x0) + (yn - y0) * (yn - y0))
-                # a = (y0 - yn) / (normU * normW)
-                # b = (-x0 + xn) / (normU * normW)
-                # c = (-yp + yn) / (normU * normW)
-                # d = (xp - xn) / (normU * normW)
-                # e = (yp - y0) / (normU * normW)
-                # f = (-xp + x0) / (normU * normW)
-
-                # # Calculate equation factors for lengths
-                # a1 = (xp - x0) / normU
-                # b1 = (yp - y0) / normU
-                # c1 = (x0 - xp) / normU
-                # d1 = (y0 - yp) / normU
-                # a2 = (xn - x0) / normW
-                # b2 = (yn - y0) / normW
-                # c2 = (x0 - xn) / normW
-                # d2 = (y0 - yn) / normW
-
         return m
 
     def __build_spatial(self, points):
@@ -608,7 +587,9 @@ class ConstraintMethod:
         def add_node_to_node(c):
             add = True
             for n in self.__nodes:
-                if (c[0] == n[0] and c[1] == n[1]) or (c[0] == n[1] and c[1] == n[0]):
+                if (c[0] == n[0] and c[1] == n[1]):
+                    add = False
+                if (c[0] == n[1] and c[1] == n[0]):
                     add = False
             if add:
                 self.__nodes.append(c)
@@ -676,7 +657,7 @@ class ConstraintMethod:
                             # Checks if the shape is a point
                             if geomtype == 'Point':
                                 distance = shapely.distance(point, shape)
-                                self.__nodes.append([p, s[0], min_dist, distance, weight])
+                                add_node_to_node([p, s[0], min_dist, distance, weight])
                             # If it's not, checking if it's closer to a node or a segment
                             else:
                                 retrieve_nodes_links(s, geomtype, p, conflict_dist, min_dist, weight)
