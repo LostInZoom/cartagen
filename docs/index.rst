@@ -25,11 +25,12 @@ Evaluate your generalised map
    :caption: CartAGen4Py
    :hidden:
 
-   installation
+   installation_py
    user_guide
 
 .. toctree::
    :caption: CartAGen4QGIS
    :hidden:
 
+   installation_qgis
    cartagen4qgis

@@ -11,7 +11,7 @@ Apply map generalisation operations
 -----------------------------------
 
 Operations for lines
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 .. method:: visvalingam_whyatt(line, area_tolerance)
 
@@ -46,7 +46,7 @@ Figure 1. Two polylines simplified with the Visvalingam-Whyatt algorithm.
 Figure 2. Two polylines simplified with the Raposo algorithm.
 
 Operations for polygons
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings. Only the algorithms that process one polygon at a time are documented in this section.
 
@@ -80,7 +80,7 @@ Figure 3. Four buildings simplified with the Ruas algorithm.
 Figure 4. Four buildings squared with the algorithm from (Lokhat & Touya, 2016).
 
 Operations for groups of objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
 
@@ -122,7 +122,7 @@ Figure 6. Building polygons converted into built-up areas using the Boffet algor
 
 
 Measures on map features
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. method:: polygon_compactness(polygon)
 
