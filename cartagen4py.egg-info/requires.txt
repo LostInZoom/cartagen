@@ -1,4 +1,5 @@
 geopandas
 matplotlib
+networkx
 numpy
 shapely

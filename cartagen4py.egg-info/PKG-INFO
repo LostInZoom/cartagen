@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: cartagen4py
-Version: 0.1.11
+Version: 0.2.0
 Summary: Python package to generalise geographic objects for cartographic purposes
 Home-page: https://github.com/LostInZoom/cartagen4py
 Author: Guillaume Touya, Justin Berli
