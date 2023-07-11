@@ -263,18 +263,20 @@ class ConstraintMethod:
         offset += 3 * len(curvature)
         # Add minimum distance between close nodes
         for i, n in enumerate(nodes):
-            if n[3] > n[2]:
-                Y[offset + i] = n[3]
-            else:
-                Y[offset + i] = n[2]
+            Y[offset + i] = n[2]
+            # if n[3] > n[2]:
+            #     Y[offset + i] = n[3]
+            # else:
+            #     Y[offset + i] = n[2]
 
         # Add minimum distance between close nodes and links
         offset += len(nodes)
         for i, l in enumerate(links):
-            if l[4] > l[3]:
-                Y[offset + i] = l[4]
-            else:
-                Y[offset + i] = l[3]
+            Y[offset + i] = l[3]
+            # if l[4] > l[3]:
+            #     Y[offset + i] = l[4]
+            # else:
+            #     Y[offset + i] = l[3]
 
         self.__Y = Y
 
@@ -646,7 +648,8 @@ class ConstraintMethod:
                         # Getting the distance value from the distances matrix
                         min_dist = self.__DISTANCES[oid][oid1]
                         # Setting a distance equal to 1.5 times the min distance to retrieve conflicting objects
-                        conflict_dist = 1.5 * min_dist
+                        # Setting conflict_dist = min_dist doesn't take the 1.5 time conflicting entities
+                        conflict_dist = min_dist
                         
                         # Retrieve the geometry of the shape
                         shape = self.__OBJECTS[oid1].geometry[sid1]
