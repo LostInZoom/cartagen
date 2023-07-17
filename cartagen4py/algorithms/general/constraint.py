@@ -11,7 +11,7 @@ class ConstraintMethod:
     Parameters
     ----------
     default_distance : int optional
-        This is the default distance for the detection of spatial conflicts.        
+        This is the default distance for the detection of spatial conflicts.
     """
     def __init__(self, max_iteration=1000, default_distance=5, default_conflict_weight=15, norm_tolerance=0.05, verbose=False):
         self.MAX_ITER = max_iteration
@@ -890,4 +890,5 @@ class ConstraintMethod:
         
         points_gdf.to_file("cartagen4py/data/data_bourbonnaise/points_nodes.geojson", driver="GeoJSON")
         
-        
+    def get_objects_number(self):
+        return len(self.__OBJECTS)
