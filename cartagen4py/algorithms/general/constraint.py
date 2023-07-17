@@ -7,16 +7,21 @@ np.set_printoptions(suppress=True)
 
 class ConstraintMethod:
     """
-    Initialize constraint method object, with default constraints
+    Initialize constraint method object
     Parameters
     ----------
-    default_distance : int optional
-        This is the default distance for the detection of spatial conflicts.
+    max_iteration : int optional
+        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set, the norm tolerance threshold should be reached before the maximum number of iteration.
+        Default value is set to 1000.
+    norm_tolerance : float optional
+        The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
+        The default value is set to 0.05.
+    verbose : boolean optional
+        For debugging purposes, choose to print some key values while the constraint method is calculated.
+        Default set to False.
     """
-    def __init__(self, max_iteration=1000, default_distance=5, default_conflict_weight=15, norm_tolerance=0.05, verbose=False):
+    def __init__(self, max_iteration=1000, norm_tolerance=0.05, verbose=False):
         self.MAX_ITER = max_iteration
-        self.DEFAULT_DISTANCE = default_distance
-        self.DEFAULT_CONFLICT_WEIGHT = default_conflict_weight
         self.NORM_TOLERANCE = norm_tolerance
         self.VERBOSE = verbose
 
@@ -26,18 +31,25 @@ class ConstraintMethod:
             'Polygon': ['movement', 'stiffness', 'curvature']
         }
 
+        # Create dummy arrays for distances and conflicts weights
         self.__DISTANCES = np.ndarray((0, 0))
         self.__CONFLICTS = np.ndarray((0, 0))
         
+        # List of future objects added to the generalization
         self.__OBJECTS = []
+        # The same list of objects once the generalization has been made
         self.__RESULTS = []
+        # Stores weights as entered by the user with the add() method
         self.__WEIGHTS = []
+        # Stores the number of different shapes
         self.__SHAPE_COUNT = 0
         
+        # Stores all points of all objects
         self.__points = []
+        # Stores all points of all objects in nested lists of shapes
         self.__shapes = []
 
-        # Following contains all the object level constraints
+        # Stores points influenced by specific constraints
         self.__constraints = {
             'movement': [],
             'stiffness': [],
@@ -62,9 +74,9 @@ class ConstraintMethod:
             movement : **int**.
                 If an object is able to move, specify the weight of the movement constraint.
             stiffness : **int**.
-                If a polygon is able to move but is not flexible, specify the weight of the stiffness constraint. A point cannot have a stiffness constraint.
+                If a polygon or a line is able to move but is not flexible, specify the weight of the stiffness constraint. A point cannot have a stiffness constraint.
             curvature : **int**.
-                If a line or polygon is flexible, specify the weight of the curvature constraint. A point cannot have a curvature constraint.
+                If a polygon or line is flexible, specify the weight of the curvature constraint. A point cannot have a curvature constraint.
         """
 
         geometry = None
@@ -139,37 +151,38 @@ class ConstraintMethod:
         spatial_weights : **Numpy**, *ndarray*.
             Same as the distances matrix but the values represent the weight of the spatial conflict of the two considered objects.
         """
+
+        # Retrieve the number of objects
         nb_obj = len(self.__OBJECTS)
+
+        # Retrieve both array dimensions
         sd = distances.shape
         sw = spatial_weights.shape
+
+        # Retrieve the number of row and colums of each array
         xd, yd, xw, yw = sd[0], sd[1], sw[0], sw[1]
 
+        # Checks if both array have the same dimension
         if xd != xw or yd != yw:
             raise Exception("The distances matrix and the spatial weights matrix must have the same dimensions.")
         else:
+            # Checks if matrices are square
             if xd != yd:
                 raise Exception("The spatial conflict matrix must be square.")
             else:
                 dimension_error = False
+                # Checks if the dimensions of the matrices are the same as the number of objects
                 if xd != nb_obj:
                     dimension_error = True
                 if yd != nb_obj:
                     dimension_error = True
                 if dimension_error:
-                    raise Exception("The provided matrix must have both dimensions equal to the number of provided objects.")
+                    raise Exception("The provided matrix must have both dimensions equal to the number of provided objects." + \
+                        "Please follow the documentation to set up spatial conflicts.")
 
+        # If nothing has failed, stores both matrices
         self.__DISTANCES = distances
         self.__CONFLICTS = spatial_weights
-
-    def __set_default_spatial_conflicts(self):
-        dimension = self.__DISTANCES.shape[0]
-        for i in range(dimension):
-            for j in range(dimension):
-                if i != j:
-                    if self.__DISTANCES[i][j] == 0:
-                        self.__DISTANCES[i][j] = self.DEFAULT_DISTANCE
-                    if self.__CONFLICTS[i][j] == 0:
-                        self.__CONFLICTS[i][j] = self.DEFAULT_CONFLICT_WEIGHT
 
 
     def generalize(self, network_partitioning=False):
@@ -179,8 +192,6 @@ class ConstraintMethod:
         # Checks if objects are present
         if len(self.__OBJECTS) < 1:
             raise Exception('No objects provided, cannot generalize.')
-
-        self.__set_default_spatial_conflicts()
         
         # Prepare points and shapes using their index
         points = self.__generate_point_list()
@@ -245,23 +256,32 @@ class ConstraintMethod:
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
             current_id = p[0]
+            # Retrieve the next point in the shape
             apply, next_id = self.__get_next_point_in_shape(current_id, points)
-            # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
+            # The apply boolean is set to False if the current point is the last of the shape in a LineString
             if apply:
                 dx, dy = self.__calculate_stiffness(current_id, next_id, points)
+                # Difference between the current and the following along the x axis (x - x+1)
                 Y[offset + 2 * i] = dx
+                # Difference between the current and the following along the y axis (y - y+1)
                 Y[offset + 2 * i + 1] = dy
         
         offset += 2 * len(stiffness)
         for i, p in enumerate(curvature):
             current_id = p[0]
+            # Retrieve the previous and the next point in the shape
             apply, previous_id, next_id = self.__get_surrounding_points_in_shape(current_id, points)
             # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
                 alpha, normp, normn = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                # First value of the constraint is the angle formed by the previous, the current and the next point
                 Y[offset + i] = alpha
+                # Second value is the norm of the vector formed by the previous and the current point
                 Y[offset + i + 1] = normp
+                # Third value is the norm of the vector formed by the current and the next point
                 Y[offset + i + 2] = normn
+
+        # Keep 0 for the spatial conflicts (nodes and links)
 
         self.__Y = Y
 
@@ -283,36 +303,47 @@ class ConstraintMethod:
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
             current_id = p[0]
+            # Retrieve the next point in the shape
             apply, next_id = self.__get_next_point_in_shape(current_id, points)
-            # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
+            # The apply boolean is set to False if the current point is the last of the shape in a LineString
             if apply:
                 dx, dy = self.__calculate_stiffness(current_id, next_id, points)
+                # Difference between the current and the following along the x axis (x - x+1)
                 S[offset + 2 * i] = dx
+                # Difference between the current and the following along the y axis (y - y+1)
                 S[offset + 2 * i + 1] = dy
 
         offset += 2 * len(stiffness)
         for i, p in enumerate(curvature):
             current_id = p[0]
+            # Retrieve the previous and the next point in the shape
             apply, previous_id, next_id = self.__get_surrounding_points_in_shape(current_id, points)
             # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
                 alpha, normp, normn = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                # First value of the constraint is the angle formed by the previous, the current and the next point
                 S[offset + i] = alpha
+                # Second value is the norm of the vector formed by the previous and the current point
                 S[offset + i + 1] = normp
+                # Third value is the norm of the vector formed by the current and the next point
                 S[offset + i + 2] = normn
 
         offset += 3 * len(curvature)
         for i, n in enumerate(nodes):
             if n[3] > n[2]:
+                # Add 0 if the actual distance is higher than the minimum distance
                 S[offset + i] = 0
             else:
+                # Add dist_min - dist if the actual distance is below the minimum distance
                 S[offset + i] = n[2] - n[3]
 
         offset += len(nodes)
         for i, l in enumerate(links):
             if l[4] > l[3]:
+                # Same as nodes
                 S[offset + i] = 0
             else:
+                # Same as nodes
                 S[offset + i] = l[3] - l[4]
 
         return self.__Y - S
@@ -363,25 +394,36 @@ class ConstraintMethod:
         """
         Apply the least square method to the model.
         """
+        # Build the jacobian matrix A
         A = self.__build_A(points)
+        # Build the matrix B which is S - Y
         B = self.__build_B(points)
 
         atp = A.T @ self.__W
         atpa = atp @ A
         atpb = atp @ B
 
+        # Solves the equation
         dx = np.linalg.solve(atpa, atpb)
+
         return dx
 
     def __build_A(self, points):
         """
         Build the jacobian matrix of the model.
         """
+        # Build an identity matrix for the movement constraint
         identity = np.identity(2 * len(points))
+
+        # Calulcate the stiffness matrix and stacking it on A
         stiffness = self.__build_stiffness(points)
         A = np.vstack((identity, stiffness))
+
+        # Calulcate the stiffness matrix and stacking it on A
         curvature = self.__build_curvature(points)
         A = np.vstack((A, curvature))
+
+        # Calulcate the spatial conflicts matrix and stacking it on A
         spatial = self.__build_spatial(points)
         A = np.vstack((A, spatial))
 
@@ -396,12 +438,17 @@ class ConstraintMethod:
 
         for i, p in enumerate(stiffness):
             current_id = p[0]
+            # Retrieve the next point in the shape
             apply, next_id = self.__get_next_point_in_shape(current_id, points)
             # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
+                # x for the current point
                 m[2 * i][2 * current_id] = 1
+                # x for the next point
                 m[2 * i][2 * next_id] = -1
+                # y for the current point
                 m[2 * i + 1][2 * current_id + 1] = 1
+                # y for the next point
                 m[2 * i + 1][2 * next_id + 1] = -1
 
         return m
@@ -415,6 +462,7 @@ class ConstraintMethod:
 
         for i, p in enumerate(curvature):
             p = p[0]
+            # Retrieve the previous and the next point in the shape
             apply, pp, pn = self.__get_surrounding_points_in_shape(p, points)
             # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
@@ -571,62 +619,53 @@ class ConstraintMethod:
 
         return m
 
-    def __generate_point_list(self):
+    def __calculate_stiffness(self, current_id, next_id, points):
         """
-        Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
-        Generate a nested list of objects composed of all points it is made of, sorted by shapes.
-        Generate lists of points that will accept constraints
+        Estimate the stiffness by calculating the amount of movement between following point on a shape.
         """
+        x0, y0 = points[current_id][0], points[current_id][1]
+        x1, y1 = points[next_id][0], points[next_id][1]
+        return x0 - x1, y0 - y1
 
-        def add_point_constraint(pid, weights):
-            for cname, clist in self.__constraints.items():
-                if cname in weights.keys():
-                    w = np.inf if weights[cname] == -1 else weights[cname]
-                    self.__constraints[cname].append((pid, w))
+    def __calculate_curvature(self, previous_id, current_id, next_id, points):
+        """
+        Estimate the curvature by calculating the angle formed by the point, its previous and its following point.
+        """
+        pp = np.array((points[previous_id][0], points[previous_id][1]))
+        pc = np.array((points[current_id][0], points[current_id][1]))
+        pn = np.array((points[next_id][0], points[next_id][1]))
 
-        unique_points = []
-        point_id = 0
-        for oid, shapes in enumerate(self.__OBJECTS):
-            weights = self.__WEIGHTS[oid]
-            o = []
-            for sid, shape in shapes.iterrows():
-                s = []
-                geomtype = shape.geometry.geom_type
-                points = self.__get_coordinates(shape.geometry)
-                for pid, p in enumerate(points):
-                    if geomtype == 'Polygon' and pid >= (len(points) - 1):
-                        continue
-                    else:
-                        unique_points.append(p)
-                        self.__points.append((oid, sid, pid))
-                        s.append(point_id)
-                        add_point_constraint(point_id, weights)
-                        point_id += 1
-                o.append(s)
-            self.__shapes.append(o)
+        u = (pc - pp)
+        normu = np.linalg.norm(u)
+        v = (pn - pc)
+        normv = np.linalg.norm(v)
 
-        return np.array(unique_points)
+        return np.cross(u / normu, v / normv), normu, normv
 
     def __calculate_spatial_conflicts(self, points):
         """
         Retrieve conflicting pairs of nodes and nodes, or nodes and links.
         """
 
+        # Check if the node to link conflict concern segments of different objects crossing themselves
         def line_crossing(p, point, line, points):
+            # Retrieve previous and following points of the shape
             a, previous_id, next_id = self.__get_surrounding_points_in_shape(p, points)
-            cross = False
-            if previous_id is not None:
-                previous_point = shapely.Point(points[previous_id])
-                crossline = shapely.LineString([point, previous_point])
-                if shapely.crosses(line, crossline):
-                    cross = True
-            if next_id is not None:
-                next_point = shapely.Point(points[next_id])
-                crossline = shapely.LineString([point, next_point])
-                if shapely.crosses(line, crossline):
-                    cross = True
-            return cross
+            # Loop through both points
+            for i in [previous_id, next_id]:
+                # If point exists
+                if i is not None:
+                    # Create the geometry
+                    ip = shapely.Point(points[i])
+                    # Create the line formed with the current point
+                    crossline = shapely.LineString([point, ip])
+                    # If that line crosses the concerned line, return True
+                    if shapely.crosses(line, crossline):
+                        return True
+            # If none of the two lines cross the concerned line, return False
+            return False
 
+        # Check if a node to node conflict already exists before adding one
         def add_node_to_node(c):
             add = True
             for n in self.__nodes:
@@ -691,7 +730,7 @@ class ConstraintMethod:
                         min_dist = self.__DISTANCES[oid][oid1]
                         # Setting a distance equal to 1.5 times the min distance to retrieve conflicting objects
                         # Setting conflict_dist = min_dist doesn't take the 1.5 time conflicting entities
-                        conflict_dist = min_dist
+                        conflict_dist = 1.5 * min_dist
                         
                         # Retrieve the geometry of the shape
                         shape = self.__OBJECTS[oid1].geometry[sid1]
@@ -716,6 +755,56 @@ class ConstraintMethod:
                     # Check conflicts with other points
                     check_conflicts(p)
 
+    def __generate_point_list(self):
+        """
+        Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
+        Generate a nested list of objects composed of all points it is made of, sorted by shapes.
+        Generate lists of points that will accept constraints
+        """
+
+        def add_point_constraint(pid, weights):
+            for cname, clist in self.__constraints.items():
+                if cname in weights.keys():
+                    w = np.inf if weights[cname] == -1 else weights[cname]
+                    self.__constraints[cname].append((pid, w))
+
+        unique_points = []
+        point_id = 0
+        # Loop through each objects
+        for oid, shapes in enumerate(self.__OBJECTS):
+            # retrieve the weights of the concerned object
+            weights = self.__WEIGHTS[oid]
+            o = []
+            # Loop through each shape of the object
+            for sid, shape in shapes.iterrows():
+                s = []
+                # Retrieve the geometry type
+                geomtype = shape.geometry.geom_type
+                # Retrieve x, y of the points of the shape
+                points = self.__get_coordinates(shape.geometry)
+                # Loop through each points in the shape
+                for pid, p in enumerate(points):
+                    # Skipping the last point of a polygon as it is the same as the first one
+                    if geomtype == 'Polygon' and pid >= (len(points) - 1):
+                        continue
+                    else:
+                        # Append point to the full list of points
+                        unique_points.append(p)
+                        # Append the position of the point within its object and shape
+                        self.__points.append((oid, sid, pid))
+                        # Append the point to its shape
+                        s.append(point_id)
+                        # Add the constraint associated with the point
+                        add_point_constraint(point_id, weights)
+                        point_id += 1
+                # Add the list of shapes to the object
+                o.append(s)
+            # Add the list of objects to the list
+            self.__shapes.append(o)
+
+        # Return an array of unique points
+        return np.array(unique_points)
+
     def __get_next_point_in_shape(self, current_id, points):
         position = self.__points[current_id]
         oid, sid, pid = position[0], position[1], position[2]
@@ -734,14 +823,6 @@ class ConstraintMethod:
                 apply = False
         
         return apply, next_id
-
-    def __calculate_stiffness(self, current_id, next_id, points):
-        """
-        Estimate the stiffness by calculating the amount of movement between following point on a shape.
-        """
-        x0, y0 = points[current_id][0], points[current_id][1]
-        x1, y1 = points[next_id][0], points[next_id][1]
-        return x0 - x1, y0 - y1
 
     def __get_surrounding_points_in_shape(self, current_id, points):
         position = self.__points[current_id]
@@ -769,21 +850,6 @@ class ConstraintMethod:
                 apply = False
         
         return apply, previous_id, next_id
-
-    def __calculate_curvature(self, previous_id, current_id, next_id, points):
-        """
-        Estimate the curvature by calculating the angle formed by the point, its previous and its following point.
-        """
-        pp = np.array((points[previous_id][0], points[previous_id][1]))
-        pc = np.array((points[current_id][0], points[current_id][1]))
-        pn = np.array((points[next_id][0], points[next_id][1]))
-
-        u = (pc - pp)
-        normu = np.linalg.norm(u)
-        v = (pn - pc)
-        normv = np.linalg.norm(v)
-
-        return np.cross(u / normu, v / normv), normu, normv
 
     def __update_distances(self, points):
         """
