@@ -25,6 +25,8 @@ class ConstraintMethod:
         self.NORM_TOLERANCE = norm_tolerance
         self.VERBOSE = verbose
 
+        self.__EXPORT_SPATIAL_DEBUG = False
+
         self.__ALLOWED_CONSTRAINTS = {
             'Point': ['movement'],
             'LineString': ['movement', 'stiffness', 'curvature'],
@@ -200,7 +202,8 @@ class ConstraintMethod:
         self.__calculate_spatial_conflicts(points)
 
         # Debugging tool to visualize spatial conflicts
-        self.__export_spatial_conflicts(points)
+        if self.__EXPORT_SPATIAL_DEBUG:
+            self.__export_spatial_conflicts(points)
 
         # Build the observation matrix
         self.__build_Y(points)
@@ -806,46 +809,75 @@ class ConstraintMethod:
         return np.array(unique_points)
 
     def __get_next_point_in_shape(self, current_id, points):
+        """
+        Look for the next point in the shape.
+        Return a boolean set to True if a point was found, i.e. the current point is not the last of a LineString.
+        If the current point is the last point of a polygon, it returns the first point.
+        """
+        # Get the position of the current point
         position = self.__points[current_id]
         oid, sid, pid = position[0], position[1], position[2]
+
+        # Get its shape
         shape = self.__shapes[oid][sid]
+        # Get the geometry type
         geomtype = self.__OBJECTS[oid].geometry[0].geom_type
         
-        pid1 = pid + 1
         apply = True
         next_id = None
+
         if pid < (len(shape) - 1):
+            # Return the real next id if it's not the last point of the shape
             next_id = shape[pid + 1]
         else:
             if geomtype == 'Polygon':
+                # If the current point id the last of the shape and it's a polygon, return the first point
                 next_id = shape[0]
             else:
+                # Set the boolean to false for the last point of a linestring
                 apply = False
         
         return apply, next_id
 
     def __get_surrounding_points_in_shape(self, current_id, points):
+        """
+        Look for the previous and the next point in the shape.
+        Return a boolean set to True if both points were found, i.e. the current point is not the first or the last of a LineString.
+        If the current point is first or the last point of the polygon, it returns correct surrounding points.
+        """
+        # Get the position of the current point
         position = self.__points[current_id]
         oid, sid, pid = position[0], position[1], position[2]
+
+        # Get its shape
         shape = self.__shapes[oid][sid]
+        # Get the geometry type
         geomtype = self.__OBJECTS[oid].geometry[0].geom_type
         
-        pid1 = pid + 1
         apply = True
         previous_id = None
         next_id = None
 
+        # If the current point if not the first or the last
         if pid > 0 and pid < (len(shape) - 1):
+            # Set previous and next as its natural previous and next point
             previous_id = shape[pid - 1]
             next_id = shape[pid + 1]
+        # If the current point either the first or the last
         else:
+            # Check if the shape is a polygon
             if geomtype == 'Polygon':
+                # If the point is the first of the shape
                 if pid == 0:
+                    # Return the previous as the last point and the next as its natural next
                     previous_id = shape[-1]
                     next_id = shape[pid + 1]
+                # If the point is the last of the shape
                 elif pid == (len(shape) - 1):
+                    # Return its natural previous and the next as the first of the shape
                     previous_id = shape[pid - 1]
                     next_id = shape[0]
+            # Set boolean to False if the shape is a LineString
             else:
                 apply = False
         
@@ -855,18 +887,26 @@ class ConstraintMethod:
         """
         Update the distance between pairs of nodes and pairs of nodes and links
         """
+        # Loop through node to node conflicts
         for i, n in enumerate(self.__nodes):
+            # Retrieve coordinates of the two nodes
             n1, n2 = points[n[0]], points[n[1]]
             x1, x2, y1, y2 = n1[0], n2[0], n1[1], n2[1]
+            # Calculate the vector formed by those two points
             v = np.array([x2 - x1, y2 - y1])
+            # Calculate its norm, i.e. distance and updating it
             nodedistance = np.linalg.norm(v)
             self.__nodes[i][3] = nodedistance
 
+        # Loop through node to link conflicts
         for i, l in enumerate(self.__links):
+            # Retrieve coordinates of the three nodes as array
             n0 = np.array(points[l[0]])
             n1 = np.array(points[l[1]])
             n2 = np.array(points[l[2]])
+            # Calculate the distance between the first node and the line formed by the other two
             linkdistance = np.linalg.norm(np.cross(n2 - n1, n1 - n0)) / np.linalg.norm(n2 - n1)
+            # Updating the distance
             self.__links[i][4] = linkdistance
 
     def __get_coordinates(self, shape):
@@ -874,8 +914,10 @@ class ConstraintMethod:
         Returns a list of coordinates from a shapely geometry.constraints
         """
         if shape.geom_type == 'Polygon':
+            # For Polygon type
             return shape.exterior.coords
         else:
+            # For LineString type
             return shape.coords
 
     def __reconstruct_geometries(self, points):
@@ -910,6 +952,10 @@ class ConstraintMethod:
         return self.__OBJECTS
 
     def __export_spatial_conflicts(self, points):
+        """
+        Exports spatial conflicts as links between pairs of nodes and pairs of nodes and links.
+        This function is for DEBUGGING PURPOSES.
+        """
         pointslist = []
         shape_id = 0
         for o in self.__shapes:
@@ -957,4 +1003,7 @@ class ConstraintMethod:
         points_gdf.to_file("cartagen4py/data/data_bourbonnaise/points_nodes.geojson", driver="GeoJSON")
         
     def get_objects_number(self):
+        """
+        Return the number of objects added to the generalization algorithm.
+        """
         return len(self.__OBJECTS)
