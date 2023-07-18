@@ -21,8 +21,10 @@ __copyright__ = '(C) 2023 by Guillaume Touya, Justin Berli'
 
 __revision__ = '$Format:%H$'
 
+import os
 from qgis.core import QgsProcessingProvider
 from .algorithms import *
+from cartagen4qgis import PLUGIN_ICON
 
 class CartAGen4QGISProvider(QgsProcessingProvider):
 
@@ -53,6 +55,9 @@ class CartAGen4QGISProvider(QgsProcessingProvider):
         self.addAlgorithm(VisvalingamWhyattQGIS())
         self.addAlgorithm(RaposoSimplificationQGIS())
 
+        # General
+        self.addAlgorithm(ConstraintMethodQGIS())
+
         # Tools
         self.addAlgorithm(NetworkFacesQGIS())
 
@@ -78,7 +83,7 @@ class CartAGen4QGISProvider(QgsProcessingProvider):
         Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        return QgsProcessingProvider.icon(self)
+        return PLUGIN_ICON
 
     def longName(self):
         """

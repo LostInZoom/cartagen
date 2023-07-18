@@ -36,6 +36,7 @@ from qgis.core import (
 )
 
 import geopandas
+from cartagen4qgis import PLUGIN_ICON
 from cartagen4py import BuildingDisplacementRandom
 from shapely import Polygon
 from shapely.wkt import loads
@@ -263,6 +264,13 @@ class BuildingDisplacementRandomQGIS(QgsProcessingAlgorithm):
         formatting characters.
         """
         return 'Buildings'
+
+    def icon(self):
+        """
+        Should return a QIcon which is used for your provider inside
+        the Processing toolbox.
+        """
+        return PLUGIN_ICON
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
