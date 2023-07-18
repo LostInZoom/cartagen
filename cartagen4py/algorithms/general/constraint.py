@@ -7,37 +7,51 @@ np.set_printoptions(suppress=True)
 
 class ConstraintMethod:
     """
-    Initialize constraint method object, with default constraints
+    Initialize constraint method object
     Parameters
     ----------
-    default_distance : int optional
-        This is the default distance for the detection of spatial conflicts.        
+    max_iteration : int optional
+        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set, the norm tolerance threshold should be reached before the maximum number of iteration.
+        Default value is set to 1000.
+    norm_tolerance : float optional
+        The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
+        The default value is set to 0.05.
+    verbose : boolean optional
+        For debugging purposes, choose to print some key values while the constraint method is calculated.
+        Default set to False.
     """
-    def __init__(self, max_iteration=1000, default_distance=5, default_conflict_weight=15, norm_tolerance=0.05, verbose=False):
+    def __init__(self, max_iteration=1000, norm_tolerance=0.05, verbose=False):
         self.MAX_ITER = max_iteration
-        self.DEFAULT_DISTANCE = default_distance
-        self.DEFAULT_CONFLICT_WEIGHT = default_conflict_weight
         self.NORM_TOLERANCE = norm_tolerance
         self.VERBOSE = verbose
 
-        self.__ALLOWED_WEIGHTS = {
+        self.__EXPORT_SPATIAL_DEBUG = False
+
+        self.__ALLOWED_CONSTRAINTS = {
             'Point': ['movement'],
             'LineString': ['movement', 'stiffness', 'curvature'],
             'Polygon': ['movement', 'stiffness', 'curvature']
         }
 
+        # Create dummy arrays for distances and conflicts weights
         self.__DISTANCES = np.ndarray((0, 0))
         self.__CONFLICTS = np.ndarray((0, 0))
         
+        # List of future objects added to the generalization
         self.__OBJECTS = []
+        # The same list of objects once the generalization has been made
         self.__RESULTS = []
+        # Stores weights as entered by the user with the add() method
         self.__WEIGHTS = []
+        # Stores the number of different shapes
         self.__SHAPE_COUNT = 0
         
+        # Stores all points of all objects
         self.__points = []
+        # Stores all points of all objects in nested lists of shapes
         self.__shapes = []
 
-        # Following contains all the object level constraints
+        # Stores points influenced by specific constraints
         self.__constraints = {
             'movement': [],
             'stiffness': [],
@@ -62,9 +76,9 @@ class ConstraintMethod:
             movement : **int**.
                 If an object is able to move, specify the weight of the movement constraint.
             stiffness : **int**.
-                If a polygon is able to move but is not flexible, specify the weight of the stiffness constraint. A point cannot have a stiffness constraint.
+                If a polygon or a line is able to move but is not flexible, specify the weight of the stiffness constraint. A point cannot have a stiffness constraint.
             curvature : **int**.
-                If a line or polygon is flexible, specify the weight of the curvature constraint. A point cannot have a curvature constraint.
+                If a polygon or line is flexible, specify the weight of the curvature constraint. A point cannot have a curvature constraint.
         """
 
         geometry = None
@@ -103,7 +117,7 @@ class ConstraintMethod:
         w = {}
 
         # Retrieve allowed weights for the given geometry type
-        allowed = self.__ALLOWED_WEIGHTS[geomtype]
+        allowed = self.__ALLOWED_CONSTRAINTS[geomtype]
         for name, value in weights.items():
             # If weight is not allowed, raise an error
             if name not in allowed:
@@ -139,37 +153,38 @@ class ConstraintMethod:
         spatial_weights : **Numpy**, *ndarray*.
             Same as the distances matrix but the values represent the weight of the spatial conflict of the two considered objects.
         """
+
+        # Retrieve the number of objects
         nb_obj = len(self.__OBJECTS)
+
+        # Retrieve both array dimensions
         sd = distances.shape
         sw = spatial_weights.shape
+
+        # Retrieve the number of row and colums of each array
         xd, yd, xw, yw = sd[0], sd[1], sw[0], sw[1]
 
+        # Checks if both array have the same dimension
         if xd != xw or yd != yw:
             raise Exception("The distances matrix and the spatial weights matrix must have the same dimensions.")
         else:
+            # Checks if matrices are square
             if xd != yd:
                 raise Exception("The spatial conflict matrix must be square.")
             else:
                 dimension_error = False
+                # Checks if the dimensions of the matrices are the same as the number of objects
                 if xd != nb_obj:
                     dimension_error = True
                 if yd != nb_obj:
                     dimension_error = True
                 if dimension_error:
-                    raise Exception("The provided matrix must have both dimensions equal to the number of provided objects.")
+                    raise Exception("The provided matrix must have both dimensions equal to the number of provided objects." + \
+                        "Please follow the documentation to set up spatial conflicts.")
 
+        # If nothing has failed, stores both matrices
         self.__DISTANCES = distances
         self.__CONFLICTS = spatial_weights
-
-    def __set_default_spatial_conflicts(self):
-        dimension = self.__DISTANCES.shape[0]
-        for i in range(dimension):
-            for j in range(dimension):
-                if i != j:
-                    if self.__DISTANCES[i][j] == 0:
-                        self.__DISTANCES[i][j] = self.DEFAULT_DISTANCE
-                    if self.__CONFLICTS[i][j] == 0:
-                        self.__CONFLICTS[i][j] = self.DEFAULT_CONFLICT_WEIGHT
 
 
     def generalize(self, network_partitioning=False):
@@ -179,8 +194,6 @@ class ConstraintMethod:
         # Checks if objects are present
         if len(self.__OBJECTS) < 1:
             raise Exception('No objects provided, cannot generalize.')
-
-        self.__set_default_spatial_conflicts()
         
         # Prepare points and shapes using their index
         points = self.__generate_point_list()
@@ -189,7 +202,8 @@ class ConstraintMethod:
         self.__calculate_spatial_conflicts(points)
 
         # Debugging tool to visualize spatial conflicts
-        self.__export_spatial_conflicts(points)
+        if self.__EXPORT_SPATIAL_DEBUG:
+            self.__export_spatial_conflicts(points)
 
         # Build the observation matrix
         self.__build_Y(points)
@@ -233,6 +247,7 @@ class ConstraintMethod:
 
         # Define the size of the vector
         size = 2 * len(points) +  2 * len(stiffness) + 3 * len(curvature) + len(nodes) + len(links)
+    
         # Create a zero filled np array of the wanted shape
         Y = np.zeros(size)
 
@@ -244,37 +259,32 @@ class ConstraintMethod:
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
             current_id = p[0]
+            # Retrieve the next point in the shape
             apply, next_id = self.__get_next_point_in_shape(current_id, points)
+            # The apply boolean is set to False if the current point is the last of the shape in a LineString
             if apply:
                 dx, dy = self.__calculate_stiffness(current_id, next_id, points)
+                # Difference between the current and the following along the x axis (x - x+1)
                 Y[offset + 2 * i] = dx
+                # Difference between the current and the following along the y axis (y - y+1)
                 Y[offset + 2 * i + 1] = dy
         
         offset += 2 * len(stiffness)
         for i, p in enumerate(curvature):
             current_id = p[0]
+            # Retrieve the previous and the next point in the shape
             apply, previous_id, next_id = self.__get_surrounding_points_in_shape(current_id, points)
+            # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
-                normp, normn, alpha = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                alpha, normp, normn = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                # First value of the constraint is the angle formed by the previous, the current and the next point
                 Y[offset + i] = alpha
+                # Second value is the norm of the vector formed by the previous and the current point
                 Y[offset + i + 1] = normp
+                # Third value is the norm of the vector formed by the current and the next point
                 Y[offset + i + 2] = normn
 
-        offset += 3 * len(curvature)
-        # Add minimum distance between close nodes
-        for i, n in enumerate(nodes):
-            if n[3] > n[2]:
-                Y[offset + i] = n[3]
-            else:
-                Y[offset + i] = n[2]
-
-        # Add minimum distance between close nodes and links
-        offset += len(nodes)
-        for i, l in enumerate(links):
-            if l[4] > l[3]:
-                Y[offset + i] = l[4]
-            else:
-                Y[offset + i] = l[3]
+        # Keep 0 for the spatial conflicts (nodes and links)
 
         self.__Y = Y
 
@@ -296,29 +306,48 @@ class ConstraintMethod:
         offset = 2 * len(points)
         for i, p in enumerate(stiffness):
             current_id = p[0]
+            # Retrieve the next point in the shape
             apply, next_id = self.__get_next_point_in_shape(current_id, points)
+            # The apply boolean is set to False if the current point is the last of the shape in a LineString
             if apply:
                 dx, dy = self.__calculate_stiffness(current_id, next_id, points)
+                # Difference between the current and the following along the x axis (x - x+1)
                 S[offset + 2 * i] = dx
+                # Difference between the current and the following along the y axis (y - y+1)
                 S[offset + 2 * i + 1] = dy
 
         offset += 2 * len(stiffness)
         for i, p in enumerate(curvature):
             current_id = p[0]
+            # Retrieve the previous and the next point in the shape
             apply, previous_id, next_id = self.__get_surrounding_points_in_shape(current_id, points)
+            # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
-                normp, normn, alpha = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                alpha, normp, normn = self.__calculate_curvature(previous_id, current_id, next_id, points)
+                # First value of the constraint is the angle formed by the previous, the current and the next point
                 S[offset + i] = alpha
+                # Second value is the norm of the vector formed by the previous and the current point
                 S[offset + i + 1] = normp
+                # Third value is the norm of the vector formed by the current and the next point
                 S[offset + i + 2] = normn
 
         offset += 3 * len(curvature)
         for i, n in enumerate(nodes):
-            S[offset + i] = n[3]
+            if n[3] > n[2]:
+                # Add 0 if the actual distance is higher than the minimum distance
+                S[offset + i] = 0
+            else:
+                # Add dist_min - dist if the actual distance is below the minimum distance
+                S[offset + i] = n[2] - n[3]
 
         offset += len(nodes)
         for i, l in enumerate(links):
-            S[offset + i] = l[4]
+            if l[4] > l[3]:
+                # Same as nodes
+                S[offset + i] = 0
+            else:
+                # Same as nodes
+                S[offset + i] = l[3] - l[4]
 
         return self.__Y - S
 
@@ -368,25 +397,36 @@ class ConstraintMethod:
         """
         Apply the least square method to the model.
         """
+        # Build the jacobian matrix A
         A = self.__build_A(points)
+        # Build the matrix B which is S - Y
         B = self.__build_B(points)
 
         atp = A.T @ self.__W
         atpa = atp @ A
         atpb = atp @ B
 
+        # Solves the equation
         dx = np.linalg.solve(atpa, atpb)
+
         return dx
 
     def __build_A(self, points):
         """
         Build the jacobian matrix of the model.
         """
+        # Build an identity matrix for the movement constraint
         identity = np.identity(2 * len(points))
+
+        # Calulcate the stiffness matrix and stacking it on A
         stiffness = self.__build_stiffness(points)
         A = np.vstack((identity, stiffness))
+
+        # Calulcate the stiffness matrix and stacking it on A
         curvature = self.__build_curvature(points)
         A = np.vstack((A, curvature))
+
+        # Calulcate the spatial conflicts matrix and stacking it on A
         spatial = self.__build_spatial(points)
         A = np.vstack((A, spatial))
 
@@ -401,11 +441,17 @@ class ConstraintMethod:
 
         for i, p in enumerate(stiffness):
             current_id = p[0]
+            # Retrieve the next point in the shape
             apply, next_id = self.__get_next_point_in_shape(current_id, points)
+            # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
+                # x for the current point
                 m[2 * i][2 * current_id] = 1
+                # x for the next point
                 m[2 * i][2 * next_id] = -1
+                # y for the current point
                 m[2 * i + 1][2 * current_id + 1] = 1
+                # y for the next point
                 m[2 * i + 1][2 * next_id + 1] = -1
 
         return m
@@ -418,39 +464,63 @@ class ConstraintMethod:
         m = np.zeros((3 * len(curvature), 2 * len(points)))
 
         for i, p in enumerate(curvature):
-            p0 = p[0]
-            apply, pp, pn = self.__get_surrounding_points_in_shape(p0, points)
+            p = p[0]
+            # Retrieve the previous and the next point in the shape
+            apply, pp, pn = self.__get_surrounding_points_in_shape(p, points)
+            # The apply boolean is set to False if the current point is the first or the last of the shape in a LineString
             if apply:
                 xp, yp = points[pp][0], points[pp][1]
-                x0, y0 = points[p0][0], points[p0][1]
+                x, y = points[p][0], points[p][1]
                 xn, yn = points[pn][0], points[pn][1]
-                x0xp = x0 - xp
-                y0yp = y0 - yp
-                x0xn = x0 - xn
-                y0yn = y0 - yn
-                b = ((x0xp)**2 + (y0yp)**2)
-                d = ((x0xn)**2 + (y0yn)**2)
-                c = ((x0xp) * (y0yn) - (x0xn) * (y0yp))
+
+                x_xp = x - xp
+                y_yp = y - yp
+                x_xn = x - xn
+                y_yn = y - yn
+                b = ((x_xp) * (x_xp) + (y_yp) * (y_yp))
+                d = ((x_xn) * (x_xn) + (y_yn) * (y_yn))
+                c = ((x_xp) * (y_yn) - (x_xn) * (y_yp))
                 bd = b * d
-                a = (bd)**(-0.5)
+                a = (bd) ** (-0.5)
+                
+                # df/dxi-1
+                m[3 * i][2 * pp] = a * (-x_xp * c + y_yn * b) / b
+                # df/dyi-1
+                m[3 * i][2 * pp + 1] = a * (-x_xn * b - y_yp * c) / b
+                # df/dxi
+                m[3 * i][2 * p] = a * ((-yp + yn) * bd + c * ((x_xp) * d + (x_xn) * b)) / bd
+                # df/dyi
+                m[3 * i][2 * p + 1] = a * ((xp - xn) * bd + c * ((y_yp) * d + (y_yn) * b)) / bd
+                # df/dxi+1
+                m[3 * i][2 * pn] = a * (-x_xn * c - y_yp * d) / d
+                # df/dyi+1
+                m[3 * i][2 * pn + 1] = a * (x_xp * d - y_yn * c) / d
 
-                lp = ((x0 - xp)**2 + (y0 - yp)**2) ** 0.5
-                ln = ((xn - x0)**2 + (yn - y0)**2) ** 0.5
+                # Calculate length of the previous and next segment
+                lp = np.sqrt((x - xp) * (x - xp) + (y - yp) * (y - yp))
+                ln = np.sqrt((xn - x) * (xn - x) + (yn - y) * (yn - y))
 
-                m[3 * i][2 * pp] = a * (-x0xp * c + y0yn * b) / b
-                m[3 * i][2 * pp + 1] = a * (-x0xn * b - y0yp * c) / b
-                m[3 * i][2 * p0] = a * ((-yp + yn) * bd + c * ((y0yp) * d + (x0xn) * b)) / bd
-                m[3 * i][2 * p0 + 1] = a * ((xp - xn) * bd + c * ((y0yp) * d + (y0yn) * b)) / bd
-                m[3 * i][2 * pn] = a * (-x0xn * c - y0yp * d) / d
-                m[3 * i][2 * pn + 1] = a * (x0xp * d - y0yn * c) / d
-                m[3 * i + 1][2 * pp] = (x0 - xp) / lp
-                m[3 * i + 1][2 * pp + 1] = (y0 - yp) / lp
-                m[3 * i + 1][2 * p0] = -(x0 - xp) / lp
-                m[3 * i + 1][2 * p0 + 1] = -(y0 - yp) / lp
-                m[3 * i + 2][2 * pn] = (xn - x0) / ln
-                m[3 * i + 2][2 * pn + 1] = (yn - y0) / ln
-                m[3 * i + 2][2 * p0] = -(xn - x0) / ln
-                m[3 * i + 2][2 * p0 + 1] = -(yn - y0) / ln
+                # Influence of the length of previous segment on the current point
+                # x
+                m[3 * i + 1][2 * p] = (x - xp) / lp
+                # y
+                m[3 * i + 1][2 * p + 1] = (y - yp) / lp
+                # Influence of the length of previous segment on the previous point (p)
+                # xp
+                m[3 * i + 1][2 * pp] = -((x - xp) / lp)
+                # yp
+                m[3 * i + 1][2 * pp + 1] = -((y - yp) / lp)
+
+                # Influence of the length of following segment on the next point (n)
+                # xn
+                m[3 * i + 2][2 * pn] = (xn - x) / ln
+                # yn
+                m[3 * i + 2][2 * pn + 1] = (yn - y) / ln
+                # Influence of the length of following segment on the current point
+                # x
+                m[3 * i + 2][2 * p] = -((xn - x) / ln)
+                # y
+                m[3 * i + 2][2 * p + 1] = -((yn - y) / ln)
 
         return m
 
@@ -475,10 +545,10 @@ class ConstraintMethod:
             norm = np.linalg.norm(v)
 
             # Calculate equations factors
-            a = (x1 - x2) / norm
-            b = (y1 - y2) / norm
-            c = (x2 - x1) / norm
-            d = (y2 - y1) / norm
+            a = - ((x1 - x2) / norm)
+            b = - ((y1 - y2) / norm)
+            c = - ((x2 - x1) / norm)
+            d = - ((y2 - y1) / norm)
 
             # Filling the matrix
             m[i][2 * n[0]] = a
@@ -502,88 +572,103 @@ class ConstraintMethod:
 
             # Calculate the equation factors
             h = 0.001
-            u = (np.abs(a * (x0 + h) + b * y0 + c) - np.abs(a * (x0 - h) + b * y0 + c)) \
-                / np.sqrt(a * a + b * b) * 2 * h
-            v = (np.abs(a * x0 + b * (y0 + h) + c) - np.abs(a * x0 + b * (y0 - h) + c)) \
-                / np.sqrt(a * a + b * b) * 2 * h
+            u = - ((np.abs(a * (x0 + h) + b * y0 + c) - np.abs(a * (x0 - h) + b * y0 + c)) \
+                / np.sqrt(a * a + b * b) * 2 * h)
+            v = - ((np.abs(a * x0 + b * (y0 + h) + c) - np.abs(a * x0 + b * (y0 - h) + c)) \
+                / np.sqrt(a * a + b * b) * 2 * h)
 
-            w = 1 / (2 * h) * (
+            w = - (1 / (2 * h) * (
                 np.abs(y0 + x0 * (y2 - y1) / (x1 + h - x2) - y1 + (x1 + h) * (y1 - y2) / (x1 + h - x2)) \
                 / np.sqrt((y2 - y1) * (y2 - y1) / ((x1 + h - x2) * (x1 + h - x2)) + 1) \
                 - np.abs(y0 + x0 * (y2 - y1) / (x1 - h - x2) - y1 + (x1 - h) * (y1 - y2) / (x1 - h - x2)) \
                 / np.sqrt((y2 - y1) * (y2 - y1) / ((x1 - h - x2) * (x1 - h - x2)) + 1)
-            )
+            ))
 
-            d = 1 / (2 * h) * (
+            d = - (1 / (2 * h) * (
                 np.abs(y0 + x0 * (y2 - (y1 + h)) / (x1 - x2) - y1 - h + x1 * (y1 + h - y2) / (x1 - x2)) \
                 / np.sqrt((y2 - (y1 + h)) * (y2 - (y1 + h)) / ((x1 - x2) * (x1 - x2)) + 1) \
                 - np.abs(y0 + x0 * (y2 - (y1 - h)) / (x1 - x2) - y1 + h + x1 * (y1 - h - y2) / (x1 - x2)) \
                 / np.sqrt((y2 - (y1 - h)) * (y2  - (y1 - h)) / ((x1 - x2) * (x1 - x2)) + 1)
-            )
+            ))
 
-            e = 1 / (2 * h) * (
+            e = - (1 / (2 * h) * (
                 np.abs(y0 + x0 * (y2 - y1) / (x1 - (x2 + h))- y1 + x1 * (y1 - y2) / (x1 - (x2 + h))) \
                 / np.sqrt((y2 - y1)* (y2 - y1) / ((x1 - (x2 + h)) * (x1 - (x2 + h))) + 1) \
                 - np.abs(y0 + x0 * (y2 - y1) / (x1 - (x2 - h)) - y1 + x1 * (y1 - y2) / (x1 - (x2 - h))) \
-                / np.sqrt((y2 - y1) * (y2 - y1) / ((x1 - (x2 - h)) * (x1 - (x2 - h))) + 1))
+                / np.sqrt((y2 - y1) * (y2 - y1) / ((x1 - (x2 - h)) * (x1 - (x2 - h))) + 1)))
 
-            f = 1 / (2 * h) * (
+            f = - (1 / (2 * h) * (
                 np.abs(y0 + x0 * (y2 + h - y1) / (x1 - x2) - y1 + x1 * (y1 - (y2 + h)) / (x1 - x2)) \
                 / np.sqrt((y2 + h - y1) * (y2 + h - y1) / ((x1 - x2) * (x1 - x2)) + 1) \
                 - np.abs(y0 + x0 * (y2 - h - y1) / (x1 - x2) - y1 + x1 * (y1 - (y2 - h)) / (x1 - x2)) \
-                / np.sqrt((y2 - h - y1) * (y2 - y1 - h) / ((x1 - x2) * (x1 - x2)) + 1))
+                / np.sqrt((y2 - h - y1) * (y2 - y1 - h) / ((x1 - x2) * (x1 - x2)) + 1)))
 
             # Filling the matrix with the partial derivatives
+            # For point 0, the node in the node-to-link conflict
+            # x0
             m[offset + i][2 * n[0]] = u
+            # y0
             m[offset + i][2 * n[0] + 1] = v
+            # For point 1 of the line (1, 2)
+            # x1
             m[offset + i][2 * n[1]] = w
+            # y1
             m[offset + i][2 * n[1] + 1] = d
+            # For point 2 of the line (1, 2)
+            # x2
             m[offset + i][2 * n[2]] = e
+            # y2
             m[offset + i][2 * n[2] + 1] = f
 
         return m
 
-    def __generate_point_list(self):
+    def __calculate_stiffness(self, current_id, next_id, points):
         """
-        Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
-        Generate a nested list of objects composed of all points it is made of, sorted by shapes.
-        Generate lists of points that will accept constraints
+        Estimate the stiffness by calculating the amount of movement between following point on a shape.
         """
+        x0, y0 = points[current_id][0], points[current_id][1]
+        x1, y1 = points[next_id][0], points[next_id][1]
+        return x0 - x1, y0 - y1
 
-        def add_point_constraint(pid, weights):
-            for cname, clist in self.__constraints.items():
-                if cname in weights.keys():
-                    w = np.inf if weights[cname] == -1 else weights[cname]
-                    self.__constraints[cname].append((pid, w))
+    def __calculate_curvature(self, previous_id, current_id, next_id, points):
+        """
+        Estimate the curvature by calculating the angle formed by the point, its previous and its following point.
+        """
+        pp = np.array((points[previous_id][0], points[previous_id][1]))
+        pc = np.array((points[current_id][0], points[current_id][1]))
+        pn = np.array((points[next_id][0], points[next_id][1]))
 
-        unique_points = []
-        point_id = 0
-        for oid, shapes in enumerate(self.__OBJECTS):
-            weights = self.__WEIGHTS[oid]
-            o = []
-            for sid, shape in shapes.iterrows():
-                s = []
-                geomtype = shape.geometry.geom_type
-                points = self.__get_coordinates(shape.geometry)
-                for pid, p in enumerate(points):
-                    if geomtype == 'Polygon' and pid >= (len(points) - 1):
-                        continue
-                    else:
-                        unique_points.append(p)
-                        self.__points.append((oid, sid, pid))
-                        s.append(point_id)
-                        add_point_constraint(point_id, weights)
-                        point_id += 1
-                o.append(s)
-            self.__shapes.append(o)
+        u = (pc - pp)
+        normu = np.linalg.norm(u)
+        v = (pn - pc)
+        normv = np.linalg.norm(v)
 
-        return np.array(unique_points)
+        return np.cross(u / normu, v / normv), normu, normv
 
     def __calculate_spatial_conflicts(self, points):
         """
         Retrieve conflicting pairs of nodes and nodes, or nodes and links.
         """
 
+        # Check if the node to link conflict concern segments of different objects crossing themselves
+        def line_crossing(p, point, line, points):
+            # Retrieve previous and following points of the shape
+            a, previous_id, next_id = self.__get_surrounding_points_in_shape(p, points)
+            # Loop through both points
+            for i in [previous_id, next_id]:
+                # If point exists
+                if i is not None:
+                    # Create the geometry
+                    ip = shapely.Point(points[i])
+                    # Create the line formed with the current point
+                    crossline = shapely.LineString([point, ip])
+                    # If that line crosses the concerned line, return True
+                    if shapely.crosses(line, crossline):
+                        return True
+            # If none of the two lines cross the concerned line, return False
+            return False
+
+        # Check if a node to node conflict already exists before adding one
         def add_node_to_node(c):
             add = True
             for n in self.__nodes:
@@ -620,7 +705,8 @@ class ConstraintMethod:
                 if pdist1 < conflict_dist or pdist2 < conflict_dist or ldist < conflict_dist:
                     # If the line distance is the smallest, insert a node to link spatial conflict
                     if ldist < pdist1 and ldist < pdist2:
-                        self.__links.append([p, p1, p2, min_dist, ldist, weight])
+                        if line_crossing(p, point, line, points) == False:
+                            self.__links.append([p, p1, p2, min_dist, ldist, weight]) 
                     else:
                         # Determine which node is the closest
                         if pdist1 < pdist2:
@@ -646,6 +732,7 @@ class ConstraintMethod:
                         # Getting the distance value from the distances matrix
                         min_dist = self.__DISTANCES[oid][oid1]
                         # Setting a distance equal to 1.5 times the min distance to retrieve conflicting objects
+                        # Setting conflict_dist = min_dist doesn't take the 1.5 time conflicting entities
                         conflict_dist = 1.5 * min_dist
                         
                         # Retrieve the geometry of the shape
@@ -671,89 +758,155 @@ class ConstraintMethod:
                     # Check conflicts with other points
                     check_conflicts(p)
 
+    def __generate_point_list(self):
+        """
+        Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
+        Generate a nested list of objects composed of all points it is made of, sorted by shapes.
+        Generate lists of points that will accept constraints
+        """
+
+        def add_point_constraint(pid, weights):
+            for cname, clist in self.__constraints.items():
+                if cname in weights.keys():
+                    w = np.inf if weights[cname] == -1 else weights[cname]
+                    self.__constraints[cname].append((pid, w))
+
+        unique_points = []
+        point_id = 0
+        # Loop through each objects
+        for oid, shapes in enumerate(self.__OBJECTS):
+            # retrieve the weights of the concerned object
+            weights = self.__WEIGHTS[oid]
+            o = []
+            # Loop through each shape of the object
+            for sid, shape in shapes.iterrows():
+                s = []
+                # Retrieve the geometry type
+                geomtype = shape.geometry.geom_type
+                # Retrieve x, y of the points of the shape
+                points = self.__get_coordinates(shape.geometry)
+                # Loop through each points in the shape
+                for pid, p in enumerate(points):
+                    # Skipping the last point of a polygon as it is the same as the first one
+                    if geomtype == 'Polygon' and pid >= (len(points) - 1):
+                        continue
+                    else:
+                        # Append point to the full list of points
+                        unique_points.append(p)
+                        # Append the position of the point within its object and shape
+                        self.__points.append((oid, sid, pid))
+                        # Append the point to its shape
+                        s.append(point_id)
+                        # Add the constraint associated with the point
+                        add_point_constraint(point_id, weights)
+                        point_id += 1
+                # Add the list of shapes to the object
+                o.append(s)
+            # Add the list of objects to the list
+            self.__shapes.append(o)
+
+        # Return an array of unique points
+        return np.array(unique_points)
+
     def __get_next_point_in_shape(self, current_id, points):
+        """
+        Look for the next point in the shape.
+        Return a boolean set to True if a point was found, i.e. the current point is not the last of a LineString.
+        If the current point is the last point of a polygon, it returns the first point.
+        """
+        # Get the position of the current point
         position = self.__points[current_id]
         oid, sid, pid = position[0], position[1], position[2]
+
+        # Get its shape
         shape = self.__shapes[oid][sid]
+        # Get the geometry type
         geomtype = self.__OBJECTS[oid].geometry[0].geom_type
         
-        pid1 = pid + 1
         apply = True
         next_id = None
+
         if pid < (len(shape) - 1):
+            # Return the real next id if it's not the last point of the shape
             next_id = shape[pid + 1]
         else:
             if geomtype == 'Polygon':
+                # If the current point id the last of the shape and it's a polygon, return the first point
                 next_id = shape[0]
             else:
+                # Set the boolean to false for the last point of a linestring
                 apply = False
         
         return apply, next_id
 
-    def __calculate_stiffness(self, current_id, next_id, points):
-        """
-        Estimate the stiffness by calculating the amount of movement between following point on a shape.
-        """
-        x0, y0 = points[current_id][0], points[current_id][1]
-        x1, y1 = points[next_id][0], points[next_id][1]
-        return x0 - x1, y0 - y1
-
     def __get_surrounding_points_in_shape(self, current_id, points):
+        """
+        Look for the previous and the next point in the shape.
+        Return a boolean set to True if both points were found, i.e. the current point is not the first or the last of a LineString.
+        If the current point is first or the last point of the polygon, it returns correct surrounding points.
+        """
+        # Get the position of the current point
         position = self.__points[current_id]
         oid, sid, pid = position[0], position[1], position[2]
+
+        # Get its shape
         shape = self.__shapes[oid][sid]
+        # Get the geometry type
         geomtype = self.__OBJECTS[oid].geometry[0].geom_type
         
-        pid1 = pid + 1
         apply = True
         previous_id = None
         next_id = None
 
+        # If the current point if not the first or the last
         if pid > 0 and pid < (len(shape) - 1):
+            # Set previous and next as its natural previous and next point
             previous_id = shape[pid - 1]
             next_id = shape[pid + 1]
+        # If the current point either the first or the last
         else:
+            # Check if the shape is a polygon
             if geomtype == 'Polygon':
+                # If the point is the first of the shape
                 if pid == 0:
+                    # Return the previous as the last point and the next as its natural next
                     previous_id = shape[-1]
                     next_id = shape[pid + 1]
+                # If the point is the last of the shape
                 elif pid == (len(shape) - 1):
+                    # Return its natural previous and the next as the first of the shape
                     previous_id = shape[pid - 1]
                     next_id = shape[0]
+            # Set boolean to False if the shape is a LineString
             else:
                 apply = False
         
         return apply, previous_id, next_id
 
-    def __calculate_curvature(self, previous_id, current_id, next_id, points):
-        """
-        Estimate the curvature by calculating the angle formed by the point, its previous and its following point.
-        """
-        pp = np.array((points[previous_id][0], points[previous_id][1]))
-        pc = np.array((points[current_id][0], points[current_id][1]))
-        pn = np.array((points[next_id][0], points[next_id][1]))
-        u = (pc - pp)
-        normu = np.linalg.norm(u)
-        v = (pn - pc)
-        normv = np.linalg.norm(v)
-        return np.cross(u / normu, v / normv), normu, normv
-
     def __update_distances(self, points):
         """
         Update the distance between pairs of nodes and pairs of nodes and links
         """
+        # Loop through node to node conflicts
         for i, n in enumerate(self.__nodes):
+            # Retrieve coordinates of the two nodes
             n1, n2 = points[n[0]], points[n[1]]
             x1, x2, y1, y2 = n1[0], n2[0], n1[1], n2[1]
+            # Calculate the vector formed by those two points
             v = np.array([x2 - x1, y2 - y1])
+            # Calculate its norm, i.e. distance and updating it
             nodedistance = np.linalg.norm(v)
             self.__nodes[i][3] = nodedistance
 
+        # Loop through node to link conflicts
         for i, l in enumerate(self.__links):
+            # Retrieve coordinates of the three nodes as array
             n0 = np.array(points[l[0]])
             n1 = np.array(points[l[1]])
             n2 = np.array(points[l[2]])
+            # Calculate the distance between the first node and the line formed by the other two
             linkdistance = np.linalg.norm(np.cross(n2 - n1, n1 - n0)) / np.linalg.norm(n2 - n1)
+            # Updating the distance
             self.__links[i][4] = linkdistance
 
     def __get_coordinates(self, shape):
@@ -761,8 +914,10 @@ class ConstraintMethod:
         Returns a list of coordinates from a shapely geometry.constraints
         """
         if shape.geom_type == 'Polygon':
+            # For Polygon type
             return shape.exterior.coords
         else:
+            # For LineString type
             return shape.coords
 
     def __reconstruct_geometries(self, points):
@@ -797,6 +952,10 @@ class ConstraintMethod:
         return self.__OBJECTS
 
     def __export_spatial_conflicts(self, points):
+        """
+        Exports spatial conflicts as links between pairs of nodes and pairs of nodes and links.
+        This function is for DEBUGGING PURPOSES.
+        """
         pointslist = []
         shape_id = 0
         for o in self.__shapes:
@@ -843,4 +1002,8 @@ class ConstraintMethod:
         
         points_gdf.to_file("cartagen4py/data/data_bourbonnaise/points_nodes.geojson", driver="GeoJSON")
         
-        
+    def get_objects_number(self):
+        """
+        Return the number of objects added to the generalization algorithm.
+        """
+        return len(self.__OBJECTS)

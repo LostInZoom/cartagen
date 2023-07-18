@@ -1,6 +1,6 @@
 # This is an implementation of the random building displacement algorithm
 
-import random, math
+import random, math, numpy
 
 import shapely
 
@@ -10,7 +10,7 @@ class BuildingDisplacementRandom:
     """
     Initialize random displacement object, with default length displacement factor and number of iterations per building
     """
-    def __init__(self, max_trials=25, max_displacement=10, network_partitioning=True, verbose=False):
+    def __init__(self, max_trials=25, max_displacement=10, network_partitioning=False, verbose=False):
         self.MAX_TRIALS = max_trials
         self.MAX_DISPLACEMENT = max_displacement
         self.NETWORK_PARTITIONING = network_partitioning
@@ -51,7 +51,10 @@ class BuildingDisplacementRandom:
                         partition_rivers.append(shapely.intersection(river, partitions[1][i]))
                 self.__random_displacement(partition, partition_roads, partition_rivers)
         else:
-            self.__random_displacement(buildings, roads, rivers)
+            building_index = numpy.ndarray(len(buildings), dtype='int16')
+            for i, b in buildings.iterrows():
+                building_index[i] = i
+            self.__random_displacement(building_index, self.__gdf_to_geomlist(roads), self.__gdf_to_geomlist(rivers))
 
         return self.__BUILDINGS
 
@@ -166,3 +169,9 @@ class BuildingDisplacementRandom:
                 return geometry.union(intersection)
         else:
             return geometry
+
+    def __gdf_to_geomlist(self, gdf):
+        l = []
+        for geom in gdf.geometry:
+            l.append(geom)
+        return l
