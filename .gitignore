@@ -7,6 +7,7 @@ evaluation/constraint_monitors/__pycache__/
 
 # Folder created by setuptools for the pip package creation
 build/
+cartagen4py.egg-info/
 
 test
 test*.py
