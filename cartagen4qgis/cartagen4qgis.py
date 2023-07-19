@@ -27,12 +27,14 @@ import inspect
 
 from qgis.core import QgsProcessingAlgorithm, QgsApplication
 from cartagen4qgis.src.provider import CartAGen4QGISProvider
+from PyQt5.QtGui import QIcon
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
+PLUGIN_ICON = QIcon(os.path.join(os.path.dirname(__file__), 'icons', 'icon.svg'))
 
 class CartAGen4QGISPlugin(object):
 

@@ -24,8 +24,7 @@ __revision__ = '$Format:%H$'
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm,
-    QgsFeature, QgsGeometry, QgsProcessingParameterDefinition,
-    QgsWkbTypes
+    QgsFeature, QgsGeometry, QgsProcessingParameterDefinition
 )
 from qgis.core import (
     QgsProcessingParameterFeatureSource,
@@ -33,17 +32,20 @@ from qgis.core import (
     QgsProcessingParameterBoolean,
     QgsProcessingParameterNumber,
     QgsProcessingParameterDistance,
-    QgsProcessingParameterMultipleLayers
+    QgsProcessingParameterMultipleLayers,
+    QgsProcessingParameterMatrix,
+    QgsProcessingOutputMultipleLayers
 )
 
+import geopandas
 from cartagen4qgis import PLUGIN_ICON
-from cartagen4py.utils import calculate_network_faces
+from cartagen4py import ConstraintMethod
 from shapely import Polygon
 from shapely.wkt import loads
 
-class NetworkFacesQGIS(QgsProcessingAlgorithm):
+class ConstraintMethodQGIS(QgsProcessingAlgorithm):
     """
-    Create the network faces
+    Iteratively and randomly displace buildings to avoid spatial conflicts
     """
 
     # Constants used to refer to parameters and outputs. They will be
@@ -51,7 +53,14 @@ class NetworkFacesQGIS(QgsProcessingAlgorithm):
     # calling from the QGIS console.
 
     OUTPUT = 'OUTPUT'
-    INPUT = 'INPUT'
+    
+    INPUT_OBJECTS = 'INPUT_OBJECTS'
+
+    CONFLICTS = 'CONFLICTS'
+    DISTANCES = 'DISTANCES'
+
+    MAX_ITERATIONS = 'MAX_ITERATIONS'
+    NORM_TOLERANCE = 'NORM_TOLERANCE'
 
     def initAlgorithm(self, config):
         """
@@ -62,12 +71,48 @@ class NetworkFacesQGIS(QgsProcessingAlgorithm):
         # We add the input vector features source.
         self.addParameter(
             QgsProcessingParameterMultipleLayers(
-                self.INPUT,
-                self.tr('Input lines'),
+                self.INPUT_OBJECTS,
+                self.tr('Input objects to generalize'),
                 layerType=QgsProcessing.TypeVectorLine,
-                optional=False
+                optional=True
             )
         )
+
+        self.addParameter(
+            QgsProcessingParameterMatrix(
+                self.CONFLICTS,
+                self.tr('Spatial conflicts'),
+                hasFixedNumberRows=False
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterMatrix(
+                self.DISTANCES,
+                self.tr('Distances'),
+                hasFixedNumberRows=False
+            )
+        )
+
+        maxtrials = QgsProcessingParameterNumber(
+            self.MAX_ITERATIONS,
+            self.tr('Maximum iterations'),
+            type=QgsProcessingParameterNumber.Integer,
+            defaultValue=1000,
+            optional=False
+        )
+        maxtrials.setFlags(maxtrials.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+
+        normtol = QgsProcessingParameterNumber(
+            self.NORM_TOLERANCE,
+            self.tr('Norm tolerance'),
+            type=QgsProcessingParameterNumber.Double,
+            defaultValue=0.05,
+            optional=False
+        )
+        normtol.setMetadata({'widget_wrapper':{ 'decimals': 2 }})
+        normtol.setFlags(normtol.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+
 
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
@@ -75,49 +120,15 @@ class NetworkFacesQGIS(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Faces')
+                self.tr('Generalized')
             )
         )
+                
 
     def processAlgorithm(self, parameters, context, feedback):
         """
         Here is where the processing itself takes place.
         """
-
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
-        source = self.parameterAsLayerList(parameters, self.INPUT, context)
-        (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT,
-                context, source[0].fields(), QgsWkbTypes.Polygon, source[0].sourceCrs())
-
-        network_list = []
-        for layer in source:
-            features = []
-            for feature in layer.getFeatures():
-                wkt = feature.geometry().asWkt()
-                shapely_geom = loads(wkt)
-                features.append(shapely_geom)
-            network_list.append(features)
-
-        partitions = calculate_network_faces(*network_list)
-
-        for polygon in partitions:
-            result = QgsFeature()
-            result.setGeometry(QgsGeometry.fromWkt(polygon.wkt))
-
-            # Add a feature in the sink
-            sink.addFeature(result, QgsFeatureSink.FastInsert)
-
-        # Return the results of the algorithm. In this case our only result is
-        # the feature sink which contains the processed features, but some
-        # algorithms may return multiple feature sinks, calculated numeric
-        # statistics, etc. These should all be included in the returned
-        # dictionary, with keys matching the feature corresponding parameter
-        # or output names.
-        return {
-            self.OUTPUT: dest_id
-        }
 
     def name(self):
         """
@@ -127,7 +138,7 @@ class NetworkFacesQGIS(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Calculate network faces'
+        return 'Constraint Method'
 
     def displayName(self):
         """
@@ -151,7 +162,7 @@ class NetworkFacesQGIS(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Partitioning'
+        return 'General'
 
     def icon(self):
         """
@@ -164,4 +175,4 @@ class NetworkFacesQGIS(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return NetworkFacesQGIS()
+        return ConstraintMethodQGIS()
