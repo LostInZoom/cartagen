@@ -16,7 +16,6 @@ def morphological_amalgamation(buildings, buffer_size, edge_length):
 
     # make a morphological closing on the multipolygon
     closed = closing_multi_polygon(multipolygon, buffer_size, cap_style=2)
-    print(closed)
     merged = opening(closed, buffer_size, cap_style=2)
 
     if(merged.geom_type == 'Polygon'):
@@ -68,7 +67,7 @@ def __edge_removal(polygon, edge_length):
             # keep last vertex of final_coords in memory
             last_vertex = final_coords[len(final_coords)-1]
             # remove the last two vertices
-            l_element = len(tuple)-2
+            l_element = len(final_coords)-2
             final_coords = final_coords[:l_element]
             # get the antepenultimate vertex of final_coords (which is now the last)
             antepenultimate = final_coords[len(final_coords)-1]
@@ -84,22 +83,23 @@ def __edge_removal(polygon, edge_length):
             # keep last vertex of final_coords in memory
             last_vertex = final_coords[len(final_coords)-1]
             # remove last vertex
-            # TODO
+            l_element = len(final_coords)-1
+            final_coords = final_coords[:l_element]
             # add intersection and then lastVertex to the list of vertices
-            final_coords.append(intersection.coords)
+            final_coords.append(intersection.coords[0])
             final_coords.append(last_vertex)
         else:
             # intrusion or protrusion case
             # create a vector from the edge
             vector = Vector2D(nextEdge)
             # remove the last two vertices
-            l_element = len(tuple)-2
+            l_element = len(final_coords)-2
             final_coords = final_coords[:l_element]
             # get the antepenultimate vertex of final_coords (which is now the last)
             antepenultimate = final_coords[len(final_coords)-1]
             # translate this vertex with the vector
             translated = vector.translate(Point(antepenultimate))
-            final_coords.append(intersection.coords)
+            final_coords.append(intersection.coords[0])
             final_coords.append(nextEdge.point2)
     
     return Polygon(final_coords)

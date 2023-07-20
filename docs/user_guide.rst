@@ -98,6 +98,29 @@ Operations for groups of objects
 
 Figure 5. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
+
+.. class:: BuildingDisplacementRandom(max_trials=25, max_displacement=10, network_partitioning=False, verbose=False)
+
+    This algorithm displaces buildings that overlap with each other and/or other features. The algorithm was never published but was available in CartAGen. It is an iterative process that selects the building with the most overlaps, and then pushes slightly the building in a random direction. If the overlaps are reduced, the displacement is commited and a new iteration starts. If the overlaps are worse, the displacement is backtracked, and another one is tried.
+    The 'max_trials' parameter gives the maximum number of random displacements tried on one building. The 'max_displacement' parameter is the maximum distance a building is allowed to move. For large datasets, the algorithm can work on smaller partitions, using the 'network_partitioning' parameter.
+    The name of the class mentions buildings but other objects can be similarly displaced, as long as GeoDataframe with polygons is provided.
+
+.. method:: displace(self, buildings, roads, rivers, *networks)
+
+    This method displaces the buildings with roads and rivers acting as obstacles for the buildings, i.e. the algorithm minimises the overlaps between buildings and with the geometries contained in those two collections.
+    'buildings', 'roads', and 'rivers' are geopandas GeoDataframes, not arrays of geometries. If you want to avoid overlaps with road and river symbols, you need to provide polygons as the main geometry of these GeoDataframes, i.e. buffer the road and river lines.
+    'networks' contained the lines that are used to partition space in case of a large dataset. The lines may be the same as the ones used as obstacles, or not.;
+    The algorithm returns a geopandas GeoDataframe.
+
+.. code-block:: pycon
+
+  displacement = BuildingDisplacementRandom(network_partitioning=False)
+  displaced_gdf = displacement.displace(building_gdf, road_gdf, rivers_gdf)
+
+.. plot:: code/random_displacement.py
+
+Figure 6. A block with buildings displaced because of the width of the road symbol, using the Random Displacement algorithm.
+
 Enrich your data prior to map generalisation
 --------------------------------------------
 
@@ -118,7 +141,7 @@ Extracting implicit geographic structures
 
 .. plot:: code/compute_boffet_urban_areas.py
 
-Figure 6. Building polygons converted into built-up areas using the Boffet algorithm.
+Figure 7. Building polygons converted into built-up areas using the Boffet algorithm.
 
 
 Measures on map features
