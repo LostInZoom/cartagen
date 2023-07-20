@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "rivers",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "osm_id": null, "code": null, "fclass": null, "width": null, "name": null, "osm_id_2": null, "code_2": null, "fclass_2": null, "population": null, "name_2": null, "osm_id_3": null, "code_3": null, "fclass_3": null, "name_3": null, "type": null, "osm_id_2_2": null, "code_2_2": null, "fclass_2_2": null, "populati_1": null, "name_2_2": null }, "geometry": { "type": "LineString", "coordinates": [ [ 402134.350943376019131, 5800030.750046702101827 ], [ 402137.041593016241677, 5800023.754357637837529 ], [ 402138.9634856164339, 5800017.988679837435484 ], [ 402140.19349688058719, 5800011.223617884330451 ], [ 402141.577259552723262, 5800005.073561564087868 ], [ 402143.652903560898267, 5799999.154132355004549 ], [ 402144.88291482499335, 5799994.387838707305491 ], [ 402145.728547569073271, 5799987.622776754200459 ], [ 402143.114773632842116, 5799982.087726065889001 ], [ 402139.42473984049866, 5799976.629551080986857 ] ] } },
+{ "type": "Feature", "properties": { "osm_id": null, "code": null, "fclass": null, "width": null, "name": null, "osm_id_2": null, "code_2": null, "fclass_2": null, "population": null, "name_2": null, "osm_id_3": null, "code_3": null, "fclass_3": null, "name_3": null, "type": null, "osm_id_2_2": null, "code_2_2": null, "fclass_2_2": null, "populati_1": null, "name_2_2": null }, "geometry": { "type": "LineString", "coordinates": [ [ 402139.42473984049866, 5799976.629551080986857 ], [ 402135.648220881121233, 5799973.612179699353874 ], [ 402130.036294488585554, 5799968.845886050723493 ], [ 402125.270000840129796, 5799965.617106482386589 ], [ 402118.966193111555185, 5799961.850196986459196 ], [ 402111.269013247801922, 5799958.986577005125582 ] ] } }
+]
+}

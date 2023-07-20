@@ -1,6 +1,6 @@
 # This is an implementation of the least squares method proposed by Lars E. Harrie (1999)
 
-import shapely, pprint, geopandas
+import shapely, pprint, geopandas, math
 import numpy as np
 from cartagen4py.utils.partitioning.network import network_partition
 np.set_printoptions(suppress=True)
@@ -16,13 +16,17 @@ class ConstraintMethod:
     norm_tolerance : float optional
         The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
         The default value is set to 0.05.
+    same_object_conflicts : boolean optional
+        Set if shapes of the same object have spatial conflicts.
+        The default value is set to True.
     verbose : boolean optional
         For debugging purposes, choose to print some key values while the constraint method is calculated.
         Default set to False.
     """
-    def __init__(self, max_iteration=1000, norm_tolerance=0.05, verbose=False):
+    def __init__(self, max_iteration=1000, norm_tolerance=0.05, same_object_conflicts=True, verbose=False):
         self.MAX_ITER = max_iteration
         self.NORM_TOLERANCE = norm_tolerance
+        self.SAME_OBJECT_CONFLICTS = same_object_conflicts
         self.VERBOSE = verbose
 
         self.__EXPORT_SPATIAL_DEBUG = False
@@ -195,11 +199,10 @@ class ConstraintMethod:
         if len(self.__OBJECTS) < 1:
             raise Exception('No objects provided, cannot generalize.')
         
-        # Prepare points and shapes using their index
-        points = self.__generate_point_list()
+        points = self.__prepare_geometries()
 
-        # Flag spatially conflicting points depending on the distance parameter
-        self.__calculate_spatial_conflicts(points)
+        print(self.__nodes)
+        print(self.__links)
 
         # Debugging tool to visualize spatial conflicts
         if self.__EXPORT_SPATIAL_DEBUG:
@@ -645,6 +648,159 @@ class ConstraintMethod:
 
         return np.cross(u / normu, v / normv), normu, normv
 
+    def __prepare_geometries(self):
+        """
+        Prepare geometries and stores them on adequate shapes to be handle by the constraint method.
+        """
+        # Prepare points and shapes using their index
+        points = self.__generate_point_list()
+
+        # Setup the constraints
+        self.__setup_constraints(points)
+
+        # Flag spatially conflicting points
+        self.__calculate_spatial_conflicts(points)
+
+        return np.array(points)
+
+    def __generate_point_list(self):
+        """
+        Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
+        Generate a nested list of objects composed of all points it is made of, sorted by shapes.
+        Generate lists of points that will accept constraints
+        """
+        unique_points = []
+
+        def get_pid_if_duplicate(coordinates):
+            """
+            Return True or False if those coordinates already exists.
+            If they exist, return the index of the already existing point.
+            """
+            for pid, c in enumerate(unique_points):
+                if c == coordinates:
+                    return True, pid
+            return False, None
+
+        point_id = 0
+        # Loop through each objects
+        for oid, shapes in enumerate(self.__OBJECTS):
+            o = []
+            # Loop through each shape of the object
+            for sid, shape in shapes.iterrows():
+                s = []
+                # Retrieve the geometry type
+                geomtype = shape.geometry.geom_type
+                # Retrieve x, y of the points of the shape
+                points = self.__get_coordinates(shape.geometry)
+                # Retrieve first and last index of the shape
+                enclosing = [0, len(points) - 1]
+
+                # Loop through each points in the shape
+                for pid, p in enumerate(points):
+                    # Skipping the last point of a polygon as it is the same as the first one
+                    if geomtype == 'Polygon' and pid == enclosing[1]:
+                        continue
+
+                    # Stores the index of the point to apply constraints
+                    cid = point_id
+
+                    duplicate, dpid = get_pid_if_duplicate(p)
+                    if duplicate:
+                        # Append the already existing point index to its shape
+                        s.append(dpid)
+                        # Change the point index to the already existing one to add constraints
+                        cid = dpid
+                    else:
+                        # Append the point index to its shape
+                        s.append(point_id)
+                        # Append the coordinates to the full list of points
+                        unique_points.append(p)
+                        # Increment the point index if it's a new point
+                        point_id += 1
+
+                    # Append the position of the point within its object and shape
+                    self.__points.append((oid, sid, pid))
+                    
+                # Add the list of shapes to the object
+                o.append(s)
+            # Add the list of objects to the list
+            self.__shapes.append(o)
+
+        # Return an array of unique points
+        return unique_points
+
+    def __setup_constraints(self, points):
+        """
+        Create constraint and their related properties to easily create matrices afterwards.
+        """
+
+        def add_movement(obj, value):
+            """
+            Add the movement constraint as a list with :
+                - Index of the point
+                - Weight of the constraint
+            If the point as already a movement constraint, it replaces the current weight if the new is higher.
+            """
+            for s in obj:
+                for pid in s:
+                    add = True
+                    for eid, existing in enumerate(self.__constraints['movement']):
+                        if existing[0] == pid:
+                            self.__constraints['movement'][eid][1] = max(value, existing[1])
+                            add = False
+                    if add:
+                        self.__constraints['movement'].append([pid, value])
+        
+        def add_stiffness(obj, value, geomtype):
+            """
+            Add the stiffness constraint as a list with :
+                - Index of the point
+                - Index of the next point in the shape
+                - Weight of the constraint
+            """
+            for shape in obj:
+                for pid in shape:
+                    next_id = None
+                    # If it's not the last point of the shape
+                    if pid < (len(shape) - 1):
+                        # Return the real next id
+                        next_id = shape[pid + 1]
+                    # If the current point id is the last of the shape
+                    else:
+                        # If it's a polygon, return the first point
+                        if geomtype == 'Polygon':
+                            next_id = shape[0]
+
+                    if next_id is not None:
+                        self.__constraints['stiffness'].append([pid, next_id, value])
+                            
+        for oid, o in enumerate(self.__shapes):
+            # Get the geometry type
+            geomtype = self.__OBJECTS[oid].geometry[0].geom_type
+            # Get the constraints weights
+            weights = self.__WEIGHTS[oid]
+            for name, value in weights.items():
+                if name == 'movement':
+                    add_movement(o, value)
+                elif name == 'stiffness':
+                    add_stiffness(o, value, geomtype)
+
+        print(self.__shapes)
+        print(self.__constraints)
+
+
+        # for oid, constraints in enumerate(self.__WEIGHTS):
+        #     for cname, values in constraints:
+        #         print(cname)
+
+        # retrieve the weights of the concerned object
+        weights = self.__WEIGHTS[oid]
+
+        for name, values in self.__constraints.items():
+            if name in weights.keys():
+                w = weights[cname]
+                self.__constraints[cname].append((pid, w))
+
     def __calculate_spatial_conflicts(self, points):
         """
         Retrieve conflicting pairs of nodes and nodes, or nodes and links.
@@ -723,31 +879,36 @@ class ConstraintMethod:
             for oid1, o in enumerate(self.__shapes):
                 # Loop through all shapes
                 for sid1, s in enumerate(o):
-                    # Checks if the shape is not the same as the concerned point
-                    if oid1 == oid and sid1 == sid:
-                        continue
-                    else:
-                        # Getting the weight of the spatial conflict constraint from the matrix
-                        weight = self.__CONFLICTS[oid][oid1]
-                        # Getting the distance value from the distances matrix
-                        min_dist = self.__DISTANCES[oid][oid1]
-                        # Setting a distance equal to 1.5 times the min distance to retrieve conflicting objects
-                        # Setting conflict_dist = min_dist doesn't take the 1.5 time conflicting entities
-                        conflict_dist = 1.5 * min_dist
-                        
-                        # Retrieve the geometry of the shape
-                        shape = self.__OBJECTS[oid1].geometry[sid1]
-                        # Checks if that shape is within the minimum distance before retrieving pairs of nodes and links
-                        if shapely.dwithin(point, shape, conflict_dist):
-                            # Stores the geometry type
-                            geomtype = shape.geom_type
-                            # Checks if the shape is a point
-                            if geomtype == 'Point':
-                                distance = shapely.distance(point, shape)
-                                add_node_to_node([p, s[0], min_dist, distance, weight])
-                            # If it's not, checking if it's closer to a node or a segment
-                            else:
-                                retrieve_nodes_links(s, geomtype, p, conflict_dist, min_dist, weight)
+                    # Retrieve the geometry of the shape
+                    shape = self.__OBJECTS[oid1].geometry[sid1]
+                    # Stores the geometry type
+                    geomtype = shape.geom_type
+
+                    # Checks if it's the same object
+                    if oid1 == oid:
+                        if geomtype == 'LineString':
+                            continue
+                        if sid1 == sid:
+                            continue
+                        if self.SAME_OBJECT_CONFLICTS == False:
+                            continue
+                    # Getting the weight of the spatial conflict constraint from the matrix
+                    weight = self.__CONFLICTS[oid][oid1]
+                    # Getting the distance value from the distances matrix
+                    min_dist = self.__DISTANCES[oid][oid1]
+                    # Setting a distance equal to 1.5 times the min distance to retrieve conflicting objects
+                    # Setting conflict_dist = min_dist doesn't take the 1.5 time conflicting entities
+                    conflict_dist = 1.5 * min_dist
+                    
+                    # Checks if that shape is within the minimum distance before retrieving pairs of nodes and links
+                    if shapely.dwithin(point, shape, conflict_dist):
+                        # Checks if the shape is a point
+                        if geomtype == 'Point':
+                            distance = shapely.distance(point, shape)
+                            add_node_to_node([p, s[0], min_dist, distance, weight])
+                        # If it's not, checking if it's closer to a node or a segment
+                        else:
+                            retrieve_nodes_links(s, geomtype, p, conflict_dist, min_dist, weight)
 
         # Loop through all objects
         for o in self.__shapes:
@@ -757,56 +918,6 @@ class ConstraintMethod:
                 for p in s:
                     # Check conflicts with other points
                     check_conflicts(p)
-
-    def __generate_point_list(self):
-        """
-        Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
-        Generate a nested list of objects composed of all points it is made of, sorted by shapes.
-        Generate lists of points that will accept constraints
-        """
-
-        def add_point_constraint(pid, weights):
-            for cname, clist in self.__constraints.items():
-                if cname in weights.keys():
-                    w = np.inf if weights[cname] == -1 else weights[cname]
-                    self.__constraints[cname].append((pid, w))
-
-        unique_points = []
-        point_id = 0
-        # Loop through each objects
-        for oid, shapes in enumerate(self.__OBJECTS):
-            # retrieve the weights of the concerned object
-            weights = self.__WEIGHTS[oid]
-            o = []
-            # Loop through each shape of the object
-            for sid, shape in shapes.iterrows():
-                s = []
-                # Retrieve the geometry type
-                geomtype = shape.geometry.geom_type
-                # Retrieve x, y of the points of the shape
-                points = self.__get_coordinates(shape.geometry)
-                # Loop through each points in the shape
-                for pid, p in enumerate(points):
-                    # Skipping the last point of a polygon as it is the same as the first one
-                    if geomtype == 'Polygon' and pid >= (len(points) - 1):
-                        continue
-                    else:
-                        # Append point to the full list of points
-                        unique_points.append(p)
-                        # Append the position of the point within its object and shape
-                        self.__points.append((oid, sid, pid))
-                        # Append the point to its shape
-                        s.append(point_id)
-                        # Add the constraint associated with the point
-                        add_point_constraint(point_id, weights)
-                        point_id += 1
-                # Add the list of shapes to the object
-                o.append(s)
-            # Add the list of objects to the list
-            self.__shapes.append(o)
-
-        # Return an array of unique points
-        return np.array(unique_points)
 
     def __get_next_point_in_shape(self, current_id, points):
         """
