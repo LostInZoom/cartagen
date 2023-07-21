@@ -19,6 +19,9 @@ class ConstraintMethod:
     same_object_conflicts : boolean optional
         Set if shapes of the same object have spatial conflicts.
         The default value is set to True.
+    crossing_node_threshold : int optional
+        When two lines intersects, define the number of nodes from the intersection on wich spatial conflicts between those two lines doesn't apply.
+        The default value is set to 7.
     verbose : boolean optional
         For debugging purposes, choose to print some key values while the constraint method is calculated.
         Default set to False.
@@ -29,8 +32,6 @@ class ConstraintMethod:
         self.SAME_OBJECT_CONFLICTS = same_object_conflicts
         self.CROSSING_NODE_THRESHOLD = crossing_node_threshold
         self.VERBOSE = verbose
-
-        self.__EXPORT_SPATIAL_DEBUG = True
 
         self.__ALLOWED_CONSTRAINTS = {
             'Point': ['movement'],
@@ -53,6 +54,7 @@ class ConstraintMethod:
         
         # Stores all points of all objects in nested lists of shapes
         self.__shapes = []
+        self.__points = []
 
         # Stores points influenced by specific constraints
         self.__constraints = {
@@ -198,10 +200,6 @@ class ConstraintMethod:
         
         # Prepare geometries before launching the constraint method
         points = self.__prepare_geometries()
-
-        # Debugging tool to visualize spatial conflicts
-        if self.__EXPORT_SPATIAL_DEBUG:
-            self.__export_spatial_conflicts(points)
 
         # Build the observation matrix
         self.__build_Y(points)
@@ -731,8 +729,11 @@ class ConstraintMethod:
             # Add the list of objects to the list
             self.__shapes.append(o)
 
+        # Stores unique points
+        self.__points = unique_points
+
         # Return an array of unique points
-        return unique_points
+        return np.array(unique_points)
 
     def __setup_constraints(self, points):
         """
@@ -1136,10 +1137,9 @@ class ConstraintMethod:
                     self.__RESULTS[oid].loc[sid, 'geometry'] = geometry
         return self.__OBJECTS
 
-    def __export_spatial_conflicts(self, points):
+    def get_nodes(self):
         """
-        Exports spatial conflicts as links between pairs of nodes and pairs of nodes and links.
-        This function is for DEBUGGING PURPOSES.
+        Return the full list of nodes as a GeoDataFrame.
         """
         pointslist = []
         shape_id = 0
@@ -1149,43 +1149,54 @@ class ConstraintMethod:
                     pointslist.append({
                     'id' : p,
                     'object' : shape_id,
-                    'geometry' : shapely.Point(points[p])
+                    'geometry' : shapely.Point(self.__points[p])
                 }) 
                 shape_id += 1         
+        return geopandas.GeoDataFrame(pointslist, crs=3857)
 
-        points_gdf = geopandas.GeoDataFrame(pointslist, crs=3857)
+        points_gdf.to_file("cartagen4py/data/data_bourbonnaise/points_nodes.geojson", driver="GeoJSON")
 
-        nodes = []
+    def get_nodes_conflicts(self):
+        """
+        Return all the nodes to nodes conflicts as a LineString between the two nodes.
+        Return a GeoDataFrame.
+        """
+        lines = []
         for i, node in enumerate(self.__constraints['nodes']):
-            nodes.append({
+            lines.append({
                 'nid0': node[0],
                 'nid1': node[1],
                 'group': i,
-                'geometry': shapely.LineString([points[node[0]], points[node[1]]])
+                'geometry': shapely.LineString([self.__points[node[0]], self.__points[node[1]]])
             })
 
-        if len(nodes) > 0:
-            nodes_gdf = geopandas.GeoDataFrame(nodes, crs=3857)
-            nodes_gdf.to_file("cartagen4py/data/data_bourbonnaise/nodes.geojson", driver="GeoJSON")
+        if len(lines) > 0:
+            return geopandas.GeoDataFrame(lines, crs=3857)
+        else:
+            return None
 
-        links = []
+    def get_links_conflicts(self):
+        """
+        Return all the nodes to links conflicts as a LineString between the node and the projection of this node on the conflicting line.
+        Return a GeoDataFrame.
+        """
+        lines = []
         for lid, link in enumerate(self.__constraints['links']):
-            p0 = shapely.Point(points[link[0]])
-            p1 = shapely.Point(points[link[1]])
-            p2 = shapely.Point(points[link[2]])
+            p0 = shapely.Point(self.__points[link[0]])
+            p1 = shapely.Point(self.__points[link[1]])
+            p2 = shapely.Point(self.__points[link[2]])
             line = shapely.LineString([p1, p2])
             dist = line.project(p0)
             projected = line.interpolate(dist)
-            links.append({
+            lines.append({
                 'lid': lid,
                 'geometry': shapely.LineString([p0, projected])
             })
 
-        if len(links) > 0:
-            links_gdf = geopandas.GeoDataFrame(links, crs=3857)
-            links_gdf.to_file("cartagen4py/data/data_bourbonnaise/links.geojson", driver="GeoJSON")
-        
-        points_gdf.to_file("cartagen4py/data/data_bourbonnaise/points_nodes.geojson", driver="GeoJSON")
+        if len(lines) > 0:
+            return geopandas.GeoDataFrame(lines, crs=3857)
+        else:
+            return None
         
     def get_objects_number(self):
         """
