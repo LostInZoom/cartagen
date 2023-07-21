@@ -3,7 +3,7 @@
 "name": "points",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
 "features": [
-{ "type": "Feature", "properties": { "id": 1 }, "geometry": { "type": "Point", "coordinates": [ 402104.111300829041284, 5799978.839507020078599 ] } },
-{ "type": "Feature", "properties": { "id": 2 }, "geometry": { "type": "Point", "coordinates": [ 402099.099698317993898, 5799981.137962256558239 ] } }
+{ "type": "Feature", "properties": { "id": 1 }, "geometry": { "type": "Point", "coordinates": [ 402064.494603898376226, 5800058.47296429798007 ] } },
+{ "type": "Feature", "properties": { "id": 2 }, "geometry": { "type": "Point", "coordinates": [ 402069.792543017189018, 5799992.816361647099257 ] } }
 ]
 }
