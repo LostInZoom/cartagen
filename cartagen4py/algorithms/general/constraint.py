@@ -10,7 +10,7 @@ class ConstraintMethod:
     Initialize constraint method object
     Parameters
     ----------
-    max_iteration : int optional
+    max_iteration int optional
         This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set, the norm tolerance threshold should be reached before the maximum number of iteration.
         Default value is set to 1000.
     norm_tolerance : float optional

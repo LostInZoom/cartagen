@@ -1,9 +1,11 @@
 import shapely
 from shapely.ops import linemerge, unary_union, polygonize
-from cartagen4py.utils.geometry import extent 
+from cartagen4py.utils.geometry import extent
 
-# Calculates the faces of one or multiple networks and return a list of polygons
 def calculate_network_faces(*networks):
+    """
+    Calculates the faces of one or multiple shapely geometry networks and return a shapely geometry sequence of polygons.
+    """
     if len(networks) < 1:
         raise Exception('No networks provided, network partition cannot be created.')
 

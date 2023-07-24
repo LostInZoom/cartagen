@@ -1,0 +1,1 @@
+from cartagen4py.utils.network.caracterization import *
