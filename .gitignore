@@ -13,5 +13,8 @@ test
 test*.py
 cartagen4py/test
 
+# Remove qgis files
+*.qgz
+
 # Removed qgis plugin template
 cartagen4qgis-template
