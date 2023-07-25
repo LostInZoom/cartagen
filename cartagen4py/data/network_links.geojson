@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2154" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 0, "origin": 0, "destination": 1 }, "geometry": { "type": "LineString", "coordinates": [ [ 322296.0, 6265567.700000000186265 ], [ 322310.099999999976717, 6265574.5 ] ] } },
+{ "type": "Feature", "properties": { "id": 1, "origin": 1, "destination": 3 }, "geometry": { "type": "LineString", "coordinates": [ [ 322310.099999999976717, 6265574.5 ], [ 322321.900000000023283, 6265550.799999999813735 ] ] } },
+{ "type": "Feature", "properties": { "id": 2, "origin": 3, "destination": 5 }, "geometry": { "type": "LineString", "coordinates": [ [ 322321.900000000023283, 6265550.799999999813735 ], [ 322331.0, 6265530.0 ] ] } },
+{ "type": "Feature", "properties": { "id": 3, "origin": 5, "destination": 4 }, "geometry": { "type": "LineString", "coordinates": [ [ 322331.0, 6265530.0 ], [ 322322.700000000011642, 6265526.5 ] ] } },
+{ "type": "Feature", "properties": { "id": 4, "origin": 4, "destination": 2 }, "geometry": { "type": "LineString", "coordinates": [ [ 322322.700000000011642, 6265526.5 ], [ 322315.200000000011642, 6265523.5 ] ] } },
+{ "type": "Feature", "properties": { "id": 5, "origin": 2, "destination": 0 }, "geometry": { "type": "LineString", "coordinates": [ [ 322315.200000000011642, 6265523.5 ], [ 322296.0, 6265567.700000000186265 ] ] } }
+]
+}

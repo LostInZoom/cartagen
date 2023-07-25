@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2154" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 0, "degree": 3, "angle": 0.44936286640333806 }, "geometry": { "type": "Point", "coordinates": [ 322296.0, 6265567.700000000186265 ] } },
+{ "type": "Feature", "properties": { "id": 1, "degree": 3, "angle": 0.86758719585054989 }, "geometry": { "type": "Point", "coordinates": [ 322310.099999999976717, 6265574.5 ] } },
+{ "type": "Feature", "properties": { "id": 2, "degree": 3, "angle": 0.7903027562216296 }, "geometry": { "type": "Point", "coordinates": [ 322315.200000000011642, 6265523.5 ] } },
+{ "type": "Feature", "properties": { "id": 3, "degree": 3, "angle": -0.68892438821077673 }, "geometry": { "type": "Point", "coordinates": [ 322321.900000000023283, 6265550.799999999813735 ] } },
+{ "type": "Feature", "properties": { "id": 4, "degree": 3, "angle": -4.0869039410014558 }, "geometry": { "type": "Point", "coordinates": [ 322322.700000000011642, 6265526.5 ] } },
+{ "type": "Feature", "properties": { "id": 5, "degree": 3, "angle": -2.3608405348719117 }, "geometry": { "type": "Point", "coordinates": [ 322331.0, 6265530.0 ] } }
+]
+}
