@@ -171,12 +171,12 @@ def is_branching_crossroad(polygon, roads, area_threshold,
                         r = roundabouts[i]
                         # Make an other test to really keep only intersecting roundabouts, spatial index strtree using bbox
                         if shapely.intersects(polygon, r):
-                            rb.append(r)
                             # Make sure, it is not the same object
                             if shapely.equals_exact(polygon, r):
                                 continue
+                            else:
+                                rb.append(r)
                             
-
                     if len(rb) != 0:                        
                         # If more than one roundabout intersects, return False
                         if len(rb) > 1:
