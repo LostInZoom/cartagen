@@ -22,7 +22,7 @@ def is_roundabout(polygon, area_threshold, miller_index):
     
     return False
 
-def detect_roundabouts(roads, area_threshold=40000, miller_index=0.97):
+def detect_roundabouts(roads, area_threshold=40000, miller_index=0.95):
     """
     This function detects roundabouts inside a road network and returns polygons representing the roundabout extent.
     Returns None if no roundabouts where found.

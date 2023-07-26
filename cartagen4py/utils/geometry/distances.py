@@ -12,6 +12,6 @@ def distance_area(geom1, geom2):
     union = shapely.union(geom1, geom2)
 
     if intersection.is_empty == False and union.is_empty == False:
-        return intersection.area / union.area
+        return 1 - (intersection.area / union.area)
     else:
         return None

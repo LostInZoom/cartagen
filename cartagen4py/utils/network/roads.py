@@ -5,20 +5,6 @@ from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, unary_union
 from cartagen4py.utils.geometry import *
 
-def find_line(start, end, linestrings):
-    """
-    Find a linestring inside a sequence of linestrings given a start and end point as coordinates
-    """
-    line = None
-    for linestring in linestrings:
-        l = linestring.coords
-        lstart, lend = l[0], l[-1]
-        if (start == lstart) and (end == lend):
-            line = linestring
-        elif (start == lend) and (end == lstart):
-            line = linestring
-    return line
-
 def create_graph_from_face(face, network):
     """
     Return a list of nodes with their degree and a list a link between the index of the nodes.
