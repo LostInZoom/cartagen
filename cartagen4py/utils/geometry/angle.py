@@ -22,3 +22,18 @@ def angle_to_zero_pi(angle):
     if angle < 0:
         return -angle
     return angle
+
+def angle_from_3points_coordinates(p1, p2, p3):
+    """
+    Returns the angle formed by three points. The returned value is in degrees always positive,
+    it doesn't provide any information about orientation.
+    p1, p2, p3 must be python iterables of two elements representing the coordinates of the points.
+    """
+    x1, y1 = p1[0], p1[1]
+    x2, y2 = p2[0], p2[1]
+    x3, y3 = p3[0], p3[1]
+
+    deg1 = (360 + np.rad2deg(np.arctan2(x1 - x2, y1 - y2))) % 360
+    deg2 = (360 + np.rad2deg(np.arctan2(x3 - x2, y3 - y2))) % 360
+
+    return deg2 - deg1 if deg1 <= deg2 else 360 - (deg1 - deg2)
