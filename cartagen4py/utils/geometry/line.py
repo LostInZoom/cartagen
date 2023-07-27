@@ -100,3 +100,22 @@ def get_nearest_vertex(geometry, point):
             nearest = vertex_pt
     
     return nearest
+
+def extend_line_with_point(line, point, position='start'):
+    """
+    Extend the line with a given point, depending on the position, adds it at the start or the end
+    """
+    new_line = []
+    p = [point.x, point.y]
+
+    if position == 'start':
+        new_line.append(p)
+
+    for n in line.coords:
+        new_line.append(n)
+
+    if position == 'end':
+        new_line.append(p)
+
+    return LineString(new_line)
+        
