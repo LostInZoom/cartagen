@@ -1,6 +1,7 @@
 # This file contains functions that provide angle operations
 
 from shapely.geometry import Point
+import shapely
 import numpy as np
 from math import pi
 
@@ -20,20 +21,69 @@ def angle_to_zero_pi(angle):
     if angle > pi:
         return angle - pi
     if angle < 0:
-        return -angle
+        return - angle
     return angle
 
-def angle_from_3points_coordinates(p1, p2, p3):
+def angle_between_2lines(line1, line2):
     """
-    Returns the angle formed by three points. The returned value is in degrees always positive,
-    it doesn't provide any information about orientation.
-    p1, p2, p3 must be python iterables of two elements representing the coordinates of the points.
+    Return the angle between two lines that crosses at their end or start point. Takes shapely LineStrings as input.
     """
-    x1, y1 = p1[0], p1[1]
-    x2, y2 = p2[0], p2[1]
-    x3, y3 = p3[0], p3[1]
+    # retrieve coordinates of lines nodes, number of node in lines and start and end node
+    coords1 = line1.coords
+    l1 = len(coords1)
+    start1, end1 = coords1[0], coords1[-1]
+    coords2 = line2.coords
+    l2 = len(coords2)
+    start2, end2 = coords2[0], coords2[-1]
 
-    deg1 = (360 + np.rad2deg(np.arctan2(x1 - x2, y1 - y2))) % 360
-    deg2 = (360 + np.rad2deg(np.arctan2(x3 - x2, y3 - y2))) % 360
+    sgeom1 = sgeom2 = None
+    current = None
 
-    return deg2 - deg1 if deg1 <= deg2 else 360 - (deg1 - deg2)
+    if start1 == start2:
+        current = start1
+        sgeom1 = True
+        sgeom2 = True
+    if start1 == end2:
+        current = start1
+        sgeom1 = True
+        sgeom2 = False
+    if end1 == end2:
+        current = end1
+        sgeom1 = False
+        sgeom2 = False
+    if end1 == start2:
+        current = end1
+        sgeom1 = False
+        sgeom2 = True
+
+    # In this case, lines are not crossing
+    if current is None:
+        return None
+
+    previous = following = None
+
+    if l1 > 2:
+        if sgeom1:
+            previous = coords1[2]
+        else:
+            previous = coords1[-3]
+    else:
+        if sgeom1:
+            previous = coords1[1]
+        else:
+            previous = coords1[-2]
+
+    if l2 > 2:
+        if sgeom2:
+            following = coords2[2]
+        else:
+            following = coords2[-3]
+    else:
+        if sgeom2:
+            following = coords2[1]
+        else:
+            following = coords2[-2]
+
+    angle = angle_3_pts(shapely.Point(previous), shapely.Point(current), shapely.Point(following))
+
+    return angle
