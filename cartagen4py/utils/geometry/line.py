@@ -1,5 +1,7 @@
-from shapely.geometry import Point, Polygon, LineString
 import numpy as np
+import shapely
+from shapely.ops import split, nearest_points, snap
+from shapely.geometry import Point, Polygon, LineString
 
 def get_shortest_edge_length(geom: LineString):
     min_length = float('inf')
@@ -119,3 +121,20 @@ def extend_line_with_point(line, point, position='start'):
 
     return LineString(new_line)
         
+def split_line_at_point(line, point):
+    """
+    Split a line at a given point along this line.
+    Return the two new linestrings.
+    Return None if the line and the point doesn't intersect.
+    """
+    if line.distance(point) < 1e-8:
+        return None
+
+    projected = nearest_points(point, line)[1]
+    splitted = split(snap(line, projected, 0.0001), projected)
+
+    lines = []
+    for s in splitted.geoms:
+        lines.append(s)
+
+    return lines[0], lines[1]

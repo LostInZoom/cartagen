@@ -124,7 +124,7 @@ def __is_branching_crossroad(polygon, roads, tree,
     area = polygon.area
     # Check if the area of the polygon is larger than the threshold
     if area < area_threshold:
-        crossroad = Crossroad(roads, polygon, tree)
+        crossroad = Crossroad(roads, tree, polygon)
 
         if crossroad is not None:
             nodes = crossroad.nodes

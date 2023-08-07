@@ -3,8 +3,9 @@ import shapely
 from shapely.ops import unary_union, linemerge
 
 from cartagen4py.utils.network import *
+from cartagen4py.utils.geometry.line import *
 
-def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None):
+def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None,):
     """
     Collapse detected branching crossroads below the provided area to a point and return the new network.
     Parameters
@@ -13,13 +14,13 @@ def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_a
         The road network where branching crossroads will be collapsed.
     crossroads : geopandas GeoDataFrame of Polygons.
         The polygons representing the faces of the network detected as branching crossroads.
+    maximum_area : float, optional.
+        The area, in square meter, below which branching crossroads are collapsed.
+        Default value is set to None. 
     roundabouts : geopandas GeoDataFrame of Polygons, optional.
         The polygons representing the faces of the network detected as roundabouts.
         Provide a better collapsing when provided.
         Default value is set to None.
-    maximum_area : float, optional.
-        The area, in square meter, below which branching crossroads are collapsed.
-        Default value is set to None. 
     """
 
     # Retrieve crs for output
@@ -39,8 +40,14 @@ def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_a
     # Build the spatial index
     tree = shapely.STRtree(network)
 
-    # This list will store the indexes of interior minor roads to throw away
-    nokeep = []
+    # This list will store the indexes of roads to throw away
+    originals = []
+    # This list will store the geometries of internal and external roads.
+    # It is important when crossroads are too close to each other and external and internal roads might overlap.
+    internals = []
+    externals = []
+    # This will store the new collapsed geometries
+    collapsed = []
 
     # Looping through crossroads
     for index, crossroad in enumerate(crossroads):
@@ -59,61 +66,151 @@ def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_a
                 if area >= maximum_area:
                     continue
 
-            branching = Crossroad(network, polygon, tree)
+            intersection = Crossroad(network, tree, polygon)
 
-            if branching is not None:
-                print(crossroad['cid'])
-                main_roads = __find_main_roads(branching, middle)
+            if intersection is not None:
+                # print(crossroad['cid'])
+                main_roads = __find_main_roads(intersection, middle)
 
                 # Test if main road(s) were found
                 if main_roads is not None:
                     # Finding the minor external road
-                    minor_road = __find_minor_road(branching, main_roads)
+                    minor_road = __find_minor_road(intersection, main_roads)
                     # Test if the minor road was found
                     if minor_road is not None:
-                        __collapse(branching, main_roads, minor_road)
+                        c = __collapse(intersection, main_roads, minor_road)
+                        i = []
+                        for internal in intersection.internals:
+                            i.append(intersection.network[internal])
+                        e = []
+                        for external in intersection.externals:
+                            e.append(intersection.network[external])
+                        originals.extend(intersection.original)
+                        internals.extend(i)
+                        externals.extend(e)
+                        collapsed.extend(c)
+    
+    result = []
+    for rid, road in enumerate(roads):
+        if rid not in originals:
+            result.append(road)
 
-                        major_export = []
-                        for net in main_roads:
-                            major_export.append({'geometry': branching.network[net]})
+    alreadyc = []
+    # Add the collapsed road sections
+    for c in collapsed:
+        add = True
+        # Check if the collapsed section hasn't been added yet
+        for ac in alreadyc:
+            if shapely.equals(ac, c):
+                add = False
+        if add:
+            result.append({'geometry': c})
+            alreadyc.append(c)
 
-                        major_export_gdf = gpd.GeoDataFrame(major_export, crs=crs)
-                        major_export_gdf.to_file("cartagen4py/data/mains.geojson", driver="GeoJSON")
-
-                        minor_export = [{'geometry': branching.network[minor_road]}]
-                        minor_export_gdf = gpd.GeoDataFrame(minor_export, crs=crs)
-                        minor_export_gdf.to_file("cartagen4py/data/minor.geojson", driver="GeoJSON")
-
-                        if len(main_roads) > 1:
-                            break
-
-                # if crossroad["cid"] == 50:
-                #     break
+    alreadye = []
+    # Now add all the external road sections
+    for e in externals:
+        add = True
+        # Check if this external road section has not been added yet
+        for ae in alreadye:
+            if shapely.equals(ae, e):
+                add = False
+        # Check conflicts with other internal road sections
+        for i in internals:
+            if shapely.intersects(i, e):
+                # If the external road equals the internal road section of an other crossroad
+                if shapely.equals(i, e):
+                    add = False
+                # If the external road overlaps an other internal road
+                elif shapely.overlaps(i, e):
+                    add = False
+                # If it is contained inside an other internal road section
+                elif shapely.contains(i, e):
+                    add = False
+        if add:
+            result.append({'geometry': e})
+            alreadye.append(e)
+                
+    return gpd.GeoDataFrame(result, crs=crs)
 
 
 def __collapse(branching, mains, minor):
     """
     Collapse the main road(s) and the minor road to a point.
+    Returns the indexes of roads to get rid of and the collapsed crossroad.
     """
-    if len(mains) > 1:
-        unioned = []
-        for main in mains:
-            unioned.extend(branching.network[main].coords)
-        main_road = shapely.LineString(unioned)
-    else:
-        main_road = branching.network[mains[0]]
 
+    # Create the new minor road extension inside the branching crossroad
+    def create_minor_extension(point, main_road):
+        # Calculate the distance between the starting point of the main road and the projection of the point on the road.
+        dist = main_road.project(point)
+        # Create the point projected on the main road.
+        intersection = shapely.Point(list(main_road.interpolate(dist).coords))
+
+        new_minor = None
+        new_main = []
+
+        # Case if the projected point if already the start or end of the main road linestring
+        if dist == 0 or dist == main_road.length:
+            # The main road is the one provided, no changes required
+            new_main.append(main_road)
+            # The minor extension is the line between the provided point and the intersection point
+            new_minor = shapely.LineString([point, intersection])
+        # Case if the projected point is along the main road
+        else:
+            # Split the main road at the given point
+            main1, main2 = split_line_at_point(main_road, point)
+            new_main.extend([main1, main2])
+            new_minor = shapely.LineString([point, main2.coords[0]])
+
+        return new_minor, new_main
+
+    oroad = None
+    # If the are two main roads
+    if len(mains) > 1:
+        distance = None
+        # Loop through main roads to keep only the closest to the minor road
+        # Stores in oroad the index of the other main road to keep
+        for index, main in enumerate(mains):
+            dist = shapely.distance(branching.network[minor], branching.network[main])
+            if distance is not None:
+                if dist > distance:
+                    oroad = index
+                    continue
+                else:
+                    oroad = index - 1
+            distance = dist
+            main_road = main
+    else:
+        main_road = mains[0]
+    
+    # Retrieve start and end point of the minor road
     start = shapely.Point(branching.network[minor].coords[0])
     end = shapely.Point(branching.network[minor].coords[-1])
 
-    if shapely.distance(start, main_road) < shapely.distance(end, main_road):
-        dist = main_road.project(start)
-        intersection = list(main_road.interpolate(dist).coords)
-    else:
-        dist = main_road.project(start)
-        intersection = list(main_road.interpolate(dist).coords)
+    # Retrieve the geometry of the concerned main road
+    main_geom = branching.network[main_road]
 
-    print(dist, main_road.length, intersection)
+    startdist = shapely.distance(start, main_geom)
+    enddist = shapely.distance(end, main_geom)
+    # Check if start or end point is the one to be extended
+    # There it's the start of the line
+    if startdist < enddist:
+        new_minor, new_main = create_minor_extension(start, main_geom)
+    # There it's the end point
+    else:
+        new_minor, new_main = create_minor_extension(end, main_geom)
+
+    # If oroad is not None, it means that there are two main roads (with a middle node)
+    if oroad is not None:
+        new_main.append(branching.network[mains[oroad]])
+
+    collapsed = [new_minor]
+
+    for nm in new_main:
+        collapsed.append(nm)
+
+    return collapsed
 
 
 def __find_main_roads(branching, middle):

@@ -7,20 +7,24 @@ from cartagen4py.utils.geometry import *
 
 class Crossroad:
     """
-    An object representing a crossroad from a face of a network.
+    An object representing a crossroad from one or multiple face(s) of a network.
     """
-    def __init__(self, roads, face, tree):
+    def __init__(self, roads, tree, *faces):
+        self.face = unary_union(*faces)
+
         # Retrieve objects that intersects the considered network face using strtree
-        self.roads = tree.query(face)
+        self.roads = tree.query(self.face)
         self.original = []
+        self.original_geoms = []
         for i in self.roads:
             l = roads[i]
             # Make an other test to really keep only intersecting roads, spatial index strtree using bbox
-            if shapely.intersects(face, l):
-                self.original.append(l)
+            if shapely.intersects(self.face, l):
+                self.original_geoms.append(l)
+                self.original.append(i)
 
         # Fully dissolve and node the subnetwork
-        unioned = unary_union(self.original)
+        unioned = unary_union(self.original_geoms)
         # Merge all contiguous lines
         merged = linemerge(unioned)
 
@@ -32,11 +36,11 @@ class Crossroad:
                 self.network.append(line)
 
         rtree = shapely.STRtree(self.network)
-        indexes = rtree.query(face)
+        indexes = rtree.query(self.face)
 
-        self.nodes, self.links = self.__create_graph_from_face(self.network, face)
-        self.internals = self.__get_internal_roads(indexes, self.network, face)
-        self.externals = self.__get_external_roads(indexes, self.network, face)
+        self.nodes, self.links = self.__create_graph_from_face(self.network, self.face)
+        self.internals = self.__get_internal_roads(indexes, self.network, self.face)
+        self.externals = self.__get_external_roads(indexes, self.network, self.face)
 
     def __create_graph_from_face(self, network, face):
         """
