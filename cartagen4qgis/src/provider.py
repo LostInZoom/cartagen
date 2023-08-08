@@ -56,7 +56,10 @@ class CartAGen4QGISProvider(QgsProcessingProvider):
         self.addAlgorithm(RaposoSimplificationQGIS())
 
         # General
-        self.addAlgorithm(ConstraintMethodQGIS())
+        # self.addAlgorithm(ConstraintMethodQGIS())
+
+        # Network
+        self.addAlgorithm(DetectRoundaboutsQGIS())
 
         # Tools
         self.addAlgorithm(NetworkFacesQGIS())
