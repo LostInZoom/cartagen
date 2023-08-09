@@ -24,6 +24,7 @@ __revision__ = '$Format:%H$'
 import os
 from qgis.core import QgsProcessingProvider
 from .algorithms import *
+from .tools import *
 from cartagen4qgis import PLUGIN_ICON
 
 class CartAGen4QGISProvider(QgsProcessingProvider):

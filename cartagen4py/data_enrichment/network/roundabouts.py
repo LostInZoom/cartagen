@@ -30,7 +30,7 @@ def detect_roundabouts(network, area_threshold=40000, miller_index=0.95):
     roundabouts = []
     index = 0
     for face in faces:
-        add, infos = __is_roundabout(face, area_threshold, miller_index)
+        add, infos = is_roundabout(face, area_threshold, miller_index)
         if add:
             infos['cid'] = index
             roundabouts.append(infos)
@@ -41,7 +41,7 @@ def detect_roundabouts(network, area_threshold=40000, miller_index=0.95):
     else:
         return None
 
-def __is_roundabout(polygon, area_threshold, miller_index):
+def is_roundabout(polygon, area_threshold, miller_index):
     """
     Return True or False whether the shape is a roundabout or not depending on the given parameters.
     """

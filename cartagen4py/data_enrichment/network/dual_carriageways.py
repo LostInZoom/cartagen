@@ -49,7 +49,7 @@ def detect_dual_carriageways(
     separators = []
     index = 0
     for face in faces:
-        add, infos = __is_dual_carriageway(
+        add, infos = is_dual_carriageway(
             face, roads, tree,
             concavity=concavity,
             elongation=elongation,
@@ -66,7 +66,7 @@ def detect_dual_carriageways(
     else:
         return None
 
-def __is_dual_carriageway(
+def is_dual_carriageway(
         polygon, roads, tree,
         concavity=0.85, elongation=6.0, compactness=0.12,
         area=60000.0, width=20.0, huber=16

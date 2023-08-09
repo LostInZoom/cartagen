@@ -35,9 +35,12 @@ from qgis.core import (
     QgsProcessingParameterDistance,
 )
 
-from cartagen4qgis import PLUGIN_ICON
-from cartagen4py.data_enrichment.network import *
 from cartagen4py.utils.partitioning import *
+from cartagen4py.data_enrichment import is_roundabout
+
+from cartagen4qgis import PLUGIN_ICON
+from cartagen4qgis.src.tools import *
+
 import geopandas
 from shapely import Polygon
 from shapely.wkt import loads
@@ -71,12 +74,14 @@ class DetectRoundaboutsQGIS(QgsProcessingAlgorithm):
             )
         )
         
-        QgsProcessingParameterNumber(
-            self.AREA,
-            self.tr('Maximum area'),
-            type=QgsProcessingParameterNumber.Integer,
-            defaultValue=40000,
-            optional=False
+        self.addParameter(
+                QgsProcessingParameterNumber(
+                self.AREA,
+                self.tr('Maximum area'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=40000,
+                optional=False
+            )
         )
 
         miller = QgsProcessingParameterNumber(
@@ -87,6 +92,7 @@ class DetectRoundaboutsQGIS(QgsProcessingAlgorithm):
             optional=False
         )
         miller.setFlags(miller.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        self.addParameter(miller)
 
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
@@ -102,54 +108,59 @@ class DetectRoundaboutsQGIS(QgsProcessingAlgorithm):
         """
         Here is where the processing itself takes place.
         """
-
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
+        # Get the QGIS source from the parameters
         source = self.parameterAsSource(parameters, self.INPUT, context)
 
-        (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT,
-                context, source.fields(), source.wkbType(), source.sourceCrs())
+        # Convert the source to GeoDataFrame, get the list of records and the number of entities
+        gdf = qgis_source_to_geodataframe(source)
+        records = gdf.to_dict('records')
+        count = len(records)
+
+        # Define the output sink
+        (sink, dest_id) = self.parameterAsSink(
+            parameters, self.OUTPUT, context,
+            fields=source.fields(),
+            geometryType=QgsWkbTypes.Polygon,
+            crs=source.sourceCrs()
+        )
 
         # Compute the number of steps to display within the progress bar and
-        # get features from source
-        total = 100.0 / source.featureCount() if source.featureCount() else 0
-        features = source.getFeatures()
-
+        total = 100.0 / count if count > 0 else 0
+        
+        # Retrieve parameters
         area = self.parameterAsInt(parameters, self.AREA, context)
         miller = self.parameterAsDouble(parameters, self.MILLER, context)
 
-
-        network = geopandas.GeoDataFrame(features)
+        # Actual algorithm
         roads = []
-        for road in network.geometry:
-            roads.append(road)
+        for road in records:
+            roads.append(road['geometry'])
 
         faces = calculate_network_faces(roads, convex_hull=False)
 
         roundabouts = []
         index = 0
-
         for current, face in enumerate(faces):
             # Stop the algorithm if cancel button has been clicked
             if feedback.isCanceled():
                 break
 
-            add, infos = __is_roundabout(face, area, miller)
+            add, infos = is_roundabout(face, area, miller)
             if add:
                 infos['cid'] = index
                 roundabouts.append(infos)
                 index += 1
 
-                result = QgsFeature()
-                result.setGeometry(QgsGeometry.fromWkt(infos['geometry'].wkt))
-                result.setAttributes(infos)
-
-                # Add a feature in the sink
-                sink.addFeature(result, QgsFeatureSink.FastInsert)
-
             # Update the progress bar
             feedback.setProgress(int(current * total))
+
+        # Converts the list of dicts to a list of qgis features
+        result = list_to_qgis_feature(roundabouts)
+
+        sink.addFeatures(result, QgsFeatureSink.FastInsert)
+
+        # # Add a feature in the sink
+        # sink.addFeature(result, QgsFeatureSink.FastInsert)
 
         # Return the results of the algorithm. In this case our only result is
         # the feature sink which contains the processed features, but some

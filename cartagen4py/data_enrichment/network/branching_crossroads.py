@@ -50,7 +50,7 @@ def detect_branching_crossroads(roads, area_threshold=2500,
     crossroads = []
     index = 0
     for face in faces:
-        add, infos = __is_branching_crossroad(
+        add, infos = is_branching_crossroad(
             face, network, tree, area_threshold,
             maximum_distance_area, roundabouts,
             allow_middle_node, middle_angle_tolerance,
@@ -67,7 +67,7 @@ def detect_branching_crossroads(roads, area_threshold=2500,
         return None
 
 
-def __is_branching_crossroad(polygon, roads, tree,
+def is_branching_crossroad(polygon, roads, tree,
         area_threshold, maximum_distance_area, roundabouts=None,
         allow_middle_node=True, middle_angle_tolerance=10,
         allow_single_4degree_node=True
