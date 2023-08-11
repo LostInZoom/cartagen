@@ -26,9 +26,10 @@ def collapse_dual_carriageways(roads, carriageways):
     for carriageway in carriageways:
         polygon = carriageway['geometry']
 
-        skeleton = SkeletonTIN(polygon)
+        
     
-        if carriageway['cid'] == 4:
+        if carriageway['cid'] == 2:
+            skeleton = SkeletonTIN(polygon)
             nodes = []
             for i, n in enumerate(skeleton.nodes):
                 nodes.append({
@@ -49,19 +50,19 @@ def collapse_dual_carriageways(roads, carriageways):
             e = gpd.GeoDataFrame(edges, crs=crs)
             e.to_file("cartagen4py/data/edges.geojson", driver="GeoJSON")
 
-            # triangles = []
-            # for s in skeleton.triangles:
-            #     print(s)
-            #     triangles.append({
-            #         'e1': s[0],
-            #         'e2': s[1],
-            #         'e3': s[2],
-            #         'geometry': shapely.Polygon([
-            #             skeleton.nodes[skeleton.edges[s[0]][0]], skeleton.nodes[skeleton.edges[s[0]][1]],
-            #             skeleton.nodes[skeleton.edges[s[1]][0]], skeleton.nodes[skeleton.edges[s[1]][1]],
-            #             skeleton.nodes[skeleton.edges[s[2]][0]], skeleton.nodes[skeleton.edges[s[2]][1]]
-            #         ])
-            #     })
-            # t = gpd.GeoDataFrame(triangles, crs=crs)
-            # t.to_file("cartagen4py/data/triangles.geojson", driver="GeoJSON")
+            joints = []
+            for j in skeleton.joints:
+                joints.append({
+                    'geometry': j
+                })
+            j = gpd.GeoDataFrame(joints, crs=crs)
+            j.to_file("cartagen4py/data/joints.geojson", driver="GeoJSON")
+
+            bones = []
+            for b in skeleton.bones:
+                bones.append({
+                    'geometry': b
+                })
+            b = gpd.GeoDataFrame(bones, crs=crs)
+            b.to_file("cartagen4py/data/bones.geojson", driver="GeoJSON")
             break
