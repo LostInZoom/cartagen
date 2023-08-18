@@ -2,10 +2,12 @@ import shapely, itertools
 from shapely import LineString
 
 class SkeletonTIN:
-    def __init__(self, polygon):
+    def __init__(self, polygon, entries=None, threshold_range=[0.7, 1.4]):
         """
         Create a polygon skeleton from a Delaunay triangulation.
         """
+        self.range = threshold_range
+
         # Stores future nodes and edges of the triangulation
         self.nodes = []
         self.edges = []
@@ -19,16 +21,163 @@ class SkeletonTIN:
         self.bones = []
         self.joints = []
 
+        self.entries = []
+
         # Launching Delaunay's triangulation to populate nodes, edges and triangles
         self.__delaunay_triangulation(polygon)
 
         # Actual skeletonization.
         self.__skeletonize()
 
+        if entries is not None:
+            self.__reconstruct(entries)
+
+    def __reconstruct(self, entries):
+        """
+        Build and remove entry points depending on the provided list of points.
+        """
+
+        # Add missing entry points
+        def add_entry(entry):
+            closest = None
+            distance = None
+            # Looping through joints
+            for joint in self.joints:
+                # Verify the joint is not an entry
+                if joint not in self.entries:
+                    # Calculate distance between entry and joint
+                    d = shapely.distance(entry, joint)
+                    # If the previous distance has not been calculated yet or it's higher than the new one
+                    if distance is None or d < distance:
+                        # Updating it
+                        distance = d
+                        closest = joint
+            # If a closest joint is found
+            if closest is not None:
+                # Add the joint and entry to the lists
+                self.joints.append(entry)
+                self.entries.append(entry)
+                # Calculate the bone for connectivity
+                self.bones.append(shapely.LineString([entry, closest]))
+
+        # Recursively remove the bones and joints connected the provided entry
+        def recursive_removal(point):
+            # Remove specific joint from the list
+            def remove_joint(joint):
+                if joint in self.joints:
+                    self.joints.pop(self.joints.index(joint))
+            # Remove specific bone from the list
+            def remove_bone(bone):
+                bones = []
+                if bone in self.bones:
+                    self.bones.pop(self.bones.index(bone))
+
+            # List all connected bones
+            bones = []
+            # Loop through all the bones
+            for b in self.bones:
+                # Add it to the list if it intersects the point
+                if shapely.intersects(point, b):
+                    bones.append(b)
+
+            # If no bones were found it means the whole skeleton was removed
+            if len(bones) == 0:
+                # Removing the point from the joints
+                remove_joint(point)
+            # If one bone was found, continuing the recursive removal
+            elif len(bones) == 1:
+                bone = bones[0]
+                start, end = shapely.Point(bone.coords[0]), shapely.Point(bone.coords[1])
+
+                next_point = None
+                # Get the next joint
+                if shapely.equals(start, point):
+                    next_point = end
+                elif shapely.equals(end, point):
+                    next_point = start
+
+                if next_point is not None:
+                    remove_joint(point)
+                    remove_bone(bone)
+                    recursive_removal(next_point)
+
+        remove = []
+        # Looping through the calculated entry points
+        for e in self.entries:
+            # Add the entry for removal if it's not in the provided entry points
+            if e not in entries:
+                remove.append(e)
+
+        # Looping through provided entry points
+        for entry in entries:
+            # If it doesn't exist, add it
+            if entry not in self.joints:
+                add_entry(entry)
+
+        for p in remove:
+            recursive_removal(p)
+
+
     def __skeletonize(self):
         """
         Recursively create the TIN skeleton.
         """
+        def retrieve_center(nodes, range):
+            """
+            Return the center of the inner triangle. Either :
+            - The middle of the line connecting the two center of the longest lines of the triangle
+            - The centroid of the triangle
+            Depending on the given range.
+            """
+            def get_line_center(line):
+                x1, y1, x2, y2 = line.coords[0][0], line.coords[0][1], line.coords[1][0], line.coords[1][1]
+                return shapely.Point([(x1 + x2) / 2, (y1 + y2) / 2])
+            
+            def get_two_longest_lines(lines):
+                first = None
+                second = None
+                for line in lines:
+                    if first is not None:
+                        if line.length > first.length:
+                            second = first
+                            first = line
+                    else:
+                        first = line
+                return first, second
+
+
+            count = 0
+            lines = []
+            for i, n in enumerate(nodes):
+                n, n1, n2 = self.nodes[n], None, None
+                if i == 0:
+                    n1, n2 = self.nodes[nodes[1]], self.nodes[nodes[2]]
+                elif i == 1:
+                    n1, n2 = self.nodes[nodes[2]], self.nodes[nodes[0]]
+                else:
+                    n1, n2 = self.nodes[nodes[0]], self.nodes[nodes[1]]
+                
+                l1 = shapely.LineString([n, n1])
+                l2 = shapely.LineString([n1, n2])
+
+                if l1 not in lines:
+                    lines.append(l1)
+                if l2 not in lines:
+                    lines.append(l2)
+
+                ratio = l1.length / l2.length
+                if ratio < self.range[0] or ratio > self.range[1]:
+                    count += 1
+            
+            if count < 2:
+                 # Return False along with the centroid of the triangle
+                return shapely.Polygon([self.nodes[n] for n in nodes]).centroid
+            else:
+                line1, line2 = get_two_longest_lines(lines)
+                print(line1, line2)
+                p1 = get_line_center(line1)
+                p2 = get_line_center(line2)
+                return get_line_center(shapely.LineString([p1, p2]))
 
         def calculate_joint(edge, previous_joint):
             """
@@ -83,6 +232,7 @@ class SkeletonTIN:
 
                 # Add the end node to the list
                 self.joints.append(end)
+                self.entries.append(end)
 
                 # Add the bone to the list
                 self.bones.append(shapely.LineString([joint, end]))
@@ -107,13 +257,14 @@ class SkeletonTIN:
             elif typet == 2:
                 # Get all the nodes making the polygon
                 tnodes = list({x for l in [self.edges[e] for e in triangle] for x in l})
-                # Create the polygon and calculate the centroid
-                centroid = shapely.Polygon([self.nodes[n] for n in tnodes]).centroid
 
-                # Add the centroid to the joints list
-                self.joints.append(centroid)
-                # Create the line from the current joint to the centroid
-                line = shapely.LineString([joint, centroid])
+                # Calculate edge ratios to reduce zigzags or not
+                center = retrieve_center(tnodes, self.range)
+
+                # Add the center to the joints list
+                self.joints.append(center)
+                # Create the line from the current joint to the center
+                line = shapely.LineString([joint, center])
                 # Add the line to the bones list
                 self.bones.append(line)
 
@@ -123,7 +274,7 @@ class SkeletonTIN:
                 # Loop through virtual edges
                 for virtual in virtuals:
                     # Creating the joint and bone
-                    vjoint = calculate_joint(virtual, centroid)
+                    vjoint = calculate_joint(virtual, center)
 
                     # Continue the bone creation from this joint
                     recursive_bone_growth(virtual, vjoint)
@@ -158,6 +309,7 @@ class SkeletonTIN:
             # Retrieve the common node of those two edges and add it to the list of joints
             node = self.nodes[set.intersection(set(tedge[0]), *itertools.islice(tedge, 1, None)).pop()]
             self.joints.append(shapely.Point(node))
+            self.entries.append(shapely.Point(node))
             
             # Creating the joint, i.e. the point located in the middle of the virtual edge
             joint = calculate_joint(virtual, node)

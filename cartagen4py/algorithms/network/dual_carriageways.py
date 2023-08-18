@@ -25,11 +25,24 @@ def collapse_dual_carriageways(roads, carriageways):
 
     for carriageway in carriageways:
         polygon = carriageway['geometry']
+        boundary = polygon.boundary
+        lines = tree.query(polygon)
 
-        
-    
+        entries = []
+        # Retrieve the entry points of the dual carriageway
+        for coords in boundary.coords:
+            point = shapely.Point(coords)
+            add = False
+            for l in lines:
+                line = network[l]
+                if shapely.contains(boundary, line) == False:
+                    if shapely.intersects(line, point) and point not in entries:
+                        add = True
+            if add:
+                entries.append(point)
+
         if carriageway['cid'] == 2:
-            skeleton = SkeletonTIN(polygon)
+            skeleton = SkeletonTIN(polygon, entries=entries)
             nodes = []
             for i, n in enumerate(skeleton.nodes):
                 nodes.append({
