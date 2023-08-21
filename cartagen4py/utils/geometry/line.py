@@ -65,12 +65,24 @@ def densify_geometry (line_geometry, step):
     return LineString(xy) # Here, we finally create a new line with densified points.
 
 # returns the index of a vertex in a line. Returns -1 if the point given is not a vertex of the line
-def get_index_of_vertex(line, vertex):
+def get_index_of_vertex(line, vertex, tolerance = 0.01):
     for i in range(0, len(line.coords)):
         point = Point(line.coords[i])
-        if point.equals(vertex):
+        if point.equals_exact(vertex, tolerance):
             return i
     return -1
+
+# returns the index of the nearest vertex in a line. Returns -1 if the point given is not a vertex of the line
+def get_index_of_nearest_vertex(line, vertex):
+    mindist = float("inf")
+    nearest_index = -1
+    for i in range(0, len(line.coords)):
+        point = Point(line.coords[i])
+        dist = point.distance(vertex)
+        if dist < mindist:
+            nearest_index = i
+            mindist = dist
+    return nearest_index
 
 def geometry_flatten(geom):
   if hasattr(geom, 'geoms'):  # Multi<Type> / GeometryCollection

@@ -22,3 +22,25 @@ def angle_to_zero_pi(angle):
     if angle < 0:
         return -angle
     return angle
+
+# Computes the angle between two touching polylines.
+def angle_two_connected_lines(line1, line2):
+    # check that lines are touching
+    if(line1.touches(line2) == False):
+        return None
+    # first get the intersection point
+    intersection_pt = line1.intersection(line2)
+
+    # get the following vertex on line1
+    vertex1 = Point(line1.coords[len(line1.coords)-2])
+    first1 = Point(line1.coords[0])
+    if first1.equals(intersection_pt):
+        vertex1 = Point(line1.coords[1])
+
+    # get the following vertex on line2
+    vertex2 = Point(line2.coords[len(line2.coords)-2])
+    first2 = Point(line2.coords[0])
+    if first2.equals(intersection_pt):
+        vertex2 = Point(line2.coords[1])
+
+    return angle_3_pts(vertex1, intersection_pt, vertex2)

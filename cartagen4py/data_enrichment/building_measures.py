@@ -1,9 +1,9 @@
 # This file contains measures on buildings that can be used in constraints or inside algorithms.
 from cartagen4py.utils.geometry.segment import *
-from cartagen4py.utils.geometry.line import to_2d, get_nearest_vertex
+from cartagen4py.utils.geometry.line import to_2d, get_nearest_vertex, densify_geometry
 from cartagen4py.utils.geometry.angle import angle_3_pts, angle_to_zero_pi
-from shapely.ops import nearest_points, transform, triangulate
-from shapely.geometry import MultiPolygon, MultiPoint
+from shapely.ops import nearest_points, transform, triangulate, substring, split
+from shapely.geometry import MultiPolygon, MultiPoint, Polygon
 from math import pi
 
 def building_min_width(building):
@@ -121,6 +121,7 @@ def triangulation_edges_around_building(building, triangulation):
             edges.append((edge[0], objects[0]))
     return edges
 
+# this function computes the congestion around a building following the principles proposed in Anne Ruas PhD. It returns an array of congested direction around the building, with a zero value when that direction is not congested.
 def building_congestion(building, triangulation, max_distance, nb_orientations=16):
     congested = []
     nb_edges_2buildings = 0
@@ -133,7 +134,7 @@ def building_congestion(building, triangulation, max_distance, nb_orientations=1
 
     # case where all edges have been removed around building
     if len(edges) == 0:
-        return congested
+        return [congested, 0]
     
     for edge in edges:
         if(edge[0].length > max_distance):
@@ -161,7 +162,7 @@ def building_congestion(building, triangulation, max_distance, nb_orientations=1
             projected_congestion = congestion * (1 - 4*diff/pi)
             congested[i] = projected_congestion
         
-    return congested
+    return [congested, nb_edges_2buildings]
 
 # computes the compactness of a polygon using the Miller index
 def polygon_compactness(polygon):
@@ -177,3 +178,109 @@ def polygon_elongation(polygon):
         return length2 / length1
     else:
         return length1 / length2
+    
+# compute the corner buildings in a block. The list contains the ids of the buildings (i.e. their number in the list of buildings), not the buildings themselves.
+def corner_buildings(buildings, networks, angle_tolerance=22.5, triangle_edge = 20.0):
+    corner = []
+    radians_tol = angle_tolerance * pi / 180.0
+    #road_parts = __cut_roads_at_corners(networks, radians_tol)
+    # first create the corner areas
+    corner_areas = []
+    road_part_id = 0
+    processed_roads = []
+    for road_part in networks:
+        processed_roads.append(road_part_id)
+        # get the connected roads
+        connected_roads = __get_corner_connected_roads(road_part_id, networks)
+        print(len(connected_roads))
+        for connected_road in connected_roads:
+            if connected_road in processed_roads:
+                continue
+            # compute the angle between road_part and connected_road at their intersection point
+            angle = angle_to_zero_pi(angle_two_connected_lines(road_part, networks[connected_road]))
+            if angle > (pi / 2 - radians_tol) and angle < (pi / 2 + radians_tol):
+                print("pass the angle test")
+                # build a triangle as a new corner area
+                # first get the three vertices of the triangle
+                other_road = networks[connected_road]
+                a = road_part.intersection(other_road)
+                distab = triangle_edge * min(angle, pi/2) / max(angle, pi/2)
+                b = road_part.interpolate(distab)
+                if a.equals(Point(road_part.coords[len(road_part.coords)-1])):
+                    reversed_road = substring(road_part, 1, 0, normalized=True)
+                    b = reversed_road.interpolate(distab)
+                c = other_road.interpolate(distab)
+                if a.equals(Point(other_road.coords[len(other_road.coords)-1])):
+                    reversed_road = substring(other_road, 1, 0, normalized=True)
+                    c = reversed_road.interpolate(distab)
+                corner_areas.append(Polygon([a,b,c,a]))
+        road_part_id += 1
+
+    # now get the buildings intersecting one of the corner areas
+    print("corner areas:")
+    print(len(corner_areas))
+    id = 0
+    for building in buildings:
+        for triangle in corner_areas:
+            if building.intersects(triangle):
+                corner.append(id)
+                break
+        id += 1
+    return corner, corner_areas
+
+def __cut_roads_at_corners(networks, angle_tolerance):
+    road_parts = []
+
+    for road in networks:
+        cumulated_angle = 0.0
+        ante_pt = None
+        prev_pt = None
+        initial_pt = road.coords[0]
+        nb_pts_itr = 0
+        # simplify the line to get sharper angles
+        simp_road = road.simplify(1.0)
+        # densify the simplified road
+        dense_road = densify_geometry(simp_road, 10.0)
+        for pt in dense_road.coords:
+            if nb_pts_itr > 3:
+                # add the angle between [0,Pi/2] to the cumulated angle
+                angle = angle_to_zero_pi(angle_3_pts(Point(ante_pt), Point(prev_pt), Point(pt)))
+                if angle > pi / 2:
+                    angle = abs(angle - pi)
+                cumulated_angle += angle
+                if(cumulated_angle > pi/2 - angle_tolerance):
+                    # cut the road at prev_pt
+                    last_portion = dense_road
+                    if initial_pt != road.coords[0]:
+                        last_portion = split(dense_road, Point(initial_pt)).geoms[1]
+                    split_road = split(last_portion,Point(prev_pt)).geoms[0]  
+                    road_parts.append(split_road)                
+                    cumulated_angle = 0
+                    nb_pts_itr = 0
+                    initial_pt = prev_pt
+
+            nb_pts_itr += 1
+            ante_pt = prev_pt
+            prev_pt = pt
+        
+        # append the final part of the road
+        last_portion = dense_road
+        if initial_pt != road.coords[0]:
+            last_portion = split(dense_road, Point(initial_pt)).geoms[1]
+        road_parts.append(last_portion)
+
+    return road_parts
+
+def __get_corner_connected_roads(road_id, networks):
+    connected_roads = []
+    road_geom = networks[road_id]
+    id = 0
+    for road in networks:
+        if id == road_id:
+            id += 1
+            continue
+        if road_geom.touches(road):
+            connected_roads.append(id)
+        id += 1
+
+    return connected_roads
