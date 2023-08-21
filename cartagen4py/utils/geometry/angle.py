@@ -1,7 +1,6 @@
 # This file contains functions that provide angle operations
 
 from shapely.geometry import Point
-import shapely
 import numpy as np
 from math import pi
 

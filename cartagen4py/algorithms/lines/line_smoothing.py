@@ -2,11 +2,10 @@
 
 from shapely.geometry import LineString, Point
 from math import pi, sqrt, exp
-from cartagen4py.utils.geometry.line import densify_geometry, to_2d, get_index_of_vertex
+from cartagen4py.utils.geometry.line import densify_geometry, to_2d, get_index_of_nearest_vertex
 
 # Compute the gaussian smoothing of a set of a LineString. Sigma is the gaussian filter parameter, and threshold is the subsampling parameter
-# This code is a port from the GaussianFilter class in the GeOxygene Java library.
-# TODO The code needs to fixed
+# This code is a port from the GaussianFilter class in the GeOxygene Java library. See p. 119-120 of the book "Algorithmic Foundation of Multi-Scale Spatial Representation" by Z. Li.
 def gaussian_smoothing(line, sigma, threshold):
     # first resample the line, making sure there is a maximum distance between two consecutive vertices
     resampled = densify_geometry(line, threshold)
@@ -46,12 +45,17 @@ def gaussian_smoothing(line, sigma, threshold):
     final_coords = []
     for point in line.coords:
         # get the index of point in resampled
-        index = get_index_of_vertex(resampled, Point(to_2d(point[0],point[1], point[2])))
-        final_coords.append(smoothed_coords[index])
+        index = get_index_of_nearest_vertex(resampled, Point(to_2d(point[0], point[1], 0)))
+        # check the distance to the line
+        dist = line.distance(Point(smoothed_coords[index]))
+        if index < 6 and dist > (threshold * 3):
+            final_coords.append(point)
+        else:
+            final_coords.append(smoothed_coords[index])
     
     return LineString(final_coords)
 
-# Extend the given set of points at its fist and last points of k points using central inversion.
+# Extend the given set of points at its first and last points of k points using central inversion.
 def __extend(line, interval):
     nb_vert = len(line.coords)
     first = line.coords[0]

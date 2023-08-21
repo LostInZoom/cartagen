@@ -45,6 +45,23 @@ Figure 1. Two polylines simplified with the Visvalingam-Whyatt algorithm.
 
 Figure 2. Two polylines simplified with the Raposo algorithm.
 
+
+.. method:: gaussian_smoothing(line, sigma, threshold)
+
+    Compute the gaussian smoothing of a set of a LineString. With a smoothing, the shape of the line is simpler but the number of vertices remains the same: the vertices are slightly moved to obtain a smoother shape.
+    Sigma is the gaussian filter parameter (the bigger sigma is, the smoother the shape), and threshold is the subsampling parameter, i.e. the step in meters to densify the line prior to the smoothing.
+    This code is a port from the GaussianFilter class in the GeOxygene Java library. See p. 119-120 of the book "Algorithmic Foundation of Multi-Scale Spatial Representation" by Z. Li.
+
+
+.. code-block:: pycon
+
+  line = LineString([(2, 0), (2, 4), (3, 4), (3, 5), (5, 7)])
+  smoothed_line = gaussian_smoothing(line, 3.0, 2.0)
+
+.. plot:: code/gaussian_smoothing.py
+
+Figure 3. A polyline smoothed with the Gaussian smoothing algorithm.
+
 Operations for polygons
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -63,7 +80,7 @@ cartagen4py contains algorithms that process any type of polygons, and others sp
 
 .. plot:: code/building_simplification.py
 
-Figure 3. Four buildings simplified with the Ruas algorithm.
+Figure 4. Four buildings simplified with the Ruas algorithm.
 
 .. method:: square_polygon(polygons, max_iteration=1000, norm_tolerance=0.05, right_tolerance=10, flat_tolerance=10, fixed_weight=5, right_weight=100, flat_weight=50)
 
@@ -77,7 +94,7 @@ Figure 3. Four buildings simplified with the Ruas algorithm.
 
 .. plot:: code/building_squaring.py
 
-Figure 4. Two buildings squared with the algorithm from (Lokhat & Touya, 2016).
+Figure 5. Two buildings squared with the algorithm from (Lokhat & Touya, 2016).
 
 Operations for groups of objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -96,7 +113,7 @@ Operations for groups of objects
 
 .. plot:: code/building_amalgamation.py
 
-Figure 5. Buildings amalgamated using the algorithm from Damen et al. (2008).
+Figure 6. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 
 .. class:: BuildingDisplacementRandom(max_trials=25, max_displacement=10, network_partitioning=False, verbose=False)
@@ -119,7 +136,24 @@ Figure 5. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 .. plot:: code/random_displacement.py
 
-Figure 6. A block with buildings displaced because of the width of the road symbol, using the Random Displacement algorithm.
+Figure 7. A block with buildings displaced because of the width of the road symbol, using the Random Displacement algorithm.
+
+.. method:: kmeans_point_set_reduction(points, shrink_ratio, centroid_option = False)
+
+    This algorithm reduces a set of points to a smaller set of points that is representative of the initial set. The algorithm uses a K-Means clustering to reduce the set to a number of clusters that corresponds to the shrinking ratio parameter.
+    The 'shrink_ratio' parameter can vary between 0 (all points are removed) and 1 (all points are kept).
+    Two options are possible: either keeping one of the initial points to replace a cluster (default option) or replace the cluster by its centroid.
+
+.. code-block:: pycon
+
+  >>> points = [Point(1,1), Point(1,2), Point(0,1), Point(2,1), Point(2,2), Point(5,5), Point(8,10), Point(10,10), Point(10,8), 
+              Point(16,10), Point(16,9), Point(14,11)]
+  >>> kmeans_point_set_reduction(points, 0.25)
+  [<POLYGON (2.0 2.0)>, <POINT (10.0 10.0)>, <POINT (16.0 10.0)>]
+
+.. plot:: code/kmeans_reduction.py
+
+Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means reduction algorithm.
 
 Enrich your data prior to map generalisation
 --------------------------------------------
@@ -141,7 +175,7 @@ Extracting implicit geographic structures
 
 .. plot:: code/compute_boffet_urban_areas.py
 
-Figure 7. Building polygons converted into built-up areas using the Boffet algorithm.
+Figure 9. Building polygons converted into built-up areas using the Boffet algorithm.
 
 
 Measures on map features
@@ -180,3 +214,10 @@ Measures on map features
 
 Apply map generalisation complex processes
 ------------------------------------------
+
+AGENT model
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Least squares adjustment
+^^^^^^^^^^^^^^^^^^^^^^^^
