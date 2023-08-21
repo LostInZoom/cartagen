@@ -1,4 +1,6 @@
 import shapely, itertools
+import numpy as np
+from cartagen4py.utils.geometry.line import *
 from shapely import LineString
 
 class SkeletonTIN:
@@ -124,27 +126,23 @@ class SkeletonTIN:
         """
         def retrieve_center(nodes, range):
             """
-            Return the center of the inner triangle. Either :
-            - The middle of the line connecting the two center of the longest lines of the triangle
-            - The centroid of the triangle
-            Depending on the given range.
+            Return the center of the inner triangle. It depends on the given range.
+            If two of the length ratio between each pair of edges is outside the given range,
+            returns the middle of the line connecting the two center of the longest lines of the triangle,
+            else it returns the centroid of the triangle.
             """
-            def get_line_center(line):
-                x1, y1, x2, y2 = line.coords[0][0], line.coords[0][1], line.coords[1][0], line.coords[1][1]
-                return shapely.Point([(x1 + x2) / 2, (y1 + y2) / 2])
-            
             def get_two_longest_lines(lines):
-                first = None
-                second = None
+                # Create a list of line lengths
+                lengths = []
                 for line in lines:
-                    if first is not None:
-                        if line.length > first.length:
-                            second = first
-                            first = line
-                    else:
-                        first = line
-                return first, second
+                    lengths.append(line.length)
 
+                # Convert the list to a numpy array and get the sorted indexes
+                l = np.array(lengths)
+                indexes = l.argsort()
+
+                # Retrieve the two longest lines
+                return lines[indexes[-1]], lines[indexes[-2]]
 
             count = 0
             lines = []
@@ -170,14 +168,13 @@ class SkeletonTIN:
                     count += 1
             
             if count < 2:
-                 # Return False along with the centroid of the triangle
+                 # Return the centroid of the triangle
                 return shapely.Polygon([self.nodes[n] for n in nodes]).centroid
             else:
                 line1, line2 = get_two_longest_lines(lines)
-                print(line1, line2)
-                p1 = get_line_center(line1)
-                p2 = get_line_center(line2)
-                return get_line_center(shapely.LineString([p1, p2]))
+                p1 = get_segment_center(line1)
+                p2 = get_segment_center(line2)
+                return get_segment_center(shapely.LineString([p1, p2]))
 
         def calculate_joint(edge, previous_joint):
             """

@@ -138,3 +138,15 @@ def split_line_at_point(line, point):
         lines.append(s)
 
     return lines[0], lines[1]
+
+def get_segment_center(segment):
+    """
+    Return the center of the given shapely segment (a linestring with only two vertices) as a shapely Point.
+    """
+    c = segment.coords
+
+    if len(c) > 2:
+        raise Exception("The provided segment has more than two vertices.")
+
+    x1, y1, x2, y2 = c[0][0], c[0][1], c[1][0], c[1][1]
+    return shapely.Point([(x1 + x2) / 2, (y1 + y2) / 2])

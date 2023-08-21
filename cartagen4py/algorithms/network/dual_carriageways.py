@@ -41,7 +41,7 @@ def collapse_dual_carriageways(roads, carriageways):
             if add:
                 entries.append(point)
 
-        if carriageway['cid'] == 2:
+        if carriageway['cid'] == 10:
             skeleton = SkeletonTIN(polygon, entries=entries)
             nodes = []
             for i, n in enumerate(skeleton.nodes):
