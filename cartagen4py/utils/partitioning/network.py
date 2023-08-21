@@ -1,9 +1,11 @@
 import shapely
 from shapely.ops import linemerge, unary_union, polygonize
-from cartagen4py.utils.geometry import extent 
+from cartagen4py.utils.geometry import extent
 
-# Calculates the faces of one or multiple networks and return a list of polygons
-def calculate_network_faces(*networks):
+def calculate_network_faces(*networks, convex_hull=True):
+    """
+    Calculates the faces of one or multiple shapely geometry networks and return a shapely geometry sequence of polygons.
+    """
     if len(networks) < 1:
         raise Exception('No networks provided, network partition cannot be created.')
 
@@ -16,12 +18,13 @@ def calculate_network_faces(*networks):
                 for line in object.geoms:
                     network.append(line)
 
-    # Calculating the networks convex hull
-    multilines = unary_union(network)
-    multilines = linemerge(network)
-    hull = shapely.convex_hull(multilines)
-    # Adding the convex hull boundary as a linestring to the network
-    network.append(hull.boundary)
+    if convex_hull:
+        # Calculating the networks convex hull
+        multilines = unary_union(network)
+        multilines = linemerge(network)
+        hull = shapely.convex_hull(multilines)
+        # Adding the convex hull boundary as a linestring to the network
+        network.append(hull.boundary)
     
     # Fully dissolve and node the network
     network = unary_union(network)

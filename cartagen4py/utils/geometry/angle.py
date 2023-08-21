@@ -20,27 +20,69 @@ def angle_to_zero_pi(angle):
     if angle > pi:
         return angle - pi
     if angle < 0:
-        return -angle
+        return - angle
     return angle
 
-# Computes the angle between two touching polylines.
-def angle_two_connected_lines(line1, line2):
-    # check that lines are touching
-    if(line1.touches(line2) == False):
+def angle_between_2lines(line1, line2):
+    """
+    Return the angle between two lines that crosses at their end or start point. Takes shapely LineStrings as input.
+    """
+    # retrieve coordinates of lines nodes, number of node in lines and start and end node
+    coords1 = line1.coords
+    l1 = len(coords1)
+    start1, end1 = coords1[0], coords1[-1]
+    coords2 = line2.coords
+    l2 = len(coords2)
+    start2, end2 = coords2[0], coords2[-1]
+
+    sgeom1 = sgeom2 = None
+    current = None
+
+    if start1 == start2:
+        current = start1
+        sgeom1 = True
+        sgeom2 = True
+    if start1 == end2:
+        current = start1
+        sgeom1 = True
+        sgeom2 = False
+    if end1 == end2:
+        current = end1
+        sgeom1 = False
+        sgeom2 = False
+    if end1 == start2:
+        current = end1
+        sgeom1 = False
+        sgeom2 = True
+
+    # In this case, lines are not crossing
+    if current is None:
         return None
-    # first get the intersection point
-    intersection_pt = line1.intersection(line2)
 
-    # get the following vertex on line1
-    vertex1 = Point(line1.coords[len(line1.coords)-2])
-    first1 = Point(line1.coords[0])
-    if first1.equals(intersection_pt):
-        vertex1 = Point(line1.coords[1])
+    previous = following = None
 
-    # get the following vertex on line2
-    vertex2 = Point(line2.coords[len(line2.coords)-2])
-    first2 = Point(line2.coords[0])
-    if first2.equals(intersection_pt):
-        vertex2 = Point(line2.coords[1])
+    if l1 > 2:
+        if sgeom1:
+            previous = coords1[2]
+        else:
+            previous = coords1[-3]
+    else:
+        if sgeom1:
+            previous = coords1[1]
+        else:
+            previous = coords1[-2]
 
-    return angle_3_pts(vertex1, intersection_pt, vertex2)
+    if l2 > 2:
+        if sgeom2:
+            following = coords2[2]
+        else:
+            following = coords2[-3]
+    else:
+        if sgeom2:
+            following = coords2[1]
+        else:
+            following = coords2[-2]
+
+    angle = angle_3_pts(shapely.Point(previous), shapely.Point(current), shapely.Point(following))
+
+    return angle

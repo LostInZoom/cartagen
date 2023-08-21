@@ -129,6 +129,7 @@ class BuildingDisplacementRandomQGIS(QgsProcessingAlgorithm):
             optional=False
         )
         maxtrials.setFlags(maxtrials.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        self.addParameter(maxtrials)
 
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
