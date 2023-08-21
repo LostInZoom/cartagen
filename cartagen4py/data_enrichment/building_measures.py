@@ -1,7 +1,7 @@
 # This file contains measures on buildings that can be used in constraints or inside algorithms.
 from cartagen4py.utils.geometry.segment import *
 from cartagen4py.utils.geometry.line import to_2d, get_nearest_vertex, densify_geometry
-from cartagen4py.utils.geometry.angle import angle_3_pts, angle_to_zero_pi
+from cartagen4py.utils.geometry.angle import angle_3_pts, angle_to_zero_pi, angle_between_2lines
 from shapely.ops import nearest_points, transform, triangulate, substring, split
 from shapely.geometry import MultiPolygon, MultiPoint, Polygon
 from math import pi
@@ -197,7 +197,7 @@ def corner_buildings(buildings, networks, angle_tolerance=22.5, triangle_edge = 
             if connected_road in processed_roads:
                 continue
             # compute the angle between road_part and connected_road at their intersection point
-            angle = angle_to_zero_pi(angle_two_connected_lines(road_part, networks[connected_road]))
+            angle = angle_to_zero_pi(angle_between_2lines(road_part, networks[connected_road]))
             if angle > (pi / 2 - radians_tol) and angle < (pi / 2 + radians_tol):
                 print("pass the angle test")
                 # build a triangle as a new corner area
