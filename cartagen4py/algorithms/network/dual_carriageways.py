@@ -28,7 +28,8 @@ def collapse_dual_carriageways(roads, carriageways):
         boundary = polygon.boundary
         lines = tree.query(polygon)
 
-        entries = []
+        cnetwork = []
+        incoming = []
         # Retrieve the entry points of the dual carriageway
         for coords in boundary.coords:
             point = shapely.Point(coords)
@@ -36,13 +37,14 @@ def collapse_dual_carriageways(roads, carriageways):
             for l in lines:
                 line = network[l]
                 if shapely.contains(boundary, line) == False:
-                    if shapely.intersects(line, point) and point not in entries:
-                        add = True
-            if add:
-                entries.append(point)
+                    if shapely.intersects(line, point):
+                        if l not in incoming:
+                            cnetwork.append(line)
+                            incoming.append(l)
 
-        if carriageway['cid'] == 10:
-            skeleton = SkeletonTIN(polygon, entries=entries)
+        if carriageway['cid'] == 2:
+            skeleton = SkeletonTIN(polygon, incoming=cnetwork, distance_douglas_peucker=3)
+
             nodes = []
             for i, n in enumerate(skeleton.nodes):
                 nodes.append({
@@ -78,4 +80,13 @@ def collapse_dual_carriageways(roads, carriageways):
                 })
             b = gpd.GeoDataFrame(bones, crs=crs)
             b.to_file("cartagen4py/data/bones.geojson", driver="GeoJSON")
+
+            net = []
+            for i, n in enumerate(skeleton.network):
+                net.append({
+                    'nid': i,
+                    'geometry': n
+                    })
+            ne = gpd.GeoDataFrame(net, crs=crs)
+            ne.to_file("cartagen4py/data/network.geojson", driver="GeoJSON")
             break
