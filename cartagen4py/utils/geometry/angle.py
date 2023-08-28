@@ -83,6 +83,6 @@ def angle_between_2lines(line1, line2):
         else:
             following = coords2[-2]
 
-    angle = angle_3_pts(shapely.Point(previous), shapely.Point(current), shapely.Point(following))
+    angle = angle_3_pts(Point(previous), Point(current), Point(following))
 
     return angle
