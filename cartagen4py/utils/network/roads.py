@@ -42,6 +42,35 @@ class Crossroad:
         self.internals = self.__get_internal_roads(indexes, self.network, self.face)
         self.externals = self.__get_external_roads(indexes, self.network, self.face)
 
+    def get_unchanged_roads(self, roads=None):
+        """
+        Return a list of index of unchanged roads, i.e. roads that have the same gemetry as the original.
+        If the roads argument is None, returns all unchanged roads. Possible values are: 'externals' and 'internals'.
+        Default is set to None.
+        """
+        unchanged = []
+        # Loop through original geometry
+        for oid, o in enumerate(self.original_geoms):
+            # If externals roads are calculated
+            if roads is None or roads == 'externals':
+                # Loop through external roads
+                for e in self.externals:
+                    # Check if the external road geometry is the same as the original one
+                    if shapely.equals(o, self.network[e]):
+                        if self.original[oid] not in unchanged:
+                            # If the id is not already added, append the id of the road to the result
+                            unchanged.append(self.original[oid])
+            # Same process for internal roads 
+            if roads is None or roads == 'internals':
+                for i in self.internals:
+                    if shapely.equals(o, self.network[i]):
+                        if self.original[oid] not in unchanged:
+                            unchanged.append(self.original[oid])
+
+        # Return the unchanged list of index
+        return unchanged
+
+
     def __create_graph_from_face(self, network, face):
         """
         Return a list of nodes with their degree and a list a link between the index of the nodes.
