@@ -26,64 +26,62 @@ def collapse_dual_carriageways(roads, carriageways):
 
     # This list will store the indexes of roads to throw away
     originals = []
-    # This list will store the geometries of internal and external roads.
-    # It is important when crossroads are too close to each other and external and internal roads might overlap.
-    internals = []
-    externals = []
     # This will store the new collapsed geometries
     collapsed = []
 
     for carriageway in carriageways:
-        print(carriageway["cid"])
+        # Get the geometry of the face
         polygon = carriageway['geometry']
-        boundary = polygon.boundary
-        lines = tree.query(polygon)
-
-        # cnetwork = []
-        # incoming = []
-        # # Retrieve the entry points of the dual carriageway
-        # for coords in boundary.coords:
-        #     point = shapely.Point(coords)
-        #     add = False
-        #     for l in lines:
-        #         line = network[l]
-        #         if shapely.contains(boundary, line) == False:
-        #             if shapely.intersects(line, point):
-        #                 if l not in incoming:
-        #                     cnetwork.append(line)
-        #                     incoming.append(l)
 
         # Calculate the crossroad object
         crossroad = Crossroad(network, tree, polygon)
 
         # If there are more than one external road to the crossroad
         if len(crossroad.externals) > 1:
+            # Retrieve the id of the external roads that have not been changed by the conversion to a crossroad object
+            unchanged = crossroad.get_unchanged_roads('externals')
+
+            # Retrieve incoming roads, i.e. the external network of the crossroad
             incoming = []
             for ext in crossroad.externals:
-                incoming.append(crossroad.network[ext])
+                original = None
+                egeom = crossroad.network[ext]
+                for u in unchanged:
+                    ugeom = network[u]
+                    if shapely.equals(egeom, ugeom):
+                        original = roads[u]
+                if original is not None:
+                    incoming.append(original)
+                else:
+                    incoming.append({ "geometry": egeom })
 
             # Calculate the skeleton
             skeleton = SkeletonTIN(polygon, incoming=incoming, distance_douglas_peucker=3)
-            i = []
-            for internal in crossroad.internals:
-                i.append(crossroad.network[internal])
-            e = []
-            for external in crossroad.externals:
-                e.append(crossroad.network[external])
-            internals.extend(i)
-            externals.extend(e)
+            # Storing the original geometries of the crossroad
             originals.extend(crossroad.original)
+            # Storing the blended skeleton
             collapsed.extend(skeleton.blended)
 
     result = []
-    for rid, road in enumerate(roads):
-        if rid not in originals:
-            result.append(road)
+    remove = []
+    for c in collapsed:
+        cgeom = c['geometry']
+        add = True
+        for o in originals:
+            if shapely.equals(cgeom, network[o]):
+                remove.append(o)
+                add = False
+        if add:
+            result.append(c)
 
-    for col in collapsed:
-        result.append({
-            'geometry': col
-        })
+    removeroad = []
+    for o in originals:
+        if o not in remove:
+            removeroad.append(o)
+
+    for rid, road in enumerate(roads):
+        if rid not in removeroad:
+            result.append(road)
 
     return gpd.GeoDataFrame(result, crs=crs)
 
