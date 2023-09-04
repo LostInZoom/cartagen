@@ -9,6 +9,7 @@ class SkeletonTIN:
     """
     def __init__(self, polygon, incoming=None, threshold_range=[0.7, 1.4], distance_douglas_peucker=None):
         self.polygon = polygon
+        self.incoming = incoming
         self.range = threshold_range
         self.distance = distance_douglas_peucker
 
@@ -28,9 +29,6 @@ class SkeletonTIN:
         # Stores the skeleton as a network
         self.network = []
 
-        # Stores the blended network if incoming lines provided
-        self.blended = []
-
         # Storage for entry points
         self.entries = []
 
@@ -40,20 +38,23 @@ class SkeletonTIN:
         # Actual skeletonization.
         self.__skeletonize()
 
-        if incoming is not None:
-            self.__reconstruct(incoming)
+        # Reconstruct the skeleton with new entry points if incoming lines are provided
+        if self.incoming is not None:
+            self.__reconstruct()
             
+        # Create the network from the bones
         self.__create_network(self.distance)
 
-        if incoming is not None:
-            self.__blend(incoming)
-
-    def __blend(self, incoming):
+    def blend(self):
         """
         Blend the given network with the created skeleton.
         It works only if incoming lines where provided during the skeleton creation.
         """
-        blended = incoming.copy()
+
+        if self.incoming is None:
+            raise Exception("Incoming lines were not provided during the skeletonization. Cannot blend with the network.")
+
+        blended = self.incoming.copy()
         network = self.network.copy()
 
         remove = []
@@ -146,7 +147,7 @@ class SkeletonTIN:
             # Else, retrieve the blended network without contained lines
             blended = [b for i, b in enumerate(blended) if i not in remove]
 
-        self.blended = blended
+        return blended
 
     def __create_network(self, distance=None):
         """
@@ -214,7 +215,7 @@ class SkeletonTIN:
             else:
                 self.network = network
 
-    def __reconstruct(self, incoming):
+    def __reconstruct(self):
         """
         Build and remove entry points depending on the provided list of incoming lines.
         """
@@ -287,7 +288,7 @@ class SkeletonTIN:
         entries = []
         boundary = list(self.polygon.boundary.coords)
         externals = []
-        for i in incoming:
+        for i in self.incoming:
             externals.append(i['geometry'])
 
         for line in externals:
