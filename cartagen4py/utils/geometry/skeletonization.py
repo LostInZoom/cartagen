@@ -9,6 +9,7 @@ class SkeletonTIN:
     """
     def __init__(self, polygon, incoming=None, threshold_range=[0.7, 1.4], distance_douglas_peucker=None):
         self.polygon = polygon
+        self.incoming = incoming
         self.range = threshold_range
         self.distance = distance_douglas_peucker
 
@@ -28,9 +29,6 @@ class SkeletonTIN:
         # Stores the skeleton as a network
         self.network = []
 
-        # Stores the blended network if incoming lines provided
-        self.blended = []
-
         # Storage for entry points
         self.entries = []
 
@@ -40,34 +38,36 @@ class SkeletonTIN:
         # Actual skeletonization.
         self.__skeletonize()
 
-        if incoming is not None:
-            self.__reconstruct(incoming)
+        # Reconstruct the skeleton with new entry points if incoming lines are provided
+        if self.incoming is not None:
+            self.__reconstruct()
             
+        # Create the network from the bones
         self.__create_network(self.distance)
 
-        if incoming is not None:
-            self.__blend(incoming)
-
-    def __blend(self, incoming):
+    def blend(self):
         """
         Blend the given network with the created skeleton.
         It works only if incoming lines where provided during the skeleton creation.
         """
-        self.blended = incoming.copy()
+
+        if self.incoming is None:
+            raise Exception("Incoming lines were not provided during the skeletonization. Cannot blend with the network.")
+
+        blended = self.incoming.copy()
         network = self.network.copy()
 
         remove = []
-
         # Loop through entry points
         for entry in self.entries:
             # Counter for the degree of the entry point
-            degree = 0
+            degree = 1
             # Will store the incoming line informations
             outside = []
             # Loop through incoming lines
             for iline, line in enumerate(incoming):
                 # Retrieve start and end point
-                start, end = line.coords[0], line.coords[-1]
+                start, end = line['geometry'].coords[0], line['geometry'].coords[-1]
                 # Increment degree and enters values if start or end point is the same as entry point
                 if shapely.equals(entry, shapely.Point(start)):
                     degree += 1
@@ -76,10 +76,10 @@ class SkeletonTIN:
                     degree += 1
                     outside.append([iline, 'end', line, end])
 
-            # If the degree is 1, merge the incoming line with the skeleton line
-            if degree == 1:
+            # If the degree is 2, merge the incoming line with the skeleton line
+            if degree == 2:
                 # Retrieve infos from the incoming line
-                outindex, outstate, outline, outpoint = outside[0][0], outside[0][1], list(outside[0][2].coords), outside[0][3]
+                outindex, outstate, outline, outpoint = outside[0][0], outside[0][1], outside[0][2], outside[0][3]
                 # Will store infos on connected skeleton line
                 inside = []
                 # Looping through skeleton lines
@@ -91,13 +91,6 @@ class SkeletonTIN:
                         inside.append([sindex, 'start', skline, start])
                     elif shapely.equals(shapely.Point(outpoint), shapely.Point(end)):
                         inside.append([sindex, 'end', skline, end])
-                    # If the skeleton line doesn't intersect the incoming line, continue the loop
-                    else:
-                        continue
-                    # Here, an intersection has been found,
-                    # Remove the skeleton line from the network and break the loop
-                    # network.pop(sindex)
-                    break
                 
                 # Retrieve skeleton line infos
                 inindex, instate, inline, inpoint = inside[0][0], inside[0][1], list(inside[0][2].coords), inside[0][3]
@@ -112,21 +105,49 @@ class SkeletonTIN:
                     # Remove the first vertice of the skeleton line
                     inline.pop(0)
                     # Merge both lines and add it to the list
-                    linestring = shapely.LineString(outline + inline)
+                    linestring = outline
+                    linestring['geometry'] = shapely.LineString(list(outline['geometry'].coords) + inline)
                 # If the start of the incoming line is the connexion point
                 elif outstate == 'start':
                     # Remove the first vertice of the incoming line
-                    outline.pop(0)
+                    outgeom = list(outline['geometry'].coords)
+                    outgeom.pop(0)
                     # Merge both line lists and add it to the list
-                    linestring = shapely.LineString(inline + outline)
+                    linestring = outline
+                    linestring['geometry'] = shapely.LineString(inline + outgeom)
                 else:
                     # Shouldn't be reached
                     continue
                 # Here, modify the geometry of the incoming line and of the skeleton line
-                self.blended[outindex] = linestring
+                blended[outindex] = linestring
 
         # Add the unmodified skeleton lines to the results
-        self.blended += [n for n in network if n not in remove]
+        blended += [{ "geometry": n } for n in network if n not in remove]
+
+        remove = []
+        # Here, handle lines contained by an other
+        for i1, b1 in enumerate(blended):
+            for i2, b2 in enumerate(blended):
+                geom1, geom2 = b1['geometry'], b2['geometry']
+                if geom1 != geom2:
+                    if shapely.contains(geom2, geom1):
+                        if i1 not in remove:
+                            remove.append(i1)
+
+        # Here, handle specific case of two entry of degree 2
+        if len(self.entries) == 2 and (len(blended) - len(remove)) == 2:
+            final = blended[0]
+            # Merge all the lines into one
+            geometries = []
+            for b in blended:
+                geometries.append(b['geometry'])
+            final['geometry'] = shapely.ops.linemerge(geometries)
+            blended = [final]
+        else:
+            # Else, retrieve the blended network without contained lines
+            blended = [b for i, b in enumerate(blended) if i not in remove]
+
+        return blended
 
     def __create_network(self, distance=None):
         """
@@ -194,7 +215,7 @@ class SkeletonTIN:
             else:
                 self.network = network
 
-    def __reconstruct(self, incoming):
+    def __reconstruct(self):
         """
         Build and remove entry points depending on the provided list of incoming lines.
         """
@@ -266,7 +287,11 @@ class SkeletonTIN:
 
         entries = []
         boundary = list(self.polygon.boundary.coords)
-        for line in incoming:
+        externals = []
+        for i in self.incoming:
+            externals.append(i['geometry'])
+
+        for line in externals:
             start, end = line.coords[0], line.coords[-1]
             if start in boundary:
                 if start not in entries:
