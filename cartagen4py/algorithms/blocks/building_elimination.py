@@ -95,17 +95,6 @@ def __set_default_criteria():
 
     return [criteria, weights]
 
-def building_elimination_in_block(buildings, networks, max_dist):
-    # compute the triangulation
-    triangulation = block_triangulation(buildings, networks, max_dist)
-    # compute the congestion of all buildings in the block
-    congestion_data = []
-    for building in buildings:
-        congestion_data.append(building_congestion(building, triangulation, max_dist))
-
-    return building_elimination_in_block(buildings, networks, triangulation, congestion_data)
-
-
 def building_elimination_best_in_block(buildings, triangulation, congestion, min_area_buildings, corner_buildings, building_elim_thresh=70.0):
     criteria, weights = __set_default_criteria()
 
