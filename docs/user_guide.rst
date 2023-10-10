@@ -149,11 +149,34 @@ Figure 7. A block with buildings displaced because of the width of the road symb
   >>> points = [Point(1,1), Point(1,2), Point(0,1), Point(2,1), Point(2,2), Point(5,5), Point(8,10), Point(10,10), Point(10,8), 
               Point(16,10), Point(16,9), Point(14,11)]
   >>> kmeans_point_set_reduction(points, 0.25)
-  [<POLYGON (2.0 2.0)>, <POINT (10.0 10.0)>, <POINT (16.0 10.0)>]
+  [<POINT (2.0 2.0)>, <POINT (10.0 10.0)>, <POINT (16.0 10.0)>]
 
 .. plot:: code/kmeans_reduction.py
 
 Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means reduction algorithm.
+
+.. method:: quadtree_point_set_reduction(points, depth, mode='simplification', attribute = "")
+
+    Algorithm to reduce a point set based on a quadtree. The algorithm was proposed by Bereuter & Weibel (2012). The algorithm uses a quadtree that divdes itself until there is only one point feature inside the cell.
+    The 'depth' parameter can vary between 0 (all points are removed) and the maximum depth of the quadtree (all points are kept). If depth is 2, the algorithm only retains 1 point for each cell with depth <= 2.
+    Three options are possible to choose how the point is retained in the cell: 
+    - mode = 'selection' means that for one cell, the algorithm retains the point with the largest value in the chosen attribute, weighted by the depth of the point. 
+    - mode = 'simplification' means that the point retained in the cell is the closest to the center of the cell
+    - mode = 'aggregation' means that the points are all aggregated to the centroid of the points.
+    The algorithm returns the list of tuples (geometry, index, nb_of_points) where index is the index of the point in the initial Geodataframe (-1 if the point was created), and nb_of_points gives the amount of initial points replaced (which can be used to weight the size of the symbol of this point). 
+
+.. code-block:: pycon
+
+  >>> points = [Point(1,1), Point(1,2), Point(0,1), Point(2,1), Point(2,2), Point(5,5), Point(8,10), Point(10,10), Point(10,8), 
+              Point(16,10), Point(16,9), Point(14,11)]
+  >>> p1 = gpd.GeoSeries(points)
+  >>> gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(p1))
+  >>> quadtree_point_set_reduction(points, 0.25)
+  [<POINT (1 2)>, <POINT (10 8)>, <POINT (10 10)>, <POINT (14 11)>]
+
+.. plot:: code/quadtree_reduction.py
+
+Figure 9. A set of points reduced to depth 2 of the quadtree, with the selection mode. The selected points are displayed in red.
 
 Enrich your data prior to map generalisation
 --------------------------------------------
@@ -175,7 +198,7 @@ Extracting implicit geographic structures
 
 .. plot:: code/compute_boffet_urban_areas.py
 
-Figure 9. Building polygons converted into built-up areas using the Boffet algorithm.
+Figure 10. Building polygons converted into built-up areas using the Boffet algorithm.
 
 
 Measures on map features
@@ -217,7 +240,63 @@ Apply map generalisation complex processes
 
 AGENT model
 ^^^^^^^^^^^^^^^^^^^^^^^^
+This user guide is not meant to fully explain the principles of the AGENT model, and how it works. If you are not familiar with the AGENT model, please read the scientific papers describing this model:
+- `<http://icaci.org/files/documents/ICC_proceedings/ICC2001/icc2001/file/f13041.pdf>`_
+- `<http://dx.doi.org/10.1016/b978-008045374-3/50016-8>`_
+- `<https://hal.inria.fr/IFSTTAR/hal-01682131v1>`_
+Though it is a tutorial for the JAVA CartAGen platform, this `webpage <https://ignf.github.io/CartAGen/docs/tuto_agents.html>`_ also contains complementary information on how to trigger agent-based map generalisation.
 
+Micro agents
+=============
+You may want to use micro agents only, i.e. one cartographic feature such as a building that generalises itself without consideration for the other cartographic features. To generalise micro agents, you have to follow these steps:
+  1. Create agent objects from your Geopandas features
+
+  .. code-block:: pycon
+
+    geoms = [loads('Polygon Z ((395038.7 6272970.9, 395030.4 6272984, 395025.3 6272982, 395023.2 6272983.7, 395020 6272981.3, 395016.9 6272985.9, 395021.8 6272990.7, 395020.6 6272993.7, 395024.7 6272997.2, 395028.5 6272994.5, 395032.8 6272988.2, 395038.1 6272991.6, 395044.9 6272979.1, 395047.1 6272980.4, 395049.5 6272976.8, 395038.7 6272970.9))'),
+      loads('Polygon Z ((394999.5 6272975, 395006.7 6272962.4, 395010.6 6272957.5, 394996.6 6272944.4, 394991 6272949, 394999.2 6272956.3, 394996.1 6272959.7, 394998.3 6272961.3, 394992 6272969.4, 394999.5 6272975))'),
+      loads('Polygon Z ((395007.3 6272975.8, 395013.2 6272981, 395021.2 6272969.6, 395024.2 6272971.9, 395031 6272963.8, 395020.8 6272957.4, 395007.3 6272975.8))'),
+      loads('Polygon Z ((395082.3 6272967.4, 395089.9 6272958, 395071.9 6272945.9, 395068.4 6272950.6, 395066 6272949, 395056.3 6272962, 395058.5 6272963.5, 395056.40000000002328306 6272966.8, 395059.4 6272969.9, 395056.9 6272972.6, 395054.5 6272968.3, 395049.6 6272973.4, 395058.4 6272981.6, 395073.6 6272962.5, 395082.3 6272967.4))')
+      ]
+    envgdf = geopandas.GeoDataFrame(geometry=geopandas.GeoSeries(geoms))
+    for index, feature in envgdf.iterrows():
+      agent = BuildingAgent(feature)
+  
+  2. Add constraints to your agents. You can pick among the constraints provided by the library, but you can also code new constraints and add them to your agents. The list of default constraints is provided in the table below.
+
++===============================+=============+=================================+
+| name                          |  property   | actions                         |
++===============================+=============+=================================+
+|BuildingSizeConstraint         | area        | enlarge, delete                 |
++-------------------------------+-------------+---------------------------------+
+|BuildingGranularityConstraint  | granularity | simplify, simplify to rectangle |
++-------------------------------+-------------+---------------------------------+
+|BuildingSquarenessConstraint   | squareness  | squaring                        |
++===============================+=============+=================================+
+
+  .. code-block:: pycon
+
+    squareness = BuildingSquarenessConstraint(1,agent)
+    size = BuildingSizeConstraint(1, agent, 250)
+    granularity = BuildingGranularityConstraint(1, agent, 6)
+    agent.constraints.append(size)
+    agent.constraints.append(squareness)
+    agent.constraints.append(granularity)
+
+  3. Run the agents, i.e. start their life cycle iteratively. To run the agents, you have to use .. method:: run_agents(agents, lifecycle='basic', store_states=False, verbose=0)
+
+    - ''agents'' is a list of agents to run.
+    - ''lifecycle'' chooses the type of life cycle to apply on the agents (only the basic is implemented for now)
+    - ''store_states'' is True if you want to get all the intermediate states of the agents as output of the function.
+    - ''verbose'' defines how much detail is logged during the agents life cycle.
+  
+  .. code-block:: pycon
+
+    run_agents(agents_to_run)
+
+Meso agents
+=============
+The implementation of the meso agents is not yet completed. 
 
 Least squares adjustment
 ^^^^^^^^^^^^^^^^^^^^^^^^

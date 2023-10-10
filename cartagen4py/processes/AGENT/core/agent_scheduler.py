@@ -1,6 +1,6 @@
 from cartagen4py.processes.AGENT import *
 
-def run_agents(agents,lifecycle='basic',store_states=False,verbose=0):
+def run_agents(agents, lifecycle='basic', store_states=False, verbose=0):
     
     while (len(agents) != 0):
         agent = agents.pop()

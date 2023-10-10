@@ -134,7 +134,7 @@ def building_congestion(building, triangulation, max_distance, nb_orientations=1
 
     # case where all edges have been removed around building
     if len(edges) == 0:
-        return [congested, 0]
+        return (congested, 0)
     
     for edge in edges:
         if(edge[0].length > max_distance):
@@ -161,8 +161,8 @@ def building_congestion(building, triangulation, max_distance, nb_orientations=1
                 continue
             projected_congestion = congestion * (1 - 4*diff/pi)
             congested[i] = projected_congestion
-        
-    return [congested, nb_edges_2buildings]
+
+    return (congested, nb_edges_2buildings)
 
 # computes the compactness of a polygon using the Miller index
 def polygon_compactness(polygon):

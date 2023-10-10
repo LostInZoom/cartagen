@@ -80,7 +80,7 @@ def kmeans_point_set_reduction(points, shrink_ratio, centroid_option = False):
 
     return final_pts
 
-def quadtree_point_set_reduction(points, depth, mode='selection', attribute = ""):
+def quadtree_point_set_reduction(points, depth, mode='simplification', attribute = ""):
     """Algorithm to reduce a point set based on a quadtree. The algorithm was proposed by Bereuter & Weibel (2012).
     
     The points should be a GeoDataframe from Geopandas with a Point geometry. The 'depth' parameter is the degree of generalisation as it retains one point per cell when the quadtree is sliced at the given depth.
@@ -151,17 +151,17 @@ def quadtree_point_set_reduction(points, depth, mode='selection', attribute = ""
                 mindist = float("inf")
                 nearest = None
                 for point in cell_points:
-                    dist = point['geometry'].distance(center)
+                    dist = point[0]['geometry'].distance(center)
                     if dist < mindist:
                         mindist = dist
                         nearest = point
-                output.append((nearest['geometry'], nearest.index, len(cell_points)))
+                output.append((nearest[0]['geometry'], nearest.index, len(cell_points)))
 
             case 'aggregation':
                 # the points are all aggregated to the centroid of the points.
                 geoms = []
                 for point in cell_points:
-                    geoms.append(point['geometry'])
+                    geoms.append(point[0]['geometry'])
                 multi = MultiPoint(geoms)
                 centroid = multi.centroid
                 output.append((centroid, -1,len(cell_points)))
