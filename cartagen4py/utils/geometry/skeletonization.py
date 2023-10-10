@@ -65,7 +65,7 @@ class SkeletonTIN:
             # Will store the incoming line informations
             outside = []
             # Loop through incoming lines
-            for iline, line in enumerate(incoming):
+            for iline, line in enumerate(self.incoming):
                 # Retrieve start and end point
                 start, end = line['geometry'].coords[0], line['geometry'].coords[-1]
                 # Increment degree and enters values if start or end point is the same as entry point
