@@ -131,65 +131,122 @@ def collapse_dual_carriageways(roads, carriageways):
             # Calculate the skeleton
             skeleton = SkeletonTIN(polygon, incoming=incoming, distance_douglas_peucker=3)
 
-            skeletons.append([cid, skeleton])
+            skeletons.append(skeleton)
+
+        else:
+            skeletons.append(None)
 
             # # Storing the original geometries of the crossroad
             # originals.extend(crossroad.original)
             # # Storing the blended skeleton
             # collapsed.extend(skeleton.blended)
 
-    for shorts in shortside:
-        i1, i2, geom = shorts[0], shorts[1], shorts[2]
+    def connect_short_sides(shortlist, skeletons):
+        """
+        Connect dual carriageways connected by their short sides.
+        """
+        # Get the bone junction between the two provided entry points
+        def get_junction(points, skeleton):
+            # def get_next_joint(p, bones):
+            #     return joint
 
+            if len(points) != 2:
+                raise Exception("There was a problem while collapsing two carriageways' short sides")
+
+            junction = None
+            p1, p2 = points[0].coords[0], points[1].coords[0]
+
+            while junction is None:
+                cp = p1
+                for bone in skeleton.bones:
+                    # Retrieve start and end point of bone
+                    start, end = bone.coords[0], bone.coords[-1]
+                    # Add the start point or end point to the nextpoints list
+                    if start == cp:
+                        nextpoints.append(end)
+                    elif end == cp:
+                        nextpoints.append(start)
+
+            
+
+
+        # Treating short side connections between carriageways
+        for shorts in shortlist:
+            cid1, cid2, shortline = shorts[0], shorts[1], shorts[2]
+            if cid1 == 26 and cid2 == 27:
+                skeleton1, skeleton2 = skeletons[cid1], skeletons[cid2]
+
+                # New list for entries
+                print(list(filter(lambda x: shapely.intersects(x, shortline) == False, skeleton1.entries)))
+
+                junction1 = get_junction(list(filter(lambda x: shapely.intersects(x, shortline), skeleton1.entries)), skeleton1)
+
+                for entry in skeleton1.entries:
+                    if shapely.intersects(entry, shortline):
+                        # Loop through bones
+                        for bone in skeleton1.bones:
+                            # Retrieve start and end point of bone
+                            start, end = bone.coords[0], bone.coords[-1]
+                            # Add the start point or end point to the nextpoints list
+                            print(entry.coords[0])
+                            print(start)
+                            if start == point:
+                                nextpoints.append(end)
+                            elif end == point:
+                                nextpoints.append(start)
+
+                        print(entry)
+
+    connect_short_sides(shortside, skeletons)
+        
     shortdone, pointdone = [], []
 
-    # Launching a loop to treat carriageways depending on their connexions if there are any
-    for sk in skeletons:
-        cid1, skeleton1 = sk[0], sk[1]
-        print(cid1)
-        # Here the considered carriageways is connected by its short side with an other
-        if cid1 in shortside_list:
-            cid0, cid2 = None, None
-            # Loop through other carriageways
-            for shorts in shortside:
-                # If the connected carriageway is found, break the loop
-                if cid1 == shorts[0]:
-                    if shorts[1] in shortdone:
-                        cid0 = shorts[1]
-                    else:
-                        cid2 = shorts[1]
-                    break
-                elif cid1 == shorts[1]:
-                    if shorts[0] in shortdone:
-                        cid0 = shorts[0]
-                    else:
-                        cid2 = shorts[0]
-                    break
-            # Add the carriageway  to the list of ones that have been treated
-            shortdone.append(cid1)
-            if cid2 is not None:
-                # Here, treating pairs of skeletons connected by their short side
-                skeleton2 = skeletons[cid2][1]
-                print('treating :', cid1, '-', cid2) 
-            else:
-                if cid0 is not None:
-                    print('treating :', cid1, 'y-o', cid0) 
-        elif cid1 in pointside_list:
-            cid2 = None
-            for points in pointside:
-                if cid1 == points[0] and points[1] not in pointdone:
-                    cid2 = points[1]
-                    break
-                elif cid1 == points[1] and points[0] not in pointdone:
-                    cid2 = points[0]
-                    break
-            pointdone.append(cid1)
-            if cid2 is not None:
-                # Here, treating pairs of skeletons connected by a single point
-                print('treating :', cid1, '-', cid2)
-        else:
-            # Here, treating regular carriageways
-            blended = skeleton1.blend()
+    # # Launching a loop to treat carriageways depending on their connexions if there are any
+    # for sk in skeletons:
+    #     if sk is not None:
+    #         cid1, skeleton1 = sk[0], sk[1]
+    #         # Here the considered carriageways is connected by its short side with an other
+    #         if cid1 in shortside_list:
+    #             cid2 = None
+    #             # Loop through other carriageways
+    #             for shorts in shortside:
+    #                 # If the connected carriageway is found, break the loop
+    #                 if cid1 == shorts[0] and shorts[1] not in shortdone:
+    #                     cid2 = shorts[1]
+    #                     break
+    #                 elif cid1 == shorts[1] and shorts[0] not in shortdone:
+    #                     cid2 = shorts[0]
+    #                     break
+    #             # Add the carriageway  to the list of ones that have been treated
+    #             shortdone.append(cid1)
+    #             if cid2 is not None:
+    #                 # Here, treating pairs of skeletons connected by their short side
+    #                 skeleton2 = skeletons[cid2][1]
+    #                 print('treating', cid1, '-', cid2)
+    #             else:
+    #                 # Here, the carriageway is connected by its shortside but it already has been connected to the other one
+    #                 # It still requires treatment on its other sides to correctly blend inside the network
+    #                 print('treating rest of', cid1, 'sides')
+
+    #         elif cid1 in pointside_list:
+    #             cid2 = None
+    #             for points in pointside:
+    #                 if cid1 == points[0] and points[1] not in pointdone:
+    #                     cid2 = points[1]
+    #                     break
+    #                 elif cid1 == points[1] and points[0] not in pointdone:
+    #                     cid2 = points[0]
+    #                     break
+    #             pointdone.append(cid1)
+    #             if cid2 is not None:
+    #                 # Here, treating pairs of skeletons connected by a single point
+    #                 print('treating', cid1, '-', cid2, 'single point')
+    #             else:
+    #                 print('treating rest of', cid1, 'single sides')
+    #         else:
+    #             # Here, treating regular carriageways
+    #             print('treating', cid1, 'normally')
+    #             blended = skeleton1.blend()
 
     # result = []
     # remove = []
@@ -214,20 +271,20 @@ def collapse_dual_carriageways(roads, carriageways):
 
     result = []
     for skeleton in skeletons:
-        n = skeleton[1].network
-        for bone in n:
-            result.append( {"geometry": bone} )
+        if skeleton is not None:
+            for bone in skeleton.network:
+                result.append( {"geometry": bone} )
 
-    ts = []
-    for shorts in shortside:
-        ts.append({
-            "i1": shorts[0],
-            "i2": shorts[1],
-            "geometry": shorts[2]
-        })
+    # ts = []
+    # for shorts in shortside:
+    #     ts.append({
+    #         "i1": shorts[0],
+    #         "i2": shorts[1],
+    #         "geometry": shorts[2]
+    #     })
 
-    ts_gdf = gpd.GeoDataFrame(ts, crs=crs)
-    ts_gdf.to_file("cartagen4py/data/touching_short.geojson", driver="GeoJSON")
+    # ts_gdf = gpd.GeoDataFrame(ts, crs=crs)
+    # ts_gdf.to_file("cartagen4py/data/touching_short.geojson", driver="GeoJSON")
 
     return gpd.GeoDataFrame(result, crs=crs)
 

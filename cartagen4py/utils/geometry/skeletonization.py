@@ -47,7 +47,7 @@ class SkeletonTIN:
 
     def blend(self):
         """
-        Blend the given network with the created skeleton.
+        Blend the given network with the created skeleton. Relies on entry points.
         It works only if incoming lines where provided during the skeleton creation.
         """
 
