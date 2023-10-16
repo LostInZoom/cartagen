@@ -147,55 +147,106 @@ def collapse_dual_carriageways(roads, carriageways):
         """
         # Get the bone junction between the two provided entry points
         def get_junction(points, skeleton):
-            # def get_next_joint(p, bones):
-            #     return joint
+            # Function that retrieve the first skeleton junction (degree > 2) starting from an entry point 
+            def get_next_joint(point, bones):
+                # Set the junction to None
+                junction = None
+                # Set the current point as the provided point
+                cp = point
+                # Set the current bone to None
+                cb = None
+                # Looping until a junction is found
+                while junction is None:
+                    # Set the next point to None
+                    np = None
+                    # Set the degree to 1
+                    degree = 1
 
-            if len(points) != 2:
-                raise Exception("There was a problem while collapsing two carriageways' short sides")
+                    # Loop through all bones
+                    for i, bone in enumerate(bones):
+                        # Retrieve start and end point of bone
+                        start, end = bone.coords[0], bone.coords[-1]
+                        # Current point is the starting point
+                        if start == cp:
+                            # Set next point as end point, increment degree and set current bone to current index
+                            np = end
+                            degree += 1
+                            cb = i
+                        # Current point is the end point
+                        elif end == cp:
+                            # Set next point as start point, increment degree and set current bone to current index
+                            np = start
+                            degree += 1
+                            cb = i
 
-            junction = None
+                    # If current bone is found, remove it from the list of bones
+                    if cb is not None:
+                        bones.pop(cb)
+                    
+                    # If the degree is above two, the junction has been found
+                    if degree > 2:
+                        # Set junction to current point to break the while loop
+                        junction = cp
+                    # Else, continue the while loop
+                    else:
+                        # Break the while loop if no more bone are present in the list
+                        if len(bones) == 0:
+                            break
+                        else:
+                            # Assign the current point as the next point
+                            cp = np
+
+                return junction
+
+            # Retrieve point 1 and 2
             p1, p2 = points[0].coords[0], points[1].coords[0]
 
-            while junction is None:
-                cp = p1
-                for bone in skeleton.bones:
-                    # Retrieve start and end point of bone
-                    start, end = bone.coords[0], bone.coords[-1]
-                    # Add the start point or end point to the nextpoints list
-                    if start == cp:
-                        nextpoints.append(end)
-                    elif end == cp:
-                        nextpoints.append(start)
+            # Retrieve the first skeleton junction for point 1 and 2
+            j1 = get_next_joint(p1, skeleton.bones.copy())
+            j2 = get_next_joint(p2, skeleton.bones.copy())
 
-            
-
+            # If that junction is the same point, return the point
+            if j1 == j2:
+                return j1
+            # Else, return None
+            else:
+                return None
 
         # Treating short side connections between carriageways
         for shorts in shortlist:
+            # Retrieve carriageways index and the shortside geometry
             cid1, cid2, shortline = shorts[0], shorts[1], shorts[2]
             if cid1 == 26 and cid2 == 27:
+                # Retrieve both concerned skeletons
                 skeleton1, skeleton2 = skeletons[cid1], skeletons[cid2]
+                
+                # Create a list containing entry points intersecting the short side
+                shortentries = list(filter(lambda x: shapely.intersects(x, shortline), skeleton1.entries))
 
-                # New list for entries
-                print(list(filter(lambda x: shapely.intersects(x, shortline) == False, skeleton1.entries)))
+                # Retrieve the junction between both entries inside both skeletons
+                j1 = get_junction(shortentries, skeleton1)
+                j2 = get_junction(shortentries, skeleton2)
 
-                junction1 = get_junction(list(filter(lambda x: shapely.intersects(x, shortline), skeleton1.entries)), skeleton1)
+                if j1 is not None and j2 is not None:
+                    connection = shapely.LineString([j1, j2])
 
-                for entry in skeleton1.entries:
-                    if shapely.intersects(entry, shortline):
-                        # Loop through bones
-                        for bone in skeleton1.bones:
-                            # Retrieve start and end point of bone
-                            start, end = bone.coords[0], bone.coords[-1]
-                            # Add the start point or end point to the nextpoints list
-                            print(entry.coords[0])
-                            print(start)
-                            if start == point:
-                                nextpoints.append(end)
-                            elif end == point:
-                                nextpoints.append(start)
+                    ts_gdf = gpd.GeoDataFrame([{"geometry": connection}], crs=crs)
+                    ts_gdf.to_file("cartagen4py/data/connection.geojson", driver="GeoJSON")
 
-                        print(entry)
+                # for entry in skeleton1.entries:
+                #     if shapely.intersects(entry, shortline):
+                #         # Loop through bones
+                #         for bone in skeleton1.bones:
+                #             # Retrieve start and end point of bone
+                #             start, end = bone.coords[0], bone.coords[-1]
+                #             # Add the start point or end point to the nextpoints list
+                #             print(entry.coords[0])
+                #             print(start)
+                #             if start == point:
+                #                 nextpoints.append(end)
+                #             elif end == point:
+                #                 nextpoints.append(start)
+                #         print(entry)
 
     connect_short_sides(shortside, skeletons)
         
