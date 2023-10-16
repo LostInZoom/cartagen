@@ -162,3 +162,11 @@ def get_segment_center(segment):
 
     x1, y1, x2, y2 = c[0][0], c[0][1], c[1][0], c[1][1]
     return shapely.Point([(x1 + x2) / 2, (y1 + y2) / 2])
+
+def project_point_on_line(point, line):
+    """
+    Project a point on a line. Return the projected point.
+    """
+    dist = line.project(point)
+    # Create the point projected on the line.
+    return shapely.Point(list(line.interpolate(dist).coords))

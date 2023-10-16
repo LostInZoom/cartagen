@@ -1,4 +1,4 @@
-import shapely
+import shapely, numpy
 import geopandas as gpd
 
 from cartagen4py.utils.geometry import *
@@ -147,6 +147,7 @@ def collapse_dual_carriageways(roads, carriageways):
         """
         # Get the bone junction between the two provided entry points
         def get_junction(points, skeleton):
+            # Get the first junction starting from an entry point
             def get_next_joint(point, network):
                 for n in network:
                     # Retrieve start and end point of bone
@@ -157,66 +158,8 @@ def collapse_dual_carriageways(roads, carriageways):
                         return start
                 return None
 
-            # # Function that retrieve the first skeleton junction (degree > 2) starting from an entry point 
-            # def get_next_joint(point, bones):
-            #     # Set the junction to None
-            #     junction = None
-            #     # Set the current point as the provided point
-            #     cp = point
-            #     # Set the current bone to None
-            #     cb = None
-            #     # Looping until a junction is found
-            #     while junction is None:
-            #         # Set the next point to None
-            #         np = None
-            #         # Set the degree to 1
-            #         degree = 1
-
-            #         # Loop through all bones
-            #         for i, bone in enumerate(bones):
-            #             # Retrieve start and end point of bone
-            #             start, end = bone.coords[0], bone.coords[-1]
-            #             # Current point is the starting point
-            #             if start == cp:
-            #                 # Set next point as end point, increment degree and set current bone to current index
-            #                 np = end
-            #                 degree += 1
-            #                 cb = i
-            #             # Current point is the end point
-            #             elif end == cp:
-            #                 # Set next point as start point, increment degree and set current bone to current index
-            #                 np = start
-            #                 degree += 1
-            #                 cb = i
-
-            #         # If current bone is found, remove it from the list of bones
-            #         if cb is not None:
-            #             bones.pop(cb)
-                    
-            #         # If the degree is above two, the junction has been found
-            #         if degree > 2:
-            #             # Set junction to current point to break the while loop
-            #             junction = cp
-            #         # Else, continue the while loop
-            #         else:
-            #             # Break the while loop if no more bone are present in the list
-            #             if len(bones) == 0:
-            #                 break
-            #             else:
-            #                 # Assign the current point as the next point
-            #                 cp = np
-
-            #     return junction
-
-            # Retrieve point 1 and 2
-            p1, p2 = points[0].coords[0], points[1].coords[0]
-
-            # Retrieve the first skeleton junction for point 1 and 2
-            # j1 = get_next_joint(p1, skeleton.bones.copy())
-            # j2 = get_next_joint(p2, skeleton.bones.copy())
-
-            j1 = get_next_joint(p1, skeleton.network)
-            j2 = get_next_joint(p2, skeleton.network)
+            j1 = get_next_joint(points[0], skeleton.network)
+            j2 = get_next_joint(points[1], skeleton.network)
 
             # If that junction is the same point, return the point
             if j1 == j2:
@@ -237,12 +180,22 @@ def collapse_dual_carriageways(roads, carriageways):
                     add = False
                     # Add only if the line intersects an entry point
                     for e in entries:
-                        if shapely.intersects(igeom, e):
+                        if shapely.intersects(igeom, shapely.Point(e)):
                             add = True
                     if add:
-                        iresult.append(igeom)
+                        iresult.append(inc)
             return iresult
-
+        
+        def get_middle_line(junction, shortentries, skeleton):
+            for n in skeleton.network:
+                start, end = n.coords[0], n.coords[-1]
+                if junction == start:
+                    if end not in shortentries:
+                        return n, 'start'
+                elif junction == end:
+                    if start not in shortentries:
+                        return n, 'end'
+            return None, None
 
         # Treating short side connections between carriageways
         for shorts in shortlist:
@@ -254,20 +207,51 @@ def collapse_dual_carriageways(roads, carriageways):
                 
                 # Create a list containing entry points intersecting the short side
                 shortentries = list(filter(lambda x: shapely.intersects(x, shortline), skeleton1.entries))
+                # Converts this list to tuples of coordinates
+                shortentries = [x.coords[0] for x in shortentries]
 
                 # Retrieve the junction between both entries inside both skeletons
                 j1 = get_junction(shortentries, skeleton1)
                 j2 = get_junction(shortentries, skeleton2)
 
                 if j1 is not None and j2 is not None:
-                    cgeom2 = carriageways[cid2]['geometry']
+                    incoming = retrieve_incoming_lines(skeleton1.incoming, shortentries, carriageways[cid2]['geometry'].boundary)
+                    line1, pos1 = get_middle_line(j1, shortentries, skeleton1)
+                    line2, pos2 = get_middle_line(j2, shortentries, skeleton2)
 
-                    connection = shapely.LineString([j1, j2])
+                    # If there are incoming lines intersecting the short side entries
+                    if len(incoming) > 0:
+                        linejunction = shapely.LineString([j1, j2])
+                        distances = []
+                        positions = []
+                        for i in incoming:
+                            geom = i['geometry']
+                            start, end = shapely.Point(geom.coords[0]), shapely.Point(geom.coords[-1])
+                            startdist = shapely.distance(start, linejunction)
+                            enddist = shapely.distance(end, linejunction)
+                            if startdist < enddist:
+                                distances.append(linejunction.project(start))
+                                positions.append('start')
+                            else:
+                                distances.append(linejunction.project(end))
+                                positions.append('end')
 
-                    incoming = retrieve_incoming_lines(skeleton1.incoming, shortentries, cgeom2.boundary)
+                        meandist = numpy.mean(distances)
+                        point = shapely.Point(linejunction.interpolate(meandist).coords)
 
-                    ts_gdf = gpd.GeoDataFrame([{"geometry": connection}], crs=crs)
+                        line1 = extend_line_with_point(line1, point, position=pos1)
+                        line2 = extend_line_with_point(line2, point, position=pos2)
+
+                        for i, inc in enumerate(incoming):
+                            inc['geometry'] = extend_line_with_point(inc['geometry'], point, position=positions[i])
+                    else:
+                        pass
+
+                    ts_gdf = gpd.GeoDataFrame([{"geometry": line1}, {"geometry": line2}, incoming[0]], crs=crs)
                     ts_gdf.to_file("cartagen4py/data/connection.geojson", driver="GeoJSON")
+
+                    pt_gdf = gpd.GeoDataFrame([{"geometry": shapely.Point(point)}], crs=crs)
+                    pt_gdf.to_file("cartagen4py/data/points.geojson", driver="GeoJSON")
 
     connect_short_sides(shortside, skeletons)
         
