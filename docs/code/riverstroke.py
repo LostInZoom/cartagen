@@ -1,6 +1,7 @@
 from shapely.geometry import LineString, Point
 import geopandas as gpd
 from cartagen4py.data_enrichment import RiverStrokeNetwork
+import matplotlib.pyplot as plt
 
 data={'geometry':
         [LineString([Point(1,4),Point(1, 3)]),
@@ -27,5 +28,9 @@ sn=RiverStrokeNetwork(lines,None)
 sn.buildRiverStrokes([], 45,30)
 array=sn.reconstruct_strokes()
 gdf = gpd.GeoDataFrame(array,  columns = ['id', 'geom',"strahler"],crs="epsg:4326",geometry="geom")   
-gdf.plot('id')
-gdf.plot('strahler')
+
+a=gdf.plot('id')
+plt.show()
+b=gdf.plot('strahler')
+
+plt.show()
