@@ -36,6 +36,7 @@ def collapse_dual_carriageways(roads, carriageways):
     pointside, pointside_list = [], []
 
     # Here, find touching dual carriageways
+    # --------------------------------------------------------
     # Loop through all carriageways polygons
     for pindex1, p1 in enumerate(carriageways):
         geom1 = p1['geometry']
@@ -94,6 +95,8 @@ def collapse_dual_carriageways(roads, carriageways):
     # This will store future skeletons
     skeletons = []
 
+    # Here, calculate the tin skeleton if applicable
+    # --------------------------------------------------------
     for cid, carriageway in enumerate(carriageways):
         # Get the geometry of the face
         polygon = carriageway['geometry']
@@ -141,119 +144,137 @@ def collapse_dual_carriageways(roads, carriageways):
             # # Storing the blended skeleton
             # collapsed.extend(skeleton.blended)
 
-    def connect_short_sides(shortlist, skeletons):
-        """
-        Connect dual carriageways connected by their short sides.
-        """
-        # Get the bone junction between the two provided entry points
-        def get_junction(points, skeleton):
-            # Get the first junction starting from an entry point
-            def get_next_joint(point, network):
-                for n in network:
-                    # Retrieve start and end point of bone
-                    start, end = n.coords[0], n.coords[-1]
-                    if start == point:
-                        return end
-                    elif end == point:
-                        return start
-                return None
+    # Here, carriageways connected by their short sides are treated
+    # --------------------------------------------------------------
 
-            j1 = get_next_joint(points[0], skeleton.network)
-            j2 = get_next_joint(points[1], skeleton.network)
-
-            # If that junction is the same point, return the point
-            if j1 == j2:
-                return j1
-            # Else, return None
-            else:
-                return None
-
-        # Retrieve incoming line that doesn't conflicts with the other carriageway
-        def retrieve_incoming_lines(incoming, entries, boundary):
-            iresult = []
-            for inc in incoming:
-                igeom = inc['geometry']
-                # Make sure the incoming line is not contained or does not overlap the other carriageway boundary
-                if boundary.contains(igeom) or boundary.overlaps(igeom):
-                    continue
-                else:
-                    add = False
-                    # Add only if the line intersects an entry point
-                    for e in entries:
-                        if shapely.intersects(igeom, shapely.Point(e)):
-                            add = True
-                    if add:
-                        iresult.append(inc)
-            return iresult
-        
-        def get_middle_line(junction, shortentries, skeleton):
-            for n in skeleton.network:
+    # Get the bone junction between the two provided entry points
+    def get_junction(points, skeleton):
+        # Get the first junction starting from an entry point
+        def get_next_joint(point, network):
+            for n in network:
+                # Retrieve start and end point of bone
                 start, end = n.coords[0], n.coords[-1]
-                if junction == start:
-                    if end not in shortentries:
-                        return n, 'start'
-                elif junction == end:
-                    if start not in shortentries:
-                        return n, 'end'
-            return None, None
+                if start == point:
+                    return end
+                elif end == point:
+                    return start
+            return None
 
-        # Treating short side connections between carriageways
-        for shorts in shortlist:
-            # Retrieve carriageways index and the shortside geometry
-            cid1, cid2, shortline = shorts[0], shorts[1], shorts[2]
-            if cid1 == 26 and cid2 == 27:
-                # Retrieve both concerned skeletons
-                skeleton1, skeleton2 = skeletons[cid1], skeletons[cid2]
-                
-                # Create a list containing entry points intersecting the short side
-                shortentries = list(filter(lambda x: shapely.intersects(x, shortline), skeleton1.entries))
-                # Converts this list to tuples of coordinates
-                shortentries = [x.coords[0] for x in shortentries]
+        j1 = get_next_joint(points[0], skeleton.network)
+        j2 = get_next_joint(points[1], skeleton.network)
 
-                # Retrieve the junction between both entries inside both skeletons
-                j1 = get_junction(shortentries, skeleton1)
-                j2 = get_junction(shortentries, skeleton2)
+        # If that junction is the same point, return the point
+        if j1 == j2:
+            return j1
+        # Else, return None
+        else:
+            return None
 
-                if j1 is not None and j2 is not None:
-                    incoming = retrieve_incoming_lines(skeleton1.incoming, shortentries, carriageways[cid2]['geometry'].boundary)
-                    line1, pos1 = get_middle_line(j1, shortentries, skeleton1)
-                    line2, pos2 = get_middle_line(j2, shortentries, skeleton2)
+    # Retrieve incoming line that doesn't conflicts with the other carriageway
+    def retrieve_incoming_lines(incoming, entries, boundary):
+        iresult = []
+        for inc in incoming:
+            igeom = inc['geometry']
+            # Make sure the incoming line is not contained or does not overlap the other carriageway boundary
+            if boundary.contains(igeom) or boundary.overlaps(igeom):
+                continue
+            else:
+                add = False
+                # Add only if the line intersects an entry point
+                for e in entries:
+                    if shapely.intersects(igeom, shapely.Point(e)):
+                        add = True
+                if add:
+                    iresult.append(inc)
+        return iresult
+    
+    # Get the 'middle' line of a skeleton network
+    def get_middle_line(junction, shortentries, skeleton):
+        for n in skeleton.network:
+            start, end = n.coords[0], n.coords[-1]
+            if junction == start:
+                if end not in shortentries:
+                    return n, 'start'
+            elif junction == end:
+                if start not in shortentries:
+                    return n, 'end'
+        return None, None
 
-                    # If there are incoming lines intersecting the short side entries
-                    if len(incoming) > 0:
-                        linejunction = shapely.LineString([j1, j2])
-                        distances = []
-                        positions = []
-                        for i in incoming:
-                            geom = i['geometry']
-                            start, end = shapely.Point(geom.coords[0]), shapely.Point(geom.coords[-1])
-                            startdist = shapely.distance(start, linejunction)
-                            enddist = shapely.distance(end, linejunction)
-                            if startdist < enddist:
-                                distances.append(linejunction.project(start))
-                                positions.append('start')
-                            else:
-                                distances.append(linejunction.project(end))
-                                positions.append('end')
+    # Treating short side connections between carriageways
+    for shorts in shortside:
+        # Retrieve carriageways index and the shortside geometry
+        cid1, cid2, shortline = shorts[0], shorts[1], shorts[2]
+        if cid1 == 26 and cid2 == 27:
+            # Retrieve both concerned skeletons
+            skeleton1, skeleton2 = skeletons[cid1], skeletons[cid2]
+            
+            # Create a list containing entry points intersecting the short side
+            shortentries = list(filter(lambda x: shapely.intersects(x, shortline), skeleton1.entries))
+            # Converts this list to tuples of coordinates
+            shortentries = [x.coords[0] for x in shortentries]
 
-                        meandist = numpy.mean(distances)
-                        point = shapely.Point(linejunction.interpolate(meandist).coords)
+            # Retrieve the junction between both entries inside both skeletons
+            j1 = get_junction(shortentries, skeleton1)
+            j2 = get_junction(shortentries, skeleton2)
 
-                        line1 = extend_line_with_point(line1, point, position=pos1)
-                        line2 = extend_line_with_point(line2, point, position=pos2)
+            # Continue only if both junctions were found
+            if j1 is not None and j2 is not None:
+                # Retrieve incoming lines
+                incoming = retrieve_incoming_lines(skeleton1.incoming, shortentries, carriageways[cid2]['geometry'].boundary)
+                # Get the middle line of both skeletons along with the direction of the line
+                line1, pos1 = get_middle_line(j1, shortentries, skeleton1)
+                line2, pos2 = get_middle_line(j2, shortentries, skeleton2)
+                # Create the line between both junctions
+                linejunction = shapely.LineString([j1, j2])
 
-                        for i, inc in enumerate(incoming):
-                            inc['geometry'] = extend_line_with_point(inc['geometry'], point, position=positions[i])
-                    else:
-                        pass
+                # If there are incoming lines intersecting the short side entries
+                if len(incoming) > 0:
+                    # Stores for distances and positions
+                    distances = []
+                    positions = []
+                    # Loop through incoming lines
+                    for i in incoming:
+                        # Stores geometry
+                        geom = i['geometry']
+                        # Get start and end point
+                        start, end = shapely.Point(geom.coords[0]), shapely.Point(geom.coords[-1])
+                        # Calculate distance between start point and the line between junctions
+                        startdist = shapely.distance(start, linejunction)
+                        # Same for end point
+                        enddist = shapely.distance(end, linejunction)
 
-                    ts_gdf = gpd.GeoDataFrame([{"geometry": line1}, {"geometry": line2}, incoming[0]], crs=crs)
-                    ts_gdf.to_file("cartagen4py/data/connection.geojson", driver="GeoJSON")
+                        # Here, project the start or end point of the incmoming line on the junction line
+                        # The stored distance represents the distance between the start of the junction line and the projected point on this same line
+                        if startdist < enddist:
+                            distances.append(linejunction.project(start))
+                            positions.append('start')
+                        else:
+                            distances.append(linejunction.project(end))
+                            positions.append('end')
 
-                    pt_gdf = gpd.GeoDataFrame([{"geometry": shapely.Point(point)}], crs=crs)
-                    pt_gdf.to_file("cartagen4py/data/points.geojson", driver="GeoJSON")
+                    # Calculate the mean of the list of distances
+                    meandist = numpy.mean(distances)
+                    # This value is used to create the new intersection point on the junction line
+                    point = shapely.Point(linejunction.interpolate(meandist).coords)
 
-    connect_short_sides(shortside, skeletons)
+                    # Extend both interior lines with the new intersection point
+                    line1 = extend_line_with_point(line1, point, position=pos1)
+                    line2 = extend_line_with_point(line2, point, position=pos2)
+
+                    # Update each incoming line geometry with a new extended line with the intersection point
+                    for i, inc in enumerate(incoming):
+                        inc['geometry'] = extend_line_with_point(inc['geometry'], point, position=positions[i])
+
+                # Here, there is no incoming line, which means both interior lines can be merged along with the junction line
+                else:
+                    merged = merge_linestrings(merge_linestrings(line1, linejunction), line2)
+
+
+                ts_gdf = gpd.GeoDataFrame([{"geometry": line1}, {"geometry": line2}, incoming[0]], crs=crs)
+                ts_gdf.to_file("cartagen4py/data/connection.geojson", driver="GeoJSON")
+
+                pt_gdf = gpd.GeoDataFrame([{"geometry": shapely.Point(point)}], crs=crs)
+                pt_gdf.to_file("cartagen4py/data/points.geojson", driver="GeoJSON")
         
     shortdone, pointdone = [], []
 
