@@ -240,16 +240,16 @@ Stroke computation (in general)
 
 .. class:: StrokeNetwork(lines, attributeNames)
 
-    This Class contain methods allowing to compute the strokes in a line network representing geographic entity (e.g. roads). Strokes are groups of network segments that follow the perceptual grouping principle of Good Continuity (Gestalt).
-    It implements the general method based on both geometry criteria and atttributes.
-    The initalization of this class is required prior to compute strokes, it include the precomputing of neibouring relation between edges of the network.  
-    The 'lines' parameter gives the geopanda dataframe containing the line entwork geometries and attributes. The 'attributesNames' parameter is the list of attributes names (as str) to be used as a criteria for continuity. 
+    This Class contains methods allowing the computation of strokes in a line network representing geographic entities (e.g., roads). Strokes are network segments that follow the perceptual grouping principle of Good Continuity (Gestalt).
+    It implements the general method based on both geometry criteria and attributes.
+    The initialization of this class is required prior to computing strokes, it includes the precomputing of neighbouring relations between edges of the network.
+    The 'lines' parameter gives the geopanda data frame containing the line network geometries and attributes. The 'attributesNames' parameter is the list of attribute names (as str) to be used as a criterion for continuity. 
 
 .. method:: buildStrokes(self, attributeNames,deviatAngle, deviatSum)
 
-    This method computes the stroke in the network using a loop on network feature. For each features that do not already belong to a stroke it create a new object of class Stroke and apply the method one side stke on both side to find sections that belong to the same stroke as the current section. 
-    'attributeNames', is the list of attributes names (as str) to be used as a criteria for continuity. 
-    'deviatAngle', and 'deviatSum' are the threshold for geometric continuity that repesctively represent the maximum angle between two segment at the junction of two section belonging to the same stroke and the maximum angle between two section belonging the same stroke. 
+    This method computes the stroke in the network using a loop on network features. For each feature that does not already belong to a stroke, it creates a new object of class Stroke and applies the method one side stroke on both sides to find sections that belong to the same stroke as the current section.
+    'attributeNames', is the list of attribute names (as str) to be used as a criteria for continuity.
+    'deviatAngle', and 'deviatSum' are the thresholds for geometric continuity that respectively represent the maximum angle between two segments at the junction of two sections belonging to the same stroke and the maximum angle between two sections belonging to the same stroke.
     The algorithm updates the attributes strokes of class NetworkStroke that contain the list of strokes in the network. 
 
 .. code-block:: pycon
@@ -264,12 +264,12 @@ Stroke computation (in general)
 
 .. plot:: code/stroke.py
 
-Figure 11. A set of line with color depicting the stroke it belong to usign the general algorithm for stroke computation algorithm, with parameter "name", 45 and 30 respectively for attributeNames, deviatAngle and  deviatSum.
+Figure 11. A set of lines with colour depicting the stroke it belongs to using the general algorithm for stroke computation algorithm, with parameters "name", 45 and 30 respectively for attributeNames, deviatAngle and deviatSum.
 
 .. method:: save_strokes_shp(path)
 
-    This algorithm allow to save the computed stroke in a shapefile. The algorithm merge all  segmenet belonging to a stroke in a new enetity that has as attribute a id generated as a serial and the comma separated list of ids of initial sections used to construct the stroke
-    The 'path' parameter allow to specify where the output shapefile must be saved.
+    This algorithm allows to save the computed stroke in a shapefile. The algorithm merges all segments belonging to a stroke in a new entity that has as attribute an id generated as a serial and the comma-separated list of IDs of initial sections used to construct the stroke.
+    The 'path' parameter allows us to specify where the output shapefile must be saved.
 
 
 Stroke computation (for river networks)
@@ -277,23 +277,22 @@ Stroke computation (for river networks)
 
 .. class:: RiverStrokeNetwork(lines, attributeNames)
 
-    This Class contain methods allowing to compute the strokes in a rivers network. Strokes are groups of network segments that follow the perceptual grouping principle of Good Continuity (Gestalt).
-    In particular for hydrographic network, we can compute stroke from sources to sink while computing strahler order.
-    The initalization of this class is required prior to compute strokes, it include the precomputing of neibouring relation between edges of the network.  
-    The 'lines' parameter gives the geopanda dataframe containing the line entwork geometries and attributes. The 'attributesNames' parameter is the list of attributes names (as str) to be used as a criteria for continuity. 
+    This Class contains methods allowing the computation of the strokes in a river network. Strokes are network segments that follow the perceptual grouping principle of Good Continuity (Gestalt).
+    In particular, for a hydrographic network, we can compute stroke from sources to sink while computing Strahler order.
+    The initialization of this class is required prior to computing strokes, it includes the precomputing of neighbouring relations between edges of the network.
+    The 'lines' parameter gives the geopanda data frame containing the line entwork geometries and attributes. The 'attributesNames' parameter is the list of attribute names (as str) to be used as a criterion for continuity. 
 
 .. method:: buildRiverStrokes(self, attributeNames,deviatAngle, deviatSum)
 
-    This method computes the stroke in the network, first it identify each sources as a departure for a stroke add them to the downstreamsection list and set its strahler order to 1. 
-    Then the main loop runs through the downstream section list, pop the current element and add the next section in its stroke (if exist). 
-    This algorithm can find stroke in complex braided network.
-    'attributeNames', is the list of attributes names (as str) to be used as a criteria for continuity. 
-    'deviatAngle', and 'deviatSum' are the threshold for geometric continuity that repesctively represent the maximum angle between two segment at the junction of two section belonging to the same stroke and the maximum angle between two section belonging the same stroke. 
+    This method computes the stroke in the network, first, it identifies each source as a departure for a stroke adds them to the downstream section list and sets its Strahler order to 1.
+    Then the main loop runs through the downstream section list, pops the current element and adds the next section in its stroke (if exists).
+    This algorithm can find strokes in complex braided networks.
+    'attributeNames', is the list of attribute names (as str) to be used as a criteria for continuity.
+    'deviatAngle', and 'deviatSum' are the thresholds for geometric continuity that respectively represent the maximum angle between two segments at the junction of two sections belonging to the same stroke and the maximum angle between two sections belonging to the same stroke.
     The algorithm updates the attributes strokes of class NetworkStroke that contain the list of strokes in the network. 
 
 .. code-block:: pycon
-
-data={'geometry':
+    data={'geometry':
         [LineString([Point(1,4),Point(1, 3)]),LineString([Point(1.5,3.5),Point(1, 3)]),
          LineString([Point(1, 3),Point(1, 2.4)]), LineString([Point(1, 2.4),Point(0.8, 1.8),Point(0.9, 1.5)]),
          LineString([Point(1, 2.4),Point(1.2, 2.1)]), LineString([Point(1.2, 2.1),Point(0.9, 1.5)]),
@@ -301,15 +300,13 @@ data={'geometry':
          LineString([Point( 1.2,0.6),Point(1.1, 0.3)]), LineString([Point(1.1, 0.3),Point(1, 0)]),
          LineString([Point(0.5, 2),Point(1.1, 0.3)])],
         'id': [1,2,3,4,5,6,8,9,10,11,12]}
-lines =gpd.GeoDataFrame(data, crs="EPSG:4326")
-
-sn=RiverStrokeNetwork(lines,None)
-
-sn.buildRiverStrokes([], 45,30)
-array=sn.reconstruct_strokes()
-gdf = gpd.GeoDataFrame(array,  columns = ['id', 'geom',"strahler"],crs="epsg:2154",geometry="geom")   
-gdf.plot('id')
-gdf.plot('strahler')
+    lines =gpd.GeoDataFrame(data, crs="EPSG:4326")
+    sn=RiverStrokeNetwork(lines,None)
+    sn.buildRiverStrokes([], 45,30)
+    array=sn.reconstruct_strokes()
+    gdf = gpd.GeoDataFrame(array,  columns = ['id', 'geom',"strahler"],crs="epsg:2154",geometry="geom")   
+    gdf.plot('id')
+    gdf.plot('strahler')
 
 .. plot:: code/riverstroke.py
 
@@ -318,8 +315,8 @@ Figure 13. A river network with color depicting the Horton order : purple =1; ye
 
 .. method:: save_strokes_shp(path)
 
-    This algorithm allow to save the computed stroke in a shapefile. The algorithm merge all  segmenet belonging to a stroke in a new enetity that has as attribute a id generated as a serial and the comma separated list of ids of initial sections used to construct the stroke
-    The 'path' parameter allow to specify where the output shapefile must be saved.
+    This algorithm allows to save the computed stroke in a shapefile. The algorithm merges all segment belonging to a stroke in a new entity that has as attribute an id generated as a serial and the comma-separated list of IDs of initial sections used to construct the stroke
+    The 'path' parameter allows to specify where the output shapefile must be saved.
 
 
 Apply map generalisation complex processes
