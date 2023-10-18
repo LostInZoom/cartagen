@@ -1,7 +1,7 @@
 import shapely, itertools
 import numpy as np
 from cartagen4py.utils.geometry.line import *
-from shapely import LineString
+from shapely.geometry import LineString
 
 class SkeletonTIN:
     """

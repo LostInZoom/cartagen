@@ -1,6 +1,7 @@
 # this file contains algorithms of morphological maths, i.e. derivative of dilation and erosion of lines and polygons
 
 from shapely.geometry import Point, Polygon, MultiPolygon
+from shapely.ops import unary_union
 
 def closing_multi_polygon(multipolygon, buffer_size, cap_style=1):
     buffered = multipolygon.buffer(buffer_size, cap_style=cap_style)
@@ -47,23 +48,13 @@ def opening_simple(polygon, buffer_size, cap_style=1):
     return filtered
 
 def erosion_multipolygon(multipolygon, buffer_size, cap_style=1):
-    polygons = []
-
+    erodedlist=[]
     for simple in multipolygon.geoms:
         eroded = erosion(simple, buffer_size, cap_style)
         if eroded is None:
             continue
-        if(eroded.geom_type == 'Polygon'):
-            polygons.append(eroded)
-            continue
-        if(eroded.geom_type == 'MultiPolygon'):
-            for simple_eroded in eroded.geoms:
-                polygons.append(simple_eroded)
-
-    if(len(polygons)==0):
-        return None
-
-    return MultiPolygon(polygons)
+        erodedlist+=[eroded]
+    return unary_union(erodedlist)
 
 def erosion(polygon, buffer_size, cap_style=1):
     # get the outer ring of the polygon
