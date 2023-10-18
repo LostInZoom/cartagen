@@ -7,11 +7,12 @@ class SkeletonTIN:
     """
     Create a polygon skeleton from a Delaunay triangulation.
     """
-    def __init__(self, polygon, incoming=None, threshold_range=[0.7, 1.4], distance_douglas_peucker=None):
+    def __init__(self, polygon, incoming=None, threshold_range=[0.7, 1.4], distance_douglas_peucker=None, attributes=None):
         self.polygon = polygon
         self.incoming = incoming
         self.range = threshold_range
         self.distance = distance_douglas_peucker
+        self.attributes = attributes
 
         # Stores future nodes and edges of the triangulation
         self.nodes = []
@@ -63,66 +64,33 @@ class SkeletonTIN:
             # Counter for the degree of the entry point
             degree = 1
             # Will store the incoming line informations
-            outside = []
+            outside, outindex = None, None
             # Loop through incoming lines
             for iline, line in enumerate(self.incoming):
-                # Retrieve start and end point
-                start, end = line['geometry'].coords[0], line['geometry'].coords[-1]
-                # Increment degree and enters values if start or end point is the same as entry point
-                if shapely.equals(entry, shapely.Point(start)):
+                # Here, the incoming line intersects the entry point
+                if shapely.intersects(line['geometry'], entry):
+                    # Increment the entry point degree and set the outside as the incoming line
                     degree += 1
-                    outside.append([iline, 'start', line, start])
-                if shapely.equals(entry, shapely.Point(end)):
-                    degree += 1
-                    outside.append([iline, 'end', line, end])
+                    outside = line['geometry']
+                    outindex = iline
 
             # If the degree is 2, merge the incoming line with the skeleton line
+            # The outside variable here should have been assigned only once
             if degree == 2:
-                # Retrieve infos from the incoming line
-                outindex, outstate, outline, outpoint = outside[0][0], outside[0][1], outside[0][2], outside[0][3]
-                # Will store infos on connected skeleton line
-                inside = []
-                # Looping through skeleton lines
-                for sindex, skline in enumerate(network):
-                    # Retrieve start and end point
-                    start, end = skline.coords[0], skline.coords[-1]
-                    # Retrieve values if start or end point intersects with the entry point
-                    if shapely.equals(shapely.Point(outpoint), shapely.Point(start)):
-                        inside.append([sindex, 'start', skline, start])
-                    elif shapely.equals(shapely.Point(outpoint), shapely.Point(end)):
-                        inside.append([sindex, 'end', skline, end])
-                
-                # Retrieve skeleton line infos
-                inindex, instate, inline, inpoint = inside[0][0], inside[0][1], list(inside[0][2].coords), inside[0][3]
+                inside = None
+                # Here, retrieve the skeleton line connected to the entry point
+                for skline in network:
+                    if shapely.intersects(skline, entry):
+                        inside = skline
 
-                # If the connexion point is the start of both lines or the end of both lines,
-                # reverse the skeleton line
-                if instate == outstate:
-                    inline.reverse()
-
-                # If the end of the incoming line is the connexion point
-                if outstate == 'end':
-                    # Remove the first vertice of the skeleton line
-                    inline.pop(0)
-                    # Merge both lines and add it to the list
-                    linestring = outline
-                    linestring['geometry'] = shapely.LineString(list(outline['geometry'].coords) + inline)
-                # If the start of the incoming line is the connexion point
-                elif outstate == 'start':
-                    # Remove the first vertice of the incoming line
-                    outgeom = list(outline['geometry'].coords)
-                    outgeom.pop(0)
-                    # Merge both line lists and add it to the list
-                    linestring = outline
-                    linestring['geometry'] = shapely.LineString(inline + outgeom)
-                else:
-                    # Shouldn't be reached
-                    continue
-                # Here, modify the geometry of the incoming line and of the skeleton line
-                blended[outindex] = linestring
+                # Update the geometry of the incoming line by merging it with the intersecting skeleton line
+                blended[outindex]['geometry'] = merge_linestrings(outside, inside)
 
         # Add the unmodified skeleton lines to the results
-        blended += [{ "geometry": n } for n in network if n not in remove]
+        if self.attributes is not None:
+            blended += [{ **self.attributes, **{"geometry": n} } for n in network if n not in remove]
+        else:
+            blended += [{ "geometry": n } for n in network if n not in remove]
 
         remove = []
         # Here, handle lines contained by an other
