@@ -1,14 +1,15 @@
-import shapely
+import shapely, numpy
 import geopandas as gpd
 
+from cartagen4py.utils.attributes import *
 from cartagen4py.utils.geometry import *
 from cartagen4py.utils.network import *
 
-def collapse_dual_carriageways(roads, carriageways):
+def collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=1, propagate_attributes=None):
     """
     Collapse dual carriageways using the polygon skeleton made from a Delaunay Triangulation
+    TODO: Handle carriageways connected by only one point.
     """
-
     # Retrieve crs for output
     crs = roads.crs
 
@@ -29,11 +30,75 @@ def collapse_dual_carriageways(roads, carriageways):
     # This will store the new collapsed geometries
     collapsed = []
 
-    # This will store future skeletons, polygons, and minimum rectangles
-    skeletons = []
-    polygons = []
+    # Stores carriageways that touches either on their long side or short side
+    longside = []
+    shortside, shortside_list = [], []
+    # Stores carriageways that touches on a single point
+    pointside, pointside_list = [], []
 
-    for carriageway in carriageways:
+    # Here, find touching dual carriageways
+    # --------------------------------------------------------
+    # Loop through all carriageways polygons
+    for pindex1, p1 in enumerate(carriageways):
+        geom1 = p1['geometry']
+        # Retrieve first boundary
+        b1 = geom1.boundary
+        # Loop though all carriageways polygons
+        for pindex2, p2 in enumerate(carriageways):
+            geom2 = p2['geometry']
+            # Check if it's not the same polygon
+            if geom1 != geom2:
+                # If both boundaries overlap
+                b2 = geom2.boundary
+                if b1.overlaps(b2):
+                    # Calculate intersection between the two boundaries
+                    i = shapely.intersection(b1, b2)
+                    # Keep only lines forming the intersection
+                    if i.geom_type == 'MultiLineString':
+                        line = shapely.ops.linemerge(i.geoms)
+                    elif i.geom_type == 'LineString':
+                        line = i
+                    else:
+                        # If it's not a line, continue the loop
+                        continue
+
+                    # Here, the two polygons share an edge
+                    # Calculate the polygon properties
+                    face = NetworkFace(geom1)
+                    # Find whether the length or the width is closer to the length of the shared edge
+                    if abs(line.length - face.length) < abs(line.length - face.width):
+                        # Here the shared edge is the long side
+                        if pindex1 not in longside:
+                            longside.append(pindex1)
+                        if pindex2 not in longside:
+                            longside.append(pindex2)
+                    else:
+                        # Here, the shared edge is the short side
+                        add = True
+                        for shorts in shortside:
+                            if shapely.equals(shorts[2], line):
+                                add = False
+                        if add:
+                            shortside.append([pindex1, pindex2, line])
+                            if pindex1 not in shortside_list:
+                                shortside_list.append(pindex1)
+                            if pindex2 not in shortside_list:
+                                shortside_list.append(pindex2)
+
+                # Here, stores carriageways that touches at a single point
+                elif b1.crosses(b2):
+                    pointside.append([pindex1, pindex2])
+                    if pindex1 not in pointside_list:
+                        pointside_list.append(pindex1)
+                    if pindex2 not in pointside_list:
+                        pointside_list.append(pindex2)
+
+    # This will store future skeletons
+    skeletons = []
+
+    # Here, calculate the tin skeleton if applicable
+    # --------------------------------------------------------
+    for cid, carriageway in enumerate(carriageways):
         # Get the geometry of the face
         polygon = carriageway['geometry']
 
@@ -41,9 +106,27 @@ def collapse_dual_carriageways(roads, carriageways):
         crossroad = Crossroad(network, tree, polygon)
 
         # If there are more than one external road to the crossroad
-        if len(crossroad.externals) > 1:
+        if len(crossroad.externals) > 1 and cid not in longside:
             # Retrieve the id of the external roads that have not been changed by the conversion to a crossroad object
             unchanged = crossroad.get_unchanged_roads('externals')
+
+            # Check if attribute propagation is wanted
+            attributes = None
+            if propagate_attributes is not None:
+                # Retrieve roads entry to calculate longest attributes
+                proads = []
+                boundary = polygon.boundary
+                # Loop through the original roads id of the crossroad
+                for rid in crossroad.original:
+                    # Get the geometry of the road
+                    rgeom = roads[rid]["geometry"]
+                    # Check that the road is contained by the boundary of the carriageway or overlaps it
+                    if boundary.contains(rgeom) or boundary.overlaps(rgeom):
+                        # If so, append it
+                        proads.append(roads[rid])
+                
+                # Retrieve the longest attributes value
+                attributes = attributes_from_longest(proads, propagate_attributes)
 
             # Retrieve incoming roads, i.e. the external network of the crossroad
             incoming = []
@@ -65,150 +148,212 @@ def collapse_dual_carriageways(roads, carriageways):
                     incoming.append(original)
                 # Else, create a new object without attributes
                 else:
-                    incoming.append({ "geometry": egeom })
+                    # Check if attribute propagation is wanted
+                    if attributes is not None:
+                        incoming.append({ **attributes, **{"geometry": egeom} })
+                    else:
+                        incoming.append({ "geometry": egeom })
 
             # Calculate the skeleton
-            skeleton = SkeletonTIN(polygon, incoming=incoming, distance_douglas_peucker=3)
-
-            skeletons.append(skeleton.network)
-            polygons.append(polygon)
-
-
+            skeleton = SkeletonTIN(polygon, incoming=incoming, distance_douglas_peucker=distance_douglas_peucker, attributes=attributes)
+            skeletons.append(skeleton)
 
             # # Storing the original geometries of the crossroad
-            # originals.extend(crossroad.original)
-            # # Storing the blended skeleton
-            # collapsed.extend(skeleton.blended)
+            originals.extend(crossroad.original)
 
-    # result = []
-    # remove = []
-    # for c in collapsed:
-    #     cgeom = c['geometry']
-    #     add = True
-    #     for o in originals:
-    #         if shapely.equals(cgeom, network[o]):
-    #             remove.append(o)
-    #             add = False
-    #     if add:
-    #         result.append(c)
+        else:
+            skeletons.append(None)
 
-    # removeroad = []
-    # for o in originals:
-    #     if o not in remove:
-    #         removeroad.append(o)
+    # Here, carriageways connected by their short sides are treated
+    # --------------------------------------------------------------
 
-    # for rid, road in enumerate(roads):
-    #     if rid not in removeroad:
-    #         result.append(road)
+    # Get the bone junction between the two provided entry points
+    def get_junction(points, skeleton):
+        # Get the first junction starting from an entry point
+        def get_next_joint(point, network):
+            for ni, n in enumerate(network):
+                # Retrieve start and end point of bone
+                start, end = n.coords[0], n.coords[-1]
+                if start == point:
+                    return ni, end
+                elif end == point:
+                    return ni, start
+            return None, None
+
+        ni1, j1 = get_next_joint(points[0], skeleton.network)
+        ni2, j2 = get_next_joint(points[1], skeleton.network)
+
+        # If that junction is the same point, return the point
+        if j1 == j2:
+            return [ni1, ni2], j1
+        # Else, return None
+        else:
+            return None, None
+
+    # Remove 'fake' incoming lines from both skeletons object
+    # i.e. incoming lines from one skeleton objects that is contained or overlap the other polygon geometry
+    def remove_fake_incoming(skeleton1, skeleton2):
+        def keep_loop(incoming, boundary):
+            keep = []
+            for i in incoming:
+                if boundary.contains(i['geometry']) or boundary.overlaps(i['geometry']):
+                    continue
+                keep.append(i)
+            return keep
+
+        b1 = skeleton1.polygon.boundary
+        b2 = skeleton2.polygon.boundary
+
+        return keep_loop(skeleton1.incoming, b2), keep_loop(skeleton2.incoming, b1)
+
+    # Retrieve incoming lines
+    def retrieve_incoming_lines(incoming, entries, boundary):
+        iresult = []
+        for i, inc in enumerate(incoming):
+            add = False
+            # Add only if the line intersects an entry point
+            for e in entries:
+                if shapely.intersects(inc['geometry'], shapely.Point(e)):
+                    add = True
+            if add:
+                iresult.append([i, inc])
+        return iresult
+    
+    # Get the 'middle' line of a skeleton network
+    def get_middle_line(junction, shortentries, skeleton):
+        for ni, n in enumerate(skeleton.network):
+            start, end = n.coords[0], n.coords[-1]
+            if junction == start:
+                if end not in shortentries:
+                    return ni, n, 'start'
+            elif junction == end:
+                if start not in shortentries:
+                    return ni, n, 'end'
+        return None, None, None
+
+    # Treating short side connections between carriageways
+    for shorts in shortside:
+        # Retrieve carriageways index and the shortside geometry
+        cid1, cid2, shortline = shorts[0], shorts[1], shorts[2]
+        
+        # Create a list containing entry points intersecting the short side
+        shortentries = list(filter(lambda x: shapely.intersects(x, shortline), skeletons[cid1].entries))
+
+        # Remove those entries from skeletons list of entries
+        skeletons[cid1].entries = [x for x in skeletons[cid1].entries if x not in shortentries]
+        skeletons[cid2].entries = [x for x in skeletons[cid2].entries if x not in shortentries]
+
+        # Converts this list to tuples of coordinates
+        shortentries = [x.coords[0] for x in shortentries]
+
+        # Retrieve the junction between both entries inside both skeletons
+        diamond1, j1 = get_junction(shortentries, skeletons[cid1])
+        diamond2, j2 = get_junction(shortentries, skeletons[cid2])
+
+        # Continue only if both junctions were found
+        if j1 is not None and j2 is not None:
+            # Remove 'fake' incoming lines
+            skeletons[cid1].incoming, skeletons[cid2].incoming = remove_fake_incoming(skeletons[cid1], skeletons[cid2])
+
+            # Retrieve incoming lines
+            incoming = retrieve_incoming_lines(skeletons[cid1].incoming, shortentries, carriageways[cid2]['geometry'].boundary)
+
+            # Get the middle line of both skeletons along with the direction of the line
+            index1, line1, pos1 = get_middle_line(j1, shortentries, skeletons[cid1])
+            index2, line2, pos2 = get_middle_line(j2, shortentries, skeletons[cid2])
+            # Create the line between both junctions
+            linejunction = shapely.LineString([j1, j2])
+
+            # If there are incoming lines intersecting the short side entries
+            if len(incoming) > 0:
+                # Stores for distances and positions
+                distances = []
+                positions = []
+                # Loop through incoming lines
+                for i in incoming:
+                    # Stores geometry
+                    index = i[0]
+                    geom = i[1]['geometry']
+                    # Remove the incoming line from the first skeleton
+                    skeletons[cid1].incoming.pop(index)
+                    # Get start and end point
+                    start, end = shapely.Point(geom.coords[0]), shapely.Point(geom.coords[-1])
+                    # Calculate distance between start point and the line between junctions
+                    startdist = shapely.distance(start, linejunction)
+                    # Same for end point
+                    enddist = shapely.distance(end, linejunction)
+
+                    # Here, project the start or end point of the incmoming line on the junction line
+                    # The stored distance represents the distance between the start of the junction line and the projected point on this same line
+                    if startdist < enddist:
+                        distances.append(linejunction.project(start))
+                        positions.append('start')
+                    else:
+                        distances.append(linejunction.project(end))
+                        positions.append('end')
+
+                # Calculate the mean of the list of distances
+                meandist = numpy.mean(distances)
+                # This value is used to create the new intersection point on the junction line
+                point = shapely.Point(linejunction.interpolate(meandist).coords)
+
+                # Extend both interior lines with the new intersection point
+                line1 = extend_line_with_point(line1, point, position=pos1)
+                line2 = extend_line_with_point(line2, point, position=pos2)
+
+                # Update each incoming line geometry with a new extended line with the intersection point
+                for i, inc in enumerate(incoming):
+                    inc[1]['geometry'] = extend_line_with_point(inc[1]['geometry'], point, position=positions[i])
+
+                # Update the geometry of the 'middle' lines in their skeleton
+                skeletons[cid1].network[index1] = line1
+                skeletons[cid2].network[index2] = line2
+
+            # Here, there is no incoming line, which means both interior lines can be merged along with the junction line
+            else:
+                # TODO: handle this situation by updating geometries somewhere... This line is one long line which is both skeletons middle lines merged together.
+                # This situation should not appear.
+                merged = merge_linestrings(merge_linestrings(line1, linejunction), line2)
+
+            # Remove the diamond shaped skeletons part
+            skeletons[cid1].network = [x for i, x in enumerate(skeletons[cid1].network) if i not in diamond1]
+            skeletons[cid2].network = [x for i, x in enumerate(skeletons[cid2].network) if i not in diamond2]
+    
+    shortdone, pointdone = [], []
+
+    for skeleton in skeletons:
+        if skeleton is not None:
+            # Storing the blended skeleton
+            collapsed.extend(skeleton.blend())
 
     result = []
-    for skeleton in skeletons:
-        for bone in skeleton:
-            result.append( {"geometry": bone} )
+    remove = []
+    for i, c in enumerate(collapsed):
+        cgeom = c['geometry']
+        add = True
+        for o in originals:
+            if shapely.equals(cgeom, network[o]):
+                remove.append(o)
+                add = False
+        if add:
+            result.append(c)
 
-    # Stores carriageways that touches either on their long side or short side
-    touching = [[], []]
-    # Here, find touching dual carriageways
-    # Loop through all carriageways polygons
-    for pindex, p1 in enumerate(polygons):
-        # Retrieve first boundary
-        b1 = p1.boundary
-        # Loop though all carriageways polygons
-        for p2 in polygons:
-            # Check if it's not the same polygon
-            if p1 != p2:
-                # If both boundaries overlap
-                b2 = p2.boundary
-                if b1.overlaps(b2):
-                    # Calculate intersection between the two boundaries
-                    i = shapely.intersection(b1, b2)
-                    # Keep only lines forming the intersection
-                    if i.geom_type == 'MultiLineString':
-                        line = shapely.ops.linemerge(i.geoms)
-                    elif i.geom_type == 'LineString':
-                        line = i
-                    else:
-                        # If it's not a line, continue the loop
-                        continue
+    removeroad = []
+    for o in originals:
+        if o not in remove:
+            removeroad.append(o)
 
-                    # Here, the two polygon share an edge
-                    # Calculate the polygon properties
-                    face = NetworkFace(p1)
-                    # Find whether the length or the width is closer to the length of the shared edge
-                    if abs(line.length - face.length) < abs(line.length - face.width):
-                        # Here the shared edge is the long side
-                        add = True
-                        for longside in touching[0]:
-                            if shapely.equals(longside, line):
-                                add = False
-                        if add:
-                            touching[0].append(line)
-                    else:
-                        # Here, the shared edge is the short side
-                        add = True
-                        for shortside in touching[1]:
-                            if shapely.equals(shortside, line):
-                                add = False
-                        if add:
-                            touching[1].append(line)
+    for rid, road in enumerate(roads):
+        if rid not in removeroad:
+            result.append(road)
 
-    tl = []
-    for longside in touching[0]:
-        tl.append({"geometry": longside})
+    # # Here, cleaning the results
+    # duplicates = []
+    # for i1, r1 in enumerate(result):
+    #     for i2, r2 in enumerate(result):
+    #         if i1 != i2 and shapely.equals(r1['geometry'], r2['geometry']):
+    #             duplicates.append(i1)
 
-    tl_gdf = gpd.GeoDataFrame(tl, crs=crs)
-    tl_gdf.to_file("cartagen4py/data/touching_long.geojson", driver="GeoJSON")
-
-    ts = []
-    for shortside in touching[1]:
-        ts.append({"geometry": shortside})
-
-    ts_gdf = gpd.GeoDataFrame(ts, crs=crs)
-    ts_gdf.to_file("cartagen4py/data/touching_short.geojson", driver="GeoJSON")
+    # result = [x for x in result if x not in duplicates]
 
     return gpd.GeoDataFrame(result, crs=crs)
-
-    # nodes = []
-    # for i, n in enumerate(skeleton.nodes):
-    #     nodes.append({
-    #         'nid': i,
-    #         'geometry': shapely.Point(n)
-    #         })
-    # n = gpd.GeoDataFrame(nodes, crs=crs)
-    # n.to_file("cartagen4py/data/nodes.geojson", driver="GeoJSON")
-
-    # edges = []
-    # for j, s in enumerate(skeleton.edges):
-    #     edges.append({
-    #         'eid': j,
-    #         'start': s[0],
-    #         'end': s[1],
-    #         'geometry': shapely.LineString([skeleton.nodes[s[0]], skeleton.nodes[s[1]]])
-    #         })
-    # e = gpd.GeoDataFrame(edges, crs=crs)
-    # e.to_file("cartagen4py/data/edges.geojson", driver="GeoJSON")
-
-    # joints = []
-    # for j in skeleton.joints:
-    #     joints.append({
-    #         'geometry': j
-    #     })
-    # j = gpd.GeoDataFrame(joints, crs=crs)
-    # j.to_file("cartagen4py/data/joints.geojson", driver="GeoJSON")
-
-    # bones = []
-    # for b in skeleton.bones:
-    #     bones.append({
-    #         'geometry': b
-    #     })
-    # b = gpd.GeoDataFrame(bones, crs=crs)
-    # b.to_file("cartagen4py/data/bones.geojson", driver="GeoJSON")
-
-    # blend = []
-    # for i, b in enumerate(blended):
-    #     blend.append({
-    #         'nid': i,
-    #         'geometry': b
-    #         })
-    # bl = gpd.GeoDataFrame(blend, crs=crs)
-    # bl.to_file("cartagen4py/data/blended.geojson", driver="GeoJSON")

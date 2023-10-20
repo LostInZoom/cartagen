@@ -162,3 +162,42 @@ def get_segment_center(segment):
 
     x1, y1, x2, y2 = c[0][0], c[0][1], c[1][0], c[1][1]
     return shapely.Point([(x1 + x2) / 2, (y1 + y2) / 2])
+
+def project_point_on_line(point, line):
+    """
+    Project a point on a line. Return the projected point.
+    """
+    dist = line.project(point)
+    # Create the point projected on the line.
+    return shapely.Point(list(line.interpolate(dist).coords))
+
+def merge_linestrings(line1, line2):
+    """
+    Merge two linestring that are connected by their start or end points.
+    Return the new linestring. The first line defines the direction of the merged linestring.
+    """
+    coords1, coords2 = line1.coords, line2.coords
+
+    start1, end1 = coords1[0], coords1[-1]
+    start2, end2 = coords2[0], coords2[-1]
+    
+    # Lines connected by...
+    # ...start and start...
+    if start1 == start2:
+        # Reverse the second line, and concatenate the first (drop the start)
+        return shapely.LineString(list(coords2[::-1]) + list(coords1[1:]))
+    # ...start and end...
+    elif start1 == end2:
+        # Concatenate the second and the first line (drop the start)
+        return shapely.LineString(list(coords2) + list(coords1[1:]))
+    # ...end and start...
+    elif end1 == start2:
+        # Concatenate the first and the second line (drop the start)
+        return shapely.LineString(list(coords1) + list(coords2[1:]))
+    # ...end and end
+    elif end1 == end2:
+        # Reverse the second line (drop the start) and add it to the first line
+        return shapely.LineString(list(coords1) + list(coords2[::-1][1:]))
+    # Here, linstrings are not connected
+    else:
+        raise Exception("Provided LineStrings are not connected by their start or end vertex.")
