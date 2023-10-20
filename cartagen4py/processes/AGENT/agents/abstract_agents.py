@@ -99,3 +99,30 @@ class Agent:
             index += 1
         if index < len(self.actions_to_try):
             del self.actions_to_try[index]
+
+
+class MesoAgent(Agent):
+    components = []
+
+    def __init__(self, feature, components):
+        self.id = next(Agent.newid)
+        self.feature = feature
+        for micro in components:
+            self.components.append(micro)
+
+    def get_components_satisfaction(self):
+        """Compute the mean satisfaction of the components of the meso agent"""
+        nb = 0
+        sum = 0
+        for micro in self.components:
+            if micro.deleted:
+                continue
+            micro.compute_satisfaction()
+            satisfaction = micro.satisfaction
+            nb+= 1
+            sum += satisfaction
+        
+        if nb == 0:
+            return 100
+        return sum / nb
+    

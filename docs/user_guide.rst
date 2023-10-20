@@ -283,7 +283,8 @@ You may want to use micro agents only, i.e. one cartographic feature such as a b
     agent.constraints.append(squareness)
     agent.constraints.append(granularity)
 
-  3. Run the agents, i.e. start their life cycle iteratively. To run the agents, you have to use .. method:: run_agents(agents, lifecycle='basic', store_states=False, verbose=0)
+  3. Run the agents, i.e. start their life cycle iteratively. To run the agents, you have to use: 
+  .. method:: run_agents(agents, lifecycle='basic', store_states=False, verbose=0)
 
     - ''agents'' is a list of agents to run.
     - ''lifecycle'' chooses the type of life cycle to apply on the agents (only the basic is implemented for now)
