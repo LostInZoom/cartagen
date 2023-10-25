@@ -319,7 +319,8 @@ class StrokeNetwork:
                 #// add the stroke to the strokes set
                 self.strokes.append(stroke);
     
-    def __reconstruct_strokes(self, strokes):
+    def reconstruct_strokes(self):
+        strokes=self.strokes
         array = []
         for i, stroke in enumerate(strokes):
             listline=[]
@@ -329,7 +330,6 @@ class StrokeNetwork:
                 section += str(seg["id"])
                 if j < len(stroke.features):
                     section += ","
-            print(listline)
             multi_line = MultiLineString(listline)
             merged_line = ops.linemerge(multi_line)
             array += [[i,merged_line,section]]
