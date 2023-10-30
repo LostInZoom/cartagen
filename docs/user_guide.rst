@@ -348,15 +348,22 @@ You may want to use micro agents only, i.e. one cartographic feature such as a b
   
   2. Add constraints to your agents. You can pick among the constraints provided by the library, but you can also code new constraints and add them to your agents. The list of default constraints is provided in the table below.
 
-+===============================+=============+=================================+
-| name                          |  property   | actions                         |
-+===============================+=============+=================================+
-|BuildingSizeConstraint         | area        | enlarge, delete                 |
-+-------------------------------+-------------+---------------------------------+
-|BuildingGranularityConstraint  | granularity | simplify, simplify to rectangle |
-+-------------------------------+-------------+---------------------------------+
-|BuildingSquarenessConstraint   | squareness  | squaring                        |
-+===============================+=============+=================================+
+  .. list-table:: Building micro constraints
+   :widths: 50 20 50
+   :header-rows: 1
+
+   * - name
+     - property
+     - actions
+   * - BuildingSizeConstraint
+     - area
+     - enlarge, delete
+   * - BuildingGranularityConstraint
+     - granularity
+     - simplify, simplify to rectangle
+   * - BuildingSquarenessConstraint
+     - squareness
+     - squaring
 
   .. code-block:: pycon
 
@@ -367,7 +374,8 @@ You may want to use micro agents only, i.e. one cartographic feature such as a b
     agent.constraints.append(squareness)
     agent.constraints.append(granularity)
 
-  3. Run the agents, i.e. start their life cycle iteratively. To run the agents, you have to use .. method:: run_agents(agents, lifecycle='basic', store_states=False, verbose=0)
+  3. Run the agents, i.e. start their life cycle iteratively. To run the agents, you have to use: 
+  .. method:: run_agents(agents, lifecycle='basic', store_states=False, verbose=0)
 
     - ''agents'' is a list of agents to run.
     - ''lifecycle'' chooses the type of life cycle to apply on the agents (only the basic is implemented for now)

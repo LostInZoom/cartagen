@@ -58,7 +58,6 @@ class BuildingSizeConstraint(GeneralisationConstraint):
             self.satisfaction = 100 - 100 * abs((self.current_value-self.goal_value)/self.goal_value)
 
 
-
     def compute_actions(self):
         if(self.goal_value == 0.0):
             # propose to delete the agent
