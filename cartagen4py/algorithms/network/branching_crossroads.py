@@ -69,7 +69,6 @@ def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_a
             intersection = Crossroad(network, tree, polygon)
 
             if intersection is not None:
-                # print(crossroad['cid'])
                 main_roads = __find_main_roads(intersection, middle)
 
                 # Test if main road(s) were found
@@ -137,7 +136,8 @@ def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_a
 def __collapse(branching, mains, minor):
     """
     Collapse the main road(s) and the minor road to a point.
-    Returns the indexes of roads to get rid of and the collapsed crossroad.
+    Returns the indexes of roads to get rid of, and the collapsed crossroad.
+    TODO: Propagate the attributes when collapsing the minor road on to the main one.
     """
 
     # Create the new minor road extension inside the branching crossroad

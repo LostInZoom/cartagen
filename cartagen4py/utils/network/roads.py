@@ -13,15 +13,11 @@ class Crossroad:
         self.face = unary_union(*faces)
 
         # Retrieve objects that intersects the considered network face using strtree
-        self.roads = tree.query(self.face)
-        self.original = []
+        self.original = tree.query(self.face, predicate='intersects').tolist()
+
         self.original_geoms = []
-        for i in self.roads:
-            l = roads[i]
-            # Make an other test to really keep only intersecting roads, spatial index strtree using bbox
-            if shapely.intersects(self.face, l):
-                self.original_geoms.append(l)
-                self.original.append(i)
+        for i in self.original:
+            self.original_geoms.append(roads[i])
 
         # Fully dissolve and node the subnetwork
         unioned = unary_union(self.original_geoms)
