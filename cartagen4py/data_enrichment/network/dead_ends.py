@@ -9,10 +9,11 @@ def detect_dead_ends(roads):
     """
 
     crs = roads.crs
+    roads = roads.to_dict('records')
 
     network = []
-    for road in roads.geometry:
-        network.append(road)
+    for road in roads:
+        network.append(road['geometry'])
 
     faces = calculate_network_faces(network)
 
@@ -27,26 +28,28 @@ def detect_dead_ends(roads):
     
     # Loop through network faces
     for fid, face in enumerate(faces):
-        if fid == 84:
-            # Retrieve roads inside the considered face
-            # All those roads are part of dead ends groups
-            contained = netree.query(face, predicate='contains').tolist()
+        # Retrieve roads inside the considered face
+        # All those roads are part of dead ends groups
+        contained = netree.query(face, predicate='contains').tolist()
 
-            # Find holes inside the face
-            holes = __find_holes(fid, faces, facetree)
+        # Find holes inside the face
+        holes = __find_holes(fid, faces, facetree)
 
-            # Loop through each hole inside the considered face
-            for hole in holes:
-                # Add the roads intersecting the boundary of the hole to the list of dead ends roads
-                contained.extend(netree.query(faces[hole].boundary, predicate='contains').tolist())
+        # Loop through each hole inside the considered face
+        for hole in holes:
+            # Add the roads intersecting the boundary of the hole to the list of dead ends roads
+            contained.extend(netree.query(faces[hole].boundary, predicate='contains').tolist())
 
-            groups = __topological_grouping(contained, network, holes, face)
+        # Retrieve the groups of roads
+        groups = __topological_grouping(contained, network, face)
 
-            for cid in groups:
-                deadends.append({ "geometry": network[cid] })
-
-            # Creating a group for the dead ends
-            group = []
+        # Add the dead ends to the result
+        for gid, group in enumerate(groups):
+            for cid in group:
+                deadend = roads[cid]
+                deadend['face'] = fid
+                deadend['deid'] = gid
+                deadends.append(deadend)
 
     if len(deadends) > 0:
         return gpd.GeoDataFrame(deadends, crs=crs)
@@ -80,51 +83,67 @@ def __find_holes(index, faces, tree):
 
     return holes
 
-def __topological_grouping(indexes, geometries, holes, face):
+def __topological_grouping(indexes, geometries, face):
     """
     Create groups of roads depending on their topology, starting on the edge of the face.
     """
 
-    def __recursive_grouping():
-        pass
+    # Storage for the final groups of roads
+    groups = []
 
-    firsts = []
+    # Recursively create groups
+    def __recursive_grouping(current, group, indexes, leave):
+        # Storage for the connected roads
+        connected = []
+        # Loop through current roads
+        for c in current:
+            # Loop through all indexes
+            for i in indexes:
+                # If the indexes is not to be left
+                if i not in leave:
+                    # Check if the roads is connected to the current one
+                    if shapely.intersects(geometries[c], geometries[i]):
+                        # If so, add it as a connected road, add it to be left alone, and add it to the current group
+                        connected.append(i)
+                        leave.append(i)
+                        group.append(i)
+
+        # If roads are connected to the current ones
+        if len(connected) > 0:
+            # Launch the function once again
+            __recursive_grouping(connected, group, indexes, leave)
+        else:
+            # If no roads are connected, add the group to the list of groups
+            # Here, the recursion is over
+            groups.append(group)
+
+
     # Find the starting road(s) for each group
+    entries = []
     for i in indexes:
         # Check if the geometry touches the exterior ring of the face
         if shapely.touches(face.exterior, geometries[i]):
             # Append it to the starting roads list
-            firsts.append(i)
+            entries.append(i)
 
-    # A storage for already treated starting roads
+    # A storage for already treated roads
     leave = []
-    # A storage for already treated road
-    done = []
 
     # Loop through each first road
-    for f in firsts:
-        # Check that the road has not already been treated
-        if f not in leave:
+    for e in entries:
+        if e not in leave:
+            group = [e]
+            leave.append(e)
+
             # Retrieve an other touching starting road if exists
-            # It can happen if the dead end starts with a junction.
-            for f1 in firsts:
-                if shapely.touches(geometries[f], geometries[f1]):
-                    # Append the index to the list of road to leave
-                    leave.append(f1)
-
-            current = f
-
-            while pursue:
-                group = []
-
-                remove = None
-
-                for i in indexes:
-                    if shapely.intersects(geometries[current], geometries[i]):
-                        group.append(i)
-                        remove = i
-
-                if remove is not None:
-                    i.pop(remove)
-    
-    return firsts
+            # It can happen if the dead end starts with a junction or a hole
+            for e1 in entries:
+                if shapely.touches(geometries[e], geometries[e1]):
+                    # Append the index to the list of entry roads to leave
+                    group.append(e1)
+                    leave.append(e1)
+            
+            # Launch the recursion to create groups
+            __recursive_grouping(group, group, indexes, leave)
+        
+    return groups
