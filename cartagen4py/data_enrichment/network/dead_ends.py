@@ -41,14 +41,18 @@ def detect_dead_ends(roads):
             contained.extend(netree.query(faces[hole].boundary, predicate='contains').tolist())
 
         # Retrieve the groups of roads
-        groups = __topological_grouping(contained, network, face)
+        connected, unconnected = __topological_grouping(contained, network, face)
 
         # Add the dead ends to the result
-        for gid, group in enumerate(groups):
+        for gid, group in enumerate(connected + unconnected):
+            connect = True
+            if gid >= len(connected):
+                connect = False
             for cid in group:
                 deadend = roads[cid]
                 deadend['face'] = fid
                 deadend['deid'] = gid
+                deadend['connected'] = connect
                 deadends.append(deadend)
 
     if len(deadends) > 0:
@@ -88,35 +92,34 @@ def __topological_grouping(indexes, geometries, face):
     Create groups of roads depending on their topology, starting on the edge of the face.
     """
 
-    # Storage for the final groups of roads
-    groups = []
-
     # Recursively create groups
-    def __recursive_grouping(current, group, indexes, leave):
-        # Storage for the connected roads
-        connected = []
+    def __recursive_grouping(current, group, indexes, leave, groups):
+        # Storage for the following roads
+        following = []
         # Loop through current roads
         for c in current:
             # Loop through all indexes
             for i in indexes:
                 # If the indexes is not to be left
                 if i not in leave:
-                    # Check if the roads is connected to the current one
+                    # Check if the roads is following the current one
                     if shapely.intersects(geometries[c], geometries[i]):
-                        # If so, add it as a connected road, add it to be left alone, and add it to the current group
-                        connected.append(i)
+                        # If so, add it as a following road, add it to be left alone, and add it to the current group
+                        following.append(i)
                         leave.append(i)
                         group.append(i)
 
-        # If roads are connected to the current ones
-        if len(connected) > 0:
+        # If roads are following the current ones
+        if len(following) > 0:
             # Launch the function once again
-            __recursive_grouping(connected, group, indexes, leave)
+            groups = __recursive_grouping(following, group, indexes, leave, groups)
         else:
-            # If no roads are connected, add the group to the list of groups
+            # If no roads are following, add the group to the list of groups
             # Here, the recursion is over
             groups.append(group)
 
+    # Storage for the final groups of roads
+    connected = []
 
     # Find the starting road(s) for each group
     entries = []
@@ -144,6 +147,19 @@ def __topological_grouping(indexes, geometries, face):
                     leave.append(e1)
             
             # Launch the recursion to create groups
-            __recursive_grouping(group, group, indexes, leave)
-        
-    return groups
+            __recursive_grouping(group, group, indexes, leave, connected)
+    
+    # Handle roads not connected to the network face boundary.
+    # i.e. roads not connected to the rest of the network
+    unconnected = []
+    for i in indexes:
+        # Here, avoid already treated roads
+        if i not in leave:
+            # Starting a new group
+            group = [i]
+            leave.append(i)
+
+            # Launch the recursion to fill up the unconnected groups
+            __recursive_grouping(group, group, indexes, leave, unconnected)
+
+    return connected, unconnected
