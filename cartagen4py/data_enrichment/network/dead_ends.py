@@ -59,26 +59,44 @@ def detect_dead_ends(roads):
             # All those roads are part of dead ends groups
             contained = netree.query(face, predicate='contains').tolist()
 
+            # Storage for the roads covering the holes of the face
+            holeroads = []
+
             # Loop through each faces inside this hole
             for hole in iholes[fid]:
-                # Add the roads inside and on the borders of the hole to the list of dead ends roads
-                contained.extend(netree.query(faces[hole], predicate='covers').tolist())
+                # Retrieve the roads inside and on the borders of the hole
+                covering = netree.query(faces[hole], predicate='covers').tolist()
+                # Add them to the list of hole roads
+                holeroads.extend(covering)
+
+            # Add all hole roads to the dead end groups
+            contained.extend(holeroads)
         
             # Retrieve the groups of roads
-            connected, unconnected = __topological_grouping(contained, network, face)
+            connected, nb_entries, unconnected = __topological_grouping(contained, network, face)
 
             # Add the dead ends to the result
+            # Loop through all dead end groups
             for gid, group in enumerate(connected + unconnected):
-                connect = True
-                if gid >= len(connected):
-                    connect = False
+                connect, root = True, False
+                # Loop through each road of the group
                 for gcid, cid in enumerate(group):
-                    root = True if gcid < 1 else False
+                    # If the loop goes through unconnected groups, set to unconnected
+                    if gid >= len(connected):
+                        connect = False
+                    else:
+                        # Set the road as the entrance of the group if its id is below the entrance number of the group
+                        root = True if gcid < nb_entries[gid] else False
+                    # Set the road as being a hole boundary if it is
+                    ishole = True if cid in holeroads else False
+                    # Create the entry
                     deadend = roads[cid]
                     deadend['face'] = fid
                     deadend['deid'] = gid
                     deadend['connected'] = connect
                     deadend['root'] = root
+                    deadend['hole'] = ishole
+                    # Append the entry
                     deadends.append(deadend)
 
     if len(deadends) > 0:
@@ -119,6 +137,8 @@ def __topological_grouping(indexes, geometries, face):
 
     # Storage for the final groups of roads
     connected = []
+    # Storage for the number of entries in the dead end group
+    nb_entries = []
 
     # Find the starting road(s) for each group
     entries = []
@@ -145,6 +165,9 @@ def __topological_grouping(indexes, geometries, face):
                     group.append(e1)
                     leave.append(e1)
             
+            # Set the number of entries for this group
+            nb_entries.append(len(group))
+            
             # Launch the recursion to create groups
             __recursive_grouping(group, group, indexes, leave, connected)
     
@@ -161,4 +184,4 @@ def __topological_grouping(indexes, geometries, face):
             # Launch the recursion to fill up the unconnected groups
             __recursive_grouping(group, group, indexes, leave, unconnected)
 
-    return connected, unconnected
+    return connected, nb_entries, unconnected
