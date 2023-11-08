@@ -91,6 +91,7 @@ def detect_dead_ends(roads):
                     ishole = True if cid in holeroads else False
                     # Create the entry
                     deadend = roads[cid]
+                    deadend['rid'] = cid
                     deadend['face'] = fid
                     deadend['deid'] = gid
                     deadend['connected'] = connect
