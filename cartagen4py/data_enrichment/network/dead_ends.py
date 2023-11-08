@@ -19,73 +19,72 @@ def detect_dead_ends(roads):
 
     # Create a storage for the dead ends road index
     deadends = []
-    # Storage for future enclosed faces
-    enclosed = []
 
     # Create a tree for the network roads and for the network faces
     netree = shapely.STRtree(network)
     facetree = shapely.STRtree(faces)
-    
+
+    # This list will store indexes of faces that are holes
+    # Those faces won't be treated individually, but as part of the face they are inside of
+    leave = []
+    # This list list will store the list of faces contained inside each face at the right index
+    # It will contain an empty list where no faces are contained
+    iholes = []
+
     # Loop through network faces
     for fid, face in enumerate(faces):
-        # Retrieve roads inside the considered face
-        # All those roads are part of dead ends groups
-        contained = netree.query(face, predicate='contains').tolist()
+        # Retrieve the list of holes inside the face
+        holes = list(faces[fid].interiors)
 
-        # Find holes inside the face
-        holes = __find_holes(fid, faces, facetree)
+        # If there are holes inside the face
+        if len(holes) > 0:
+            ihole = []
+            # Loop through individual holes
+            for hole in holes:
+                # Retrieve the face(s) contained inside the hole
+                faceholes = facetree.query(shapely.Polygon(hole), predicate='contains').tolist()
+                # Add the faces to the storage of faces not to treat
+                leave.extend(faceholes)
+                # Extend the list of faces contained inside this face
+                ihole.extend(faceholes)
+            iholes.append(ihole)
+        else:
+            iholes.append([])
+                
+    # Loop through network faces
+    for fid, face in enumerate(faces):
+        # Make sure the face is not inside the hole of an other face
+        if fid not in leave:
+            # Retrieve roads inside the considered face
+            # All those roads are part of dead ends groups
+            contained = netree.query(face, predicate='contains').tolist()
 
-        # Loop through each hole inside the considered face
-        for hole in holes:
-            # Add the roads intersecting the boundary of the hole to the list of dead ends roads
-            contained.extend(netree.query(faces[hole].boundary, predicate='contains').tolist())
+            # Loop through each faces inside this hole
+            for hole in iholes[fid]:
+                # Add the roads inside and on the borders of the hole to the list of dead ends roads
+                contained.extend(netree.query(faces[hole], predicate='covers').tolist())
+        
+            # Retrieve the groups of roads
+            connected, unconnected = __topological_grouping(contained, network, face)
 
-        # Retrieve the groups of roads
-        connected, unconnected = __topological_grouping(contained, network, face)
-
-        # Add the dead ends to the result
-        for gid, group in enumerate(connected + unconnected):
-            connect = True
-            if gid >= len(connected):
-                connect = False
-            for cid in group:
-                deadend = roads[cid]
-                deadend['face'] = fid
-                deadend['deid'] = gid
-                deadend['connected'] = connect
-                deadends.append(deadend)
+            # Add the dead ends to the result
+            for gid, group in enumerate(connected + unconnected):
+                connect = True
+                if gid >= len(connected):
+                    connect = False
+                for gcid, cid in enumerate(group):
+                    root = True if gcid < 1 else False
+                    deadend = roads[cid]
+                    deadend['face'] = fid
+                    deadend['deid'] = gid
+                    deadend['connected'] = connect
+                    deadend['root'] = root
+                    deadends.append(deadend)
 
     if len(deadends) > 0:
         return gpd.GeoDataFrame(deadends, crs=crs)
     else:
-        return None
-
-def __find_holes(index, faces, tree):
-    """
-    Returns a list of faces indexes if those faces are completely contained inside the given face index.
-    Returns an empty list if none are found.
-    """
-    holes = []
-
-    # Loop through faces intersecting the considered one
-    for pid in tree.query(faces[index], predicate='intersects'):
-        # Make sure the index is not the considered face
-        if pid != index:
-            count = 0
-            # Loop through faces intersecting this one
-            for pid1 in tree.query(faces[pid], predicate='intersects'):
-                # Make sure it's not the same
-                if pid1 != pid:
-                    # Make sure the boundaries are not only crossing
-                    if shapely.crosses(faces[pid].boundary, faces[pid1].boundary) == False:
-                        count += 1
-            
-            # If count is 1, it only intersects one face, the considered
-            # thus, it is a hole inside the face, append it to the result
-            if count == 1:
-                holes.append(pid)
-
-    return holes
+        return None    
 
 def __topological_grouping(indexes, geometries, face):
     """
