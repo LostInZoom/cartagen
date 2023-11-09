@@ -15,11 +15,6 @@ def eliminate_dead_ends(roads, deadends, length, keep_longest=True):
     roads = roads.to_dict('records')
     deadends = deadends.to_dict('records')
 
-    # Create a list of all the roads geometry of the network
-    network = []
-    for n in roads:
-        network.append(n['geometry'])
-
     # Storage for indexes to remove from the results
     remove = []
 
