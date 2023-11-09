@@ -3,7 +3,7 @@ import geopandas as gpd
 from cartagen4py.utils.partitioning import *
 from cartagen4py.utils.network import *
 
-def detect_dead_ends(roads):
+def detect_dead_ends(roads, outside_faces=True):
     """
     This function detects dead ends inside a road network and returns their geometries.
     """
@@ -15,7 +15,7 @@ def detect_dead_ends(roads):
     for road in roads:
         network.append(road['geometry'])
 
-    faces = calculate_network_faces(network)
+    faces = calculate_network_faces(network, convex_hull=outside_faces)
 
     # Create a storage for the dead ends road index
     deadends = []
