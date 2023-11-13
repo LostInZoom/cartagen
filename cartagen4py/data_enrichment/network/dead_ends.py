@@ -17,6 +17,10 @@ def detect_dead_ends(roads, outside_faces=True):
 
     faces = calculate_network_faces(network, convex_hull=outside_faces)
 
+    hull = None
+    if outside_faces:
+        hull = shapely.convex_hull(shapely.MultiPolygon(faces)).boundary
+
     # Create a storage for the dead ends road index
     deadends = []
 
@@ -73,7 +77,7 @@ def detect_dead_ends(roads, outside_faces=True):
             contained.extend(holeroads)
         
             # Retrieve the groups of roads
-            connected, nb_entries, unconnected = __topological_grouping(contained, network, face)
+            connected, nb_entries, unconnected = __topological_grouping(contained, network, face, hull)
 
             # Add the dead ends to the result
             # Loop through all dead end groups
@@ -105,7 +109,7 @@ def detect_dead_ends(roads, outside_faces=True):
     else:
         return None    
 
-def __topological_grouping(indexes, geometries, face):
+def __topological_grouping(indexes, geometries, face, hull):
     """
     Create groups of roads depending on their topology, starting on the edge of the face.
     """
@@ -146,6 +150,11 @@ def __topological_grouping(indexes, geometries, face):
     for i in indexes:
         # Check if the geometry touches the exterior ring of the face
         if shapely.touches(face.exterior, geometries[i]):
+            # If outside faces has been included
+            if hull is not None:
+                # If the geometry touches the boundary of the convex hull, do not add it
+                if shapely.touches(hull, geometries[i]):
+                    continue
             # Append it to the starting roads list
             entries.append(i)
 
