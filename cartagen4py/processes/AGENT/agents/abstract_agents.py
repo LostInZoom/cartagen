@@ -126,3 +126,18 @@ class MesoAgent(Agent):
             return 100
         return sum / nb
     
+    def get_best_component_to_activate(components):
+        """From a sublist of the components of the meso agent, returns the best one to activate as a micro agent.
+            The default implementation returns the first of the list, whatever the satisfaction of the agent, or any kind of priority.
+        """
+        return components[0]
+    
+    def manage_internal_side_effects(last_micro):
+        """manages the side effects inside the meso if necessary
+        ----------
+        last_micro : Agent
+            The last modified internal micro agent.
+        """
+        # by default, do nothing
+        return
+    
