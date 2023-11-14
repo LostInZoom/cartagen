@@ -55,7 +55,7 @@ class BlockAgent(MesoAgent):
         buildings = []
         roads = []
         for building in self.components:
-            buildings.append(building['geometry'])
+            buildings.append(building.feature['geometry'])
         for road in self.sections:
             roads.append(road['geometry'])
         self.triangulation = block_triangulation(buildings, roads, 30)
