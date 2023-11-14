@@ -5,7 +5,7 @@ from cartagen4py.utils.attributes import *
 from cartagen4py.utils.geometry import *
 from cartagen4py.utils.network import *
 
-def collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=1, propagate_attributes=None):
+def collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=3, propagate_attributes=None):
     """
     Collapse dual carriageways using the polygon skeleton made from a Delaunay Triangulation
     TODO: Handle carriageways connected by only one point.
@@ -346,14 +346,5 @@ def collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=1, 
     for rid, road in enumerate(roads):
         if rid not in removeroad:
             result.append(road)
-
-    # # Here, cleaning the results
-    # duplicates = []
-    # for i1, r1 in enumerate(result):
-    #     for i2, r2 in enumerate(result):
-    #         if i1 != i2 and shapely.equals(r1['geometry'], r2['geometry']):
-    #             duplicates.append(i1)
-
-    # result = [x for x in result if x not in duplicates]
 
     return gpd.GeoDataFrame(result, crs=crs)

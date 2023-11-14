@@ -1,0 +1,6 @@
+1. Issues with dual carriageways connected by only one point (cf. carriageway1.png although it's a highway interchange which shouldn't treated as a dual carriageways, this isssue can happen)
+2. Issues when a dead-end road is inside the dual carriageway and connected to one of them. For now, dual carriageways with a dead end inside their polygon geometry are not filtered out and are treated as well.
+(cf. carriageway2.png)
+3. Issues with really complex intersctions (cf. carriageway3.png)
+4. Some carriageways are not properly found because their geometry doesn't match the criterias although the context suggests they should have been flagged (cf. carriageway4.png, the carriageway is enclosed by two
+carriageways). This issue could be fixed by running a second pass during the dual carriageways detection process.

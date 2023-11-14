@@ -228,7 +228,7 @@ class RiverStrokeNetwork:
 		# ****************************
         counter = 0;
         preva=int(len(self.groupedFeatures)*100/total)
-        print('Initialisation fini, avancement ',preva,'%')
+        
         while (len(downstreamNodes)>0) :
             
 			#test to break the loop when it's stuck

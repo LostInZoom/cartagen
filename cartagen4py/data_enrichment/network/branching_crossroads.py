@@ -12,7 +12,7 @@ def detect_branching_crossroads(roads, area_threshold=2500,
         allow_single_4degree_node=True
     ):
     """
-    This function detects brandching crossroads inside a road network and returns polygons representing their extents.
+    This function detects branching crossroads inside a road network and returns polygons representing their extents.
     Parameters
     ----------
     roads : geopandas GeoDataFrame of LineStrings.
