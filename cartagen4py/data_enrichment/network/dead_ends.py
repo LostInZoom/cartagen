@@ -63,13 +63,13 @@ def detect_dead_ends(roads, outside_faces=True):
             # All those roads are part of dead ends groups
             contained = netree.query(face, predicate='contains').tolist()
 
-            if fid == 303:
-                line = network[12834]
-                buffer = line.buffer(5)
-                print(list(line.coords))
-                for p in face.boundary:
-                    if shapely.Point(p).intersects(buffer):
-                        print(p)
+            # if fid == 303:
+            #     line = network[12834]
+            #     buffer = line.buffer(5)
+            #     print(list(line.coords))
+            #     for p in face.boundary:
+            #         if shapely.Point(p).intersects(buffer):
+            #             print(p)
                 
 
 
