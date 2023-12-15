@@ -8,8 +8,8 @@ from cartagen4py.utils.graph.roads import *
 
 def rural_betweeness_calculation(roads, sample_size=10, threshold=0, cost=None):
     """
-    A data enrichment tool used to flag roads that are not often used based on a
-    centrality calculation. The index is reported to edges.
+    A data enrichment tool used to flag roads that are not often used based on the calculation of
+    the edge betweenness.
     roads : geopandas GeoDataFrame of LineStrings
         The road network to analyze.
     sample_size : int optional.
@@ -119,7 +119,7 @@ def rural_traffic_simulation(roads, min_traffic=1,
     # Create the graph from the road network
     graph = create_graph_from_roads(roads, cost)
 
-    # Createa counter for the number of time a road is used
+    # Create a counter for the number of time a road is used
     count = [0] * len(roads)
 
     # If no attraction were provided
