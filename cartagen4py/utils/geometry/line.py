@@ -132,6 +132,37 @@ def extend_line_with_point(line, point, position='start'):
         new_line.append(p)
 
     return LineString(new_line)
+
+def extend_line_by_length(line, length, position='both'):
+    """
+    Extend the line by a given length.
+    This function extend the line by adding a vertice at the start and/or the end of the line and extend it by a given length
+    following the direction of the first and/or last segment of the line.
+    Position is by default set to 'both' which will add the length to both
+    the start and the end of the line. Can be set to 'start' or 'end'.
+    """
+
+    def __calculate_coords(a, b, length):
+        xa, ya, xb, yb = a[0], a[1], b[0], b[1]
+        ab = np.sqrt((yb - ya)**2 + (xb -xa)**2)
+        xc = xb - (((xb - xa) / ab) * (ab + length))
+        yc = yb - (((yb - ya) / ab) * (ab + length))
+        return (xc, yc)
+
+    # Get the list of vertex
+    vertex = list(line.coords)
+
+    new_line = []
+
+    if position == 'both' or position == 'start':
+        new_line.append(__calculate_coords(vertex[0], vertex[1], length))
+
+    new_line.extend(vertex)
+
+    if position == 'both' or position == 'end':
+        new_line.append(__calculate_coords(vertex[-1], vertex[-2], length))
+
+    return LineString(new_line)    
         
 def split_line_at_point(line, point):
     """
