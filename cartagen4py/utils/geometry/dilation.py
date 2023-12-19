@@ -72,7 +72,7 @@ def offset_curve(line, offset, crs):
                 # Replace last point with this one
                 pline[-1][-1] = (crosspoint[0], crosspoint[1])               
             else:
-                pline[-1].pop()
+                pline.pop()
                 # If they are not crossing, making a circle interpolation between those two points.
                 ip = circle_interpolation(a, b0, a1)
                 pline.append(ip)
@@ -122,18 +122,18 @@ def circle_interpolation(a, b, c, quad_segs=8):
         raise ValueError("Points b and c are not equidistant from a.")
 
     # Calculate the angle 
-    angle = np.arccos(np.dot(ab / radius, ac / radius))
+    angle = np.arccos(np.dot(ab, ac) / (np.linalg.norm(ab) * np.linalg.norm(ac)))
     n_points = int(angle / (np.pi / 2) * quad_segs) + 1
-
-    print(n_points)
 
     interpolated_points = [b]
 
     if n_points > 2:
         angle_between_points = angle / (n_points - 1)
+        rotation_matrix = np.array([[np.cos(-angle_between_points), -np.sin(-angle_between_points)], [np.sin(-angle_between_points), np.cos(-angle_between_points)]])
+        rotated_vector = ab / np.linalg.norm(ab)
+
         for i in range(1, n_points - 1):
-            theta = angle_between_points * i
-            rotated_vector = np.cos(theta) * (ab / radius) + np.sin(theta) * (ac / radius)
+            rotated_vector = np.dot(rotation_matrix, rotated_vector)
             interpolated_point = a + radius * rotated_vector
             interpolated_points.append(tuple(interpolated_point))
     
