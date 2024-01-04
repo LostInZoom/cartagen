@@ -6,9 +6,15 @@ import geopandas as gpd
 
 from cartagen4py.utils.geometry.line import *
 
-def offset_curve(line, offset, quad_segs=8):
+def offset_curve(line, offset, cap_style='round', quad_segs=8):
     """
     Offset a line using dilation on its left (positive offset) or right side (negative offset).
+    Parameters
+    ----------
+    line shapely LineString
+        The line to offset.
+    offset float
+        The length of the offset to apply. Negative value for 
     """
 
     def __create_segments(points):
@@ -121,6 +127,11 @@ def offset_curve(line, offset, quad_segs=8):
 
     # OFFSET CURVE ALGORITHM
 
+    # Check if provided cap style is allowed
+    acaps = ['round', 'flat']
+    if cap_style not in acaps:
+        raise Exception('Offset curve cap style unknown: {0}.'.format(cap_style))
+
     # If offset is 0, return the provided line
     if offset == 0:
         return line
@@ -137,19 +148,23 @@ def offset_curve(line, offset, quad_segs=8):
 
         # If it's the last point of the line
         if i >= (len(oline) - 1):
-            # Get the previous point
-            b = oline[i - 1]
+            # If round cap style is chosen
+            if cap_style == 'round':
+                # Get the previous point
+                b = oline[i - 1]
 
-            # Calculate the rounded extremity of the offset curve
-            ba = np.sqrt((ya - yb)**2 + (xa - xb)**2)
-            c = (xa - (((xa - xb) / ba) * (ba + abs(offset))), ya - (((ya - yb) / ba) * (ba + abs(offset))))
+                # Calculate the rounded extremity of the offset curve
+                ba = np.sqrt((ya - yb)**2 + (xa - xb)**2)
+                c = (xa - (((xa - xb) / ba) * (ba + abs(offset))), ya - (((ya - yb) / ba) * (ba + abs(offset))))
 
-            # Interpolate points between the last projected point and the rounded extremity c
-            rotation = 'cw' if offset < 0 else 'ccw'
-            ip = circle_interpolation(a, pline[-1][-1], c, rotation=rotation, quad_segs=quad_segs)
+                # Interpolate points between the last projected point and the rounded extremity c
+                rotation = 'cw' if offset < 0 else 'ccw'
+                ip = circle_interpolation(a, pline[-1][-1], c, rotation=rotation, quad_segs=quad_segs)
 
-            # Replace the last point with the interpolation
-            pline[-1] = ip
+                # Replace the last point with the interpolation
+                pline[-1] = ip
+
+            # Do nothing if the cap style is flat
 
             # Break the loop as it's the last point
             break
@@ -178,17 +193,26 @@ def offset_curve(line, offset, quad_segs=8):
 
         # If it's the first node
         if i == 0:
-            # Calculate the rounded extremity of the offset curve
-            ab = np.sqrt((yb - ya)**2 + (xb - xa)**2)
-            c = (xb - (((xb - xa) / ab) * (ab + abs(offset))), yb - (((yb - ya) / ab) * (ab + abs(offset))))
+            
+            # If round cap style is chosen
+            if cap_style == 'round':
+                # Calculate the rounded extremity of the offset curve
+                ab = np.sqrt((yb - ya)**2 + (xb - xa)**2)
+                c = (xb - (((xb - xa) / ab) * (ab + abs(offset))), yb - (((yb - ya) / ab) * (ab + abs(offset))))
 
-            # Interpolate points between the projected a1 point and the rounded extremity c
-            rotation = 'cw' if offset < 0 else 'ccw'
-            ip = circle_interpolation(a, c, a1, rotation=rotation, quad_segs=quad_segs)
+                # Interpolate points between the projected a1 point and the rounded extremity c
+                rotation = 'cw' if offset < 0 else 'ccw'
+                ip = circle_interpolation(a, c, a1, rotation=rotation, quad_segs=quad_segs)
 
-            # Add the interpolated points as the first entry...
-            pline.append(ip)
-            # ...and the end of the segment projected as the second
+                # Add the interpolated points as the first entry
+                pline.append(ip)
+
+            # If a flat cap style is chosen
+            elif cap_style == 'flat':
+                # Add the projection of a
+                pline.append([a1])
+            
+            # Add the projection of b
             pline.append([b1])
 
         # If it's a point between the first and the last (middle point)
@@ -200,7 +224,7 @@ def offset_curve(line, offset, quad_segs=8):
             seg0 = shapely.LineString([a0, b0])
             seg1 = shapely.LineString([a1, b1])
 
-            # Check is the current and previous segments are crossing
+            # Check if the current and previous segments are crossing
             if seg0.crosses(seg1):
                 # If they are, it means the angle is acute and the last point needs to be recalculated
                 # Calculate the intersection of both segments
@@ -307,7 +331,22 @@ def circle_interpolation(a, b, c, rotation='cw', quad_segs=8):
     Given b and c two points at equal distance from a third point a, interpolates n points between
     b and c along the circle of center a and of radius ab. The number of provided point depends on the
     number of segments allowed per circle quadrant (default to 8).
+    Parameters
+    ----------
+    a : tuple
+        Point A coordinates
+    b : tuple
+        Point B coordinates
+    c : tuple
+        Point C coordinates
+    rotation : str optional
+        Define the rotation direction, clockwise ('cw') or counterclockwise ('ccw').
+        Default is clockwise.
+    quad_segs : int optional
+        The number of point allowed on a quarter circle. This defines the number of interpolated points.
+        Default to 8.
     """
+
     # Create vectors
     ab = np.array(b) - np.array(a)
     ac = np.array(c) - np.array(a)
@@ -318,6 +357,11 @@ def circle_interpolation(a, b, c, rotation='cw', quad_segs=8):
     # Check that b and c are equidistant from a
     if not np.isclose(np.linalg.norm(ab), np.linalg.norm(ac)):
         raise ValueError("Points b and c are not equidistant from a.")
+
+    # Check if vector ab and ac are equal, if so return b and c
+    # This can happen if b and c are really close to each other
+    if np.allclose(ab, ac):
+        return [b, c]
 
     # Calculate the full angle formed by ab and ac
     tangle = np.arccos(np.dot(ab, ac) / (np.linalg.norm(ab) * np.linalg.norm(ac)))
