@@ -11,10 +11,14 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
     Offset a line using dilation on its left (positive offset) or right side (negative offset).
     Parameters
     ----------
-    line shapely LineString
+    line : shapely LineString
         The line to offset.
-    offset float
-        The length of the offset to apply. Negative value for 
+    offset : float
+        The length of the offset to apply. Negative value for left-side dilation, positive for right-side.
+    cap_style : str optional
+        The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
+    quad_segs : int optional
+        The number of point allowed per circle quadrant when interpolating points using round method.
     """
 
     def __create_segments(points):
