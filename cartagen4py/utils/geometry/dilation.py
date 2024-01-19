@@ -30,7 +30,7 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
         # Loop through groups of points
         for group in points:
             # Loop through each point
-            for node in group:
+            for node in group['points']:
                 # Add the segment if the previous point exists
                 if pp is not None:
                     segments.append(shapely.LineString([pp, node]))
@@ -146,9 +146,6 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
     # Calculate the offset points along the line
     points = offset_points(oline, offset, cap_style, quad_segs)
 
-    for p in points:
-        print(p)
-
     # Get the full line as single segments
     segments = __create_segments(points)
 
@@ -157,7 +154,7 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
     # Loop through groups of points
     for nodes in points:
         # Loop through each point
-        for node in nodes:
+        for node in nodes['points']:
             fline.append(node)
     
     # Flag to see if the current line starts with a point where segment crosses
