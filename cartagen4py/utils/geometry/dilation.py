@@ -142,120 +142,20 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
 
     # Get the original line as a list of vertex coordinates
     oline = list(line.coords)
-    # Storage for the projected line
-    pline = []
 
-    # Loop through vertex of the original line
-    for i, n in enumerate(oline):
-        # Get the current point
-        a = n
+    # Calculate the offset points along the line
+    points = offset_points(oline, offset, cap_style, quad_segs)
 
-        # If it's the last point of the line
-        if i >= (len(oline) - 1):
-            # If round cap style is chosen
-            if cap_style == 'round':
-                # Get the previous point
-                b = oline[i - 1]
-
-                # Calculate the rounded extremity of the offset curve
-                ba = np.sqrt((ya - yb)**2 + (xa - xb)**2)
-                c = (xa - (((xa - xb) / ba) * (ba + abs(offset))), ya - (((ya - yb) / ba) * (ba + abs(offset))))
-
-                # Interpolate points between the last projected point and the rounded extremity c
-                rotation = 'cw' if offset < 0 else 'ccw'
-                ip = circle_interpolation(a, pline[-1][-1], c, rotation=rotation, quad_segs=quad_segs)
-
-                # Replace the last point with the interpolation
-                pline[-1] = ip
-
-            # Do nothing if the cap style is flat
-
-            # Break the loop as it's the last point
-            break
-
-        # Get the next point
-        b = oline[i + 1]
-        xa, ya, xb, yb = a[0], a[1], b[0], b[1]
-
-        # Get points as numpy arrays
-        va, vb = np.array(a), np.array(b)
-
-        # Calculate direction vector
-        direction = va - vb
-        # Normalize it
-        direction /= np.linalg.norm(direction)
-
-        # Calculate the orthogonal vector to get the projected vector
-        proj = np.array([-direction[1], direction[0]])
-
-        # Calculate the normalized buffer vector
-        nbv = offset * proj / np.linalg.norm(proj)
-
-        # Create the two new points
-        a1 = tuple(a + nbv)
-        b1 = tuple(b + nbv)
-
-        # If it's the first node
-        if i == 0:
-            
-            # If round cap style is chosen
-            if cap_style == 'round':
-                # Calculate the rounded extremity of the offset curve
-                ab = np.sqrt((yb - ya)**2 + (xb - xa)**2)
-                c = (xb - (((xb - xa) / ab) * (ab + abs(offset))), yb - (((yb - ya) / ab) * (ab + abs(offset))))
-
-                # Interpolate points between the projected a1 point and the rounded extremity c
-                rotation = 'cw' if offset < 0 else 'ccw'
-                ip = circle_interpolation(a, c, a1, rotation=rotation, quad_segs=quad_segs)
-
-                # Add the interpolated points as the first entry
-                pline.append(ip)
-
-            # If a flat cap style is chosen
-            elif cap_style == 'flat':
-                # Add the projection of a
-                pline.append([a1])
-            
-            # Add the projection of b
-            pline.append([b1])
-
-        # If it's a point between the first and the last (middle point)
-        else:
-            # Retrieve the last projected point a and b
-            a0, b0 = pline[-2][-1], pline[-1][-1]
-
-            # Create the previous and the current segment
-            seg0 = shapely.LineString([a0, b0])
-            seg1 = shapely.LineString([a1, b1])
-
-            # Check if the current and previous segments are crossing
-            if seg0.crosses(seg1):
-                # If they are, it means the angle is acute and the last point needs to be recalculated
-                # Calculate the intersection of both segments
-                crosspoint = list(shapely.intersection(seg0, seg1).coords)[0]
-                # Replace last point with this one
-                pline[-1][-1] = (crosspoint[0], crosspoint[1])    
-
-            # If they are not           
-            else:
-                # Remove the last projection of b as the circle interpolation will add it again
-                pline.pop()
-                # Making a circle interpolation between those two points.
-                rotation = 'cw' if offset < 0 else 'ccw'
-                ip = circle_interpolation(a, b0, a1, rotation=rotation, quad_segs=quad_segs)
-                # Add the interpolated points to the line
-                pline.append(ip)
-
-            # Add the projection of b to the list
-            pline.append([b1])
+    for p in points:
+        print(p)
 
     # Get the full line as single segments
-    segments = __create_segments(pline)
+    segments = __create_segments(points)
 
     # Create the full line object from groups of points
     fline = []
     # Loop through groups of points
-    for nodes in pline:
+    for nodes in points:
         # Loop through each point
         for node in nodes:
             fline.append(node)
@@ -329,6 +229,129 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
     groups = __merge_connected(parts)
 
     return groups
+
+def offset_points(points, offset, cap_style='round', quad_segs=8):
+    """
+    Generate offset points from the list of provided points.
+    Returns a list with the same length as the number of provided points. 
+    The list is composed of a list of points associated with each provided points.
+    """
+    def calculate_extremity(x1, y1, x2, y2):
+        # Calculate the rounded extremity of the offset curve
+        ab = np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
+        c = (x2 - (((x2 - x1) / ab) * (ab + abs(offset))), y2 - (((y2 - y1) / ab) * (ab + abs(offset))))
+        return c
+
+    # Storage for the projected line
+    pline = []
+
+    # Loop through vertex of the original line
+    for i, n in enumerate(points):
+        # Get the current point
+        a = n
+
+        # If it's the last point of the line
+        if i >= (len(points) - 1):
+            # If round cap style is chosen
+            if cap_style == 'round':
+                # Calculate the rounded extremity of the offset curve
+                c = calculate_extremity(xb, yb, xa, ya)
+
+                # Interpolate points between the last projected point and the rounded extremity c
+                rotation = 'cw' if offset < 0 else 'ccw'
+
+                # Replace the last point with the interpolation
+                pline[-1] = {
+                    'type': 'end',
+                    'points': circle_interpolation(a, pline[-1]['points'][-1], c, rotation=rotation, quad_segs=quad_segs)
+                }
+
+            # Do nothing if the cap style is flat
+            # Break the loop as it's the last point
+            break
+
+        # Get the next point
+        b = points[i + 1]
+        xa, ya, xb, yb = a[0], a[1], b[0], b[1]
+
+        # Get points as numpy arrays
+        va, vb = np.array(a), np.array(b)
+
+        # Calculate direction vector
+        direction = va - vb
+        # Normalize it
+        direction /= np.linalg.norm(direction)
+
+        # Calculate the orthogonal vector to get the projected vector
+        proj = np.array([-direction[1], direction[0]])
+
+        # Calculate the normalized buffer vector
+        nbv = offset * proj / np.linalg.norm(proj)
+
+        # Create the two new points
+        a1 = tuple(a + nbv)
+        b1 = tuple(b + nbv)
+
+        # If it's the first node
+        if i == 0:
+            # If round cap style is chosen
+            if cap_style == 'round':
+                # Calculate the rounded extremity of the offset curve
+                c = calculate_extremity(xa, ya, xb, yb)
+
+                # Interpolate points between the projected a1 point and the rounded extremity c
+                rotation = 'cw' if offset < 0 else 'ccw'
+                ip = circle_interpolation(a, c, a1, rotation=rotation, quad_segs=quad_segs)
+
+                # Add the interpolated points as the first entry
+                p = ip
+
+            # If a flat cap style is chosen
+            else:
+                p = [a1]
+
+            pline.append({
+                'type': 'start',
+                'points': p
+            })
+
+        # If it's a point between the first and the last (middle point)
+        else:
+            # Retrieve the last projected point a and b
+            a0, b0 = pline[-2]['points'][-1], pline[-1]['points'][-1]
+
+            # Create the previous and the current segment
+            seg0 = shapely.LineString([a0, b0])
+            seg1 = shapely.LineString([a1, b1])
+
+            # Check if the current and previous segments are crossing
+            if seg0.crosses(seg1):
+                # If they are, it means the angle is convex and the last point needs to be recalculated
+                # Calculate the intersection of both segments
+                crosspoint = list(shapely.intersection(seg0, seg1).coords)[0]
+                t = 'concave'
+                p = [(crosspoint[0], crosspoint[1])]
+
+            # If they are not           
+            else:
+                # Making a circle interpolation between those two points.
+                rotation = 'cw' if offset < 0 else 'ccw'
+                t = 'convex'
+                p = circle_interpolation(a, b0, a1, rotation=rotation, quad_segs=quad_segs)
+
+            # Replace last point with this one
+            pline[-1] = {
+                'type': t,
+                'points': p
+            }
+
+        # Add the projection of b to the list
+        pline.append({
+            'type': None,
+            'points': [b1]
+        })
+
+    return pline
 
 def circle_interpolation(a, b, c, rotation='cw', quad_segs=8):
     """
