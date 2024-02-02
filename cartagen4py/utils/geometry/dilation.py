@@ -21,28 +21,102 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
         The number of point allowed per circle quadrant when interpolating points using round method.
     """
 
-    def __create_segments(points):
-        """
-        Create individual segments from the full nested list of points.
-        """
-        segments = []
-        pp = None
-        # Loop through groups of points
-        for group in points:
-            # Loop through each point
-            for node in group['points']:
-                # Add the segment if the previous point exists
-                if pp is not None:
-                    segments.append(shapely.LineString([pp, node]))
-                # Set the previous point as the current
-                pp = node
+    # Check if provided cap style is allowed
+    acaps = ['round', 'flat']
+    if cap_style not in acaps:
+        raise Exception('Offset curve cap style unknown: {0}.'.format(cap_style))
 
-        return segments
+    # If offset is 0, return the provided line
+    if offset == 0:
+        return line
 
+    # Get the original line as a list of vertex coordinates
+    oline = list(line.coords)
+
+    # Calculate the offset points along the line
+    groups = offset_points(oline, offset, cap_style, quad_segs)
+
+    # Reconstruct the line into parts
+    parts, breaks = reconstruct_line(groups, line, offset)
+
+    # Merge parts that have a common set of coordinates
+    groups = merge_connected_parts(parts)
+
+    return groups
+
+def merge_connected_parts(groups):
+    """
+    From a list of groups, recreate groups by merging connected groups and
+    removing duplicates.
+    """
+
+    result = []
+
+    # Loop through each groups
+    for igroup, group in enumerate(groups):
+        # Storage for already merged groups
+        merged = []
+        # Loop through result groups
+        for sub in result:
+            # If common coordinates are found, add the group to the list to merge
+            if any(coord in sub for coord in group):
+                merged.append(sub)
+        
+        # If no groups were found with common coordinates, add the group to the result
+        if not merged:
+            result.append(group)
+        # If groups are found with common coordinates
+        else:
+            # Storage for the new group
+            new = []
+            # Loop through groups with common coordinates
+            for sub in merged:
+                # Loop through coordinates inside the group
+                for coord in sub:
+                    # Add them to the new group
+                    new.append(coord)
+                # Loop through coordinates inside the current group
+                for coord in group:
+                    # Add them to the new group
+                    new.append(coord)
+
+            # Rebuild the result by removing groups merged inside the new one
+            result = [g for g in result if g not in merged]
+
+            # Add the new group to the list
+            result.append(new)
+
+    for i, group in enumerate(result):
+        if len(group) > 2:
+            # Destructuring the list to get start, middle and end
+            start, *middle, end = group
+
+            # Get the list without duplicates
+            unique = list(set(group))
+            # If it's only three coordinates
+            if len(unique) == 3:
+                # Replace the result group without the duplicates and add the start at the end
+                # This should handle double crossing segments in holes
+                result[i] = unique + [unique[0]]
+            else:
+                # Create a set to store coordinates
+                seen = set()
+                # Recreate a list keeping the start and the end untouched as they can't be problematic
+                # Remove all duplicates in between start and end
+                unique_middle = [start] + [coord for coord in middle if coord not in seen and not seen.add(coord)] + [end]
+                # Replace the resulting group
+                result[i] = unique_middle
+
+    return result
+
+def reconstruct_line(groups, line, offset):
+    """
+    Reconstruct the projected line from the offset of points.
+    Return the line parts and the list of breakpoints.
+    """
+
+    # Return the minimum distance between the line and the coordinates provided.
     def __segment_distance(coords, line):
-        """
-        Return the minimum distance between the line and the coordinates provided.
-        """
         # Set the distance to None
         distance = None
 
@@ -65,167 +139,157 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
         
         return distance
 
-    def __merge_connected(groups):
-        """
-        From a list of groups, recreate groups by merging connected groups and
-        removing duplicates.
-        """
-        result = []
+    # Create individual segments from the full nested list of points.
+    def __create_segments(points):
+        segments = []
 
-        # Loop through each groups
-        for igroup, group in enumerate(groups):
-            # Storage for already merged groups
-            merged = []
-            # Loop through result groups
-            for sub in result:
-                # If common coordinates are found, add the group to the list to merge
-                if any(coord in sub for coord in group):
-                    merged.append(sub)
-            
-            # If no groups were found with common coordinates, add the group to the result
-            if not merged:
-                result.append(group)
-            # If groups are found with common coordinates
-            else:
-                # Storage for the new group
-                new = []
-                # Loop through groups with common coordinates
-                for sub in merged:
-                    # Loop through coordinates inside the group
-                    for coord in sub:
-                        # Add them to the new group
-                        new.append(coord)
-                    # Loop through coordinates inside the current group
-                    for coord in group:
-                        # Add them to the new group
-                        new.append(coord)
+        nn = None
+        # Loop through groups of points
+        for igroup, group in enumerate(points):
+            if nn is not None:
+                segments.append({
+                    'original': [igroup - 1, igroup],
+                    'geometry': shapely.LineString([nn, group['projected'][0]])
+                })
 
-                # Rebuild the result by removing groups merged inside the new one
-                result = [g for g in result if g not in merged]
+            gn = None
+            # Loop through each point of the group
+            for inode, node in enumerate(group['projected']):
+                # Add the segment if the previous point exists
+                if gn is not None:
+                    segments.append({
+                        'original': [igroup],
+                        'geometry': shapely.LineString([gn, node])
+                    })
 
-                # Add the new group to the list
-                result.append(new)
+                # Set the previous point as the current
+                gn = node
 
-        for i, group in enumerate(result):
-            if len(group) > 2:
-                # Destructuring the list to get start, middle and end
-                start, *middle, end = group
+            nn = node
 
-                # Get the list without duplicates
-                unique = list(set(group))
-                # If it's only three coordinates
-                if len(unique) == 3:
-                    # Replace the result group without the duplicates and add the start at the end
-                    # This should handle double crossing segments in holes
-                    result[i] = unique + [unique[0]]
-                else:
-                    # Create a set to store coordinates
-                    seen = set()
-                    # Recreate a list keeping the start and the end untouched as they can't be problematic
-                    # Remove all duplicates in between start and end
-                    unique_middle = [start] + [coord for coord in middle if coord not in seen and not seen.add(coord)] + [end]
-                    # Replace the resulting group
-                    result[i] = unique_middle
-
-        return result
-
-    # OFFSET CURVE ALGORITHM
-
-    # Check if provided cap style is allowed
-    acaps = ['round', 'flat']
-    if cap_style not in acaps:
-        raise Exception('Offset curve cap style unknown: {0}.'.format(cap_style))
-
-    # If offset is 0, return the provided line
-    if offset == 0:
-        return line
-
-    # Get the original line as a list of vertex coordinates
-    oline = list(line.coords)
-
-    # Calculate the offset points along the line
-    points = offset_points(oline, offset, cap_style, quad_segs)
+        return segments
 
     # Get the full line as single segments
-    segments = __create_segments(points)
-
-    # Create the full line object from groups of points
-    fline = []
-    # Loop through groups of points
-    for nodes in points:
-        # Loop through each point
-        for node in nodes['points']:
-            fline.append(node)
+    segments = __create_segments(groups)
     
     # Flag to see if the current line starts with a point where segment crosses
     breakstart = False
+    # Storage for the break points
+    breakpoints = []
+    breaks = []
     # Storage for the final groups of individual parts (below)
     parts = []
     # Storage for individual groups of nodes forming a continuous line
     part = []
 
     # Loop through all vertex of the full line
-    for n in range(0, len(fline) - 1):
-        # Get the current node and the following
-        n1, n2 = fline[n], fline[n + 1]
-        # Create the segment
-        segment = shapely.LineString([n1, n2])
+    for i, group in enumerate(groups):
+        nodes = group['projected']
+        for j, node in enumerate(nodes):
+            # Get the current node
+            n1 = node
+            # If it's the last node of the group
+            if j == (len(nodes) - 1):
+                # If it's the last group of the line
+                if i < (len(groups) - 1):
+                    # Get the first point of the next group of nodes
+                    n2 = groups[i + 1]['projected'][0]
+                    o1 = [i, i + 1]
+            else:
+                # Get the next point of the group
+                n2 = nodes[j + 1]
+                o1 = [i]
 
-        # Storage for points where segments crosses
-        cp = []
-        # Loop through segments
-        for s in segments:
-            # If the current segment crosses an other
-            if segment.crosses(s):
-                # Calculated the intersection point
-                cross = shapely.intersection(segment, s).coords[0]
-                # Add the point to the list
-                cp.append(cross)
+            # Here, n1 and n2 are assigned, creating the segment
+            segment = shapely.LineString([n1, n2])
 
-        # Add the first point as the start of the line part
-        part.append(n1)
+            # Storage for points where segments crosses
+            cp = []
+            # Loop through segments
+            for s in segments:
+                # If the current segment crosses an other
+                if segment.crosses(s['geometry']):
+                    # Calculate the intersection point
+                    cross = shapely.intersection(segment, s['geometry']).coords[0]
 
-        # If the segment crosses an other
-        if len(cp) > 0:
-            # If the segment starts with a cross point, remove the first node
-            # This avoids having a distance smaller than the offset value when it shouldn't
-            dpart = part[1:] if breakstart else part
-            # Calculate the min distance between the nodes and the original line
-            distance = round(__segment_distance(dpart, line), 8)
+                    # Get associated original segment
+                    o2 = s['original']
 
-            # If the distance is above or equal to the offset value (should be equal)
-            if distance >= abs(offset):
-                # Add the cross point to the group...
-                part.append(cp[0])
-                # ...and add the group to the list of parts
-                parts.append(part)
+                    # Create the object to add
+                    obj = {'o1': o1, 'o2': o2, 'geometry': cross}
 
-            # Particular case, the segment crosses multiple segments
-            if len(cp) > 1:
-                # Recalculate the distance between the line and the segment between the two crossing points.
-                # TODO: This might cause issues if the new segment is too close to the line.
-                # Maybe, the rounding value can be tweaked for better results.
-                cpdist = round(__segment_distance(cp, line), 8)
-                if cpdist >= abs(offset):
-                    # Add the full list of cross point (should be 2 max) as a full group
-                    parts.append(cp)
+                    # If a crossing point already exists
+                    if len(cp) > 0:
+                        # Create previous and current crossing point
+                        pp = shapely.Point(cp[0]['geometry'])
+                        pc = shapely.Point(cross)
+                        # Create starting point of the projected segment
+                        p1 = shapely.Point(n1)
 
-            # Restart a new group with the start being a cross point
-            part = [cp[-1]]
-            # Set the cross point start flag to true
-            breakstart = True
+                        # If the current crossing point if closer from the segment start
+                        if shapely.distance(pp, p1) > shapely.distance(pc, p1):
+                            # Insert the new crossing point at the start of the list to preserve the order
+                            cp.insert(0, obj)
+                        else:
+                            # Add the point at the end
+                            cp.append(obj)
+                    else:
+                        # Append the point to the list
+                        cp.append(obj)
 
-        # If the last point of the full line is reached, add the last point to the last individual part
-        if (n + 1) == len(fline) - 1:
-            part.append(n2)
+            # Add the first point as the start of the line part
+            part.append(n1)
+
+            # If the segment crosses an other
+            if len(cp) > 0:
+                # If the segment starts with a cross point, remove the first node
+                # This avoids having a distance smaller than the offset value when it shouldn't
+                dpart = part[1:] if breakstart else part
+                # Calculate the min distance between the nodes and the original line
+                distance = round(__segment_distance(dpart, line), 8)
+
+                # If the distance is above or equal to the offset value (should be equal)
+                if distance >= abs(offset):
+                    # Add the cross point to the group...
+                    part.append(cp[0]['geometry'])
+                    # ...and add the group to the list of parts
+                    parts.append(part)
+
+                    # Add the break point to the list if it doesn't already exists
+                    if cp[0]['geometry'] not in breakpoints:
+                        breakpoints.append(cp[0]['geometry'])
+                        breaks.append(cp[0])
+
+                # Particular case, the segment crosses multiple segments
+                if len(cp) > 1:
+                    # Recalculate the distance between the line and the segment between the two crossing points.
+                    # TODO: This might cause issues if the new segment is too close to the line.
+                    # Maybe, the rounding value can be tweaked for better results.
+                    geomlist = [x['geometry'] for x in cp]
+                    cpdist = round(__segment_distance(geomlist, line), 8)
+                    if cpdist >= abs(offset):
+                        # Add the full list of cross point (should be 2 max) as a full group
+                        parts.append(geomlist)
+
+                        # Add all breaks if they do not already exists
+                        for b in cp:
+                            if b['geometry'] not in breakpoints:
+                                breakpoints.append(b['geometry'])
+                                breaks.append(b)
+
+                # Restart a new group with the start being a cross point
+                part = [cp[-1]['geometry']]
+                # Set the cross point start flag to true
+                breakstart = True
+
+            # If the last point of the full line is reached, add the last point to the last individual part
+            if (i == (len(groups) - 1)) and (j == (len(nodes))):
+                part.append(n2)
 
     # Add the last created part to the full list of parts
     parts.append(part)
 
-    # Merge parts that have a common set of coordinates
-    groups = __merge_connected(parts)
-
-    return groups
+    return parts, breaks
 
 def offset_points(points, offset, cap_style='round', quad_segs=8):
     """
@@ -258,13 +322,11 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
                 rotation = 'cw' if offset < 0 else 'ccw'
 
                 # Replace the last point with the interpolation
-                pline[-1] = {
-                    'type': 'end',
-                    'points': circle_interpolation(a, pline[-1]['points'][-1], c, rotation=rotation, quad_segs=quad_segs)
-                }
-
-            # Do nothing if the cap style is flat
+                pline[-1]['type'] = 'end'
+                pline[-1]['projected'] = circle_interpolation(a, pline[-1]['projected'][-1], c, rotation=rotation, quad_segs=quad_segs)
+            
             # Break the loop as it's the last point
+            # Do nothing for flat cap style
             break
 
         # Get the next point
@@ -309,13 +371,14 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
 
             pline.append({
                 'type': 'start',
-                'points': p
+                'original': i,
+                'projected': p
             })
 
         # If it's a point between the first and the last (middle point)
         else:
             # Retrieve the last projected point a and b
-            a0, b0 = pline[-2]['points'][-1], pline[-1]['points'][-1]
+            a0, b0 = pline[-2]['projected'][-1], pline[-1]['projected'][-1]
 
             # Create the previous and the current segment
             seg0 = shapely.LineString([a0, b0])
@@ -323,11 +386,9 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
 
             # Check if the current and previous segments are crossing
             if seg0.crosses(seg1):
-                # If they are, it means the angle is convex and the last point needs to be recalculated
-                # Calculate the intersection of both segments
-                crosspoint = list(shapely.intersection(seg0, seg1).coords)[0]
+                # If they are, it means the angle is convex, add both points
                 t = 'concave'
-                p = [(crosspoint[0], crosspoint[1])]
+                p = [b0, a1]
 
             # If they are not           
             else:
@@ -337,15 +398,15 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
                 p = circle_interpolation(a, b0, a1, rotation=rotation, quad_segs=quad_segs)
 
             # Replace last point with this one
-            pline[-1] = {
-                'type': t,
-                'points': p
-            }
+            pline[-1]['type'] = t
+            pline[-1]['original'] = i
+            pline[-1]['projected'] = p
 
         # Add the projection of b to the list
         pline.append({
-            'type': None,
-            'points': [b1]
+            'type': 'end',
+            'original': i + 1,
+            'projected': [b1]
         })
 
     return pline

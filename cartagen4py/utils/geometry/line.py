@@ -170,7 +170,7 @@ def split_line_at_point(line, point):
     Return the two new linestrings.
     Return None if the line and the point doesn't intersect.
     """
-    if line.distance(point) < 1e-8:
+    if line.distance(point) > 1e-8:
         return None
 
     projected = nearest_points(point, line)[1]
