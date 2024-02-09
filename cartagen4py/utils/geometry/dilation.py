@@ -169,9 +169,39 @@ def reconstruct_line(groups, line, offset):
 
         return segments
 
+    # Handle concavities inside the line by calculating the intersection formed by the previous and following lines
+    def __handle_concavity(groups):
+        # Storage to update geometries
+        geom = []
+
+        # Loop through groups
+        for i, group in enumerate(groups):
+            # Check that group is a concavity
+            if group['type'] == 'concave':
+                # Calculate previous and following segment
+                seg1 = shapely.LineString([groups[i - 1]['projected'][-1], group['projected'][0]])
+                seg2 = shapely.LineString([group['projected'][-1], groups[i + 1]['projected'][0]])
+                
+                # Calculate intersection between both segments
+                intersection = shapely.intersection(seg1, seg2)
+
+                # If the intersection is a Point, replace the projected points of the group
+                if intersection.geom_type == 'Point':
+                    geom.append((i, intersection.coords[0]))
+
+        # Loop through the new geoms
+        for g in geom:
+            # Update the geometry of the corresponding group
+            groups[g[0]]['projected'] = [g[1]]
+
+        return groups
+
+    # Handle concavities
+    groups = __handle_concavity(groups)
+
     # Get the full line as single segments
     segments = __create_segments(groups)
-    
+
     # Flag to see if the current line starts with a point where segment crosses
     breakstart = False
     # Storage for the break points
@@ -190,7 +220,7 @@ def reconstruct_line(groups, line, offset):
             n1 = node
             # If it's the last node of the group
             if j == (len(nodes) - 1):
-                # If it's the last group of the line
+                # If it's not the last group of the line
                 if i < (len(groups) - 1):
                     # Get the first point of the next group of nodes
                     n2 = groups[i + 1]['projected'][0]
@@ -268,7 +298,7 @@ def reconstruct_line(groups, line, offset):
                     geomlist = [x['geometry'] for x in cp]
                     cpdist = round(__segment_distance(geomlist, line), 8)
                     if cpdist >= abs(offset):
-                        # Add the full list of cross point (should be 2 max) as a full group
+                        # Add the full list of cross point as a full group
                         parts.append(geomlist)
 
                         # Add all breaks if they do not already exists
@@ -286,8 +316,9 @@ def reconstruct_line(groups, line, offset):
             if (i == (len(groups) - 1)) and (j == (len(nodes))):
                 part.append(n2)
 
-    # Add the last created part to the full list of parts
-    parts.append(part)
+    # Add the last created part to the full list of parts only if its last point is not too close to the line
+    if round(shapely.distance(shapely.Point(part[-1]), line), 8) >= abs(offset):
+        parts.append(part)
 
     return parts, breaks
 
@@ -377,6 +408,8 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
 
         # If it's a point between the first and the last (middle point)
         else:
+            # TODO: Better handle concavities on the line, for now, when the projected segment
+            # crosses the original line, some weird things happen, but these are removed after the line reconstruction
             # Retrieve the last projected point a and b
             a0, b0 = pline[-2]['projected'][-1], pline[-1]['projected'][-1]
 
@@ -386,7 +419,7 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
 
             # Check if the current and previous segments are crossing
             if seg0.crosses(seg1):
-                # If they are, it means the angle is convex, add both points
+                # If they are, it means the angle is concave, add both points
                 t = 'concave'
                 p = [b0, a1]
 
