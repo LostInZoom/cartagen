@@ -255,7 +255,7 @@ class Stroke:
     def __str__(self):
         liste=""
         for elem in self.features: 
-            liste+=str(elem["id"])
+            #liste+=str(elem["id"])AC n'enregistre pas les id initiaux
             liste+=","
         return liste
     
@@ -273,7 +273,7 @@ class StrokeNetwork:
         for idx in shapefile.index: 
             elem={}
             elem["geom"]=shapefile.geometry[idx]
-            elem["id"]=shapefile.id[idx]
+            #elem["id"]=getattr(shapefile,'id')[idx]AC n'enregistre pas les id initiaux
 
             for attr in attributeNames:
                 elem[attr]=getattr(shapefile,attr)[idx]
@@ -307,7 +307,7 @@ class StrokeNetwork:
             section=""
             for j, seg in enumerate(stroke.features):
                 listline+=[seg["geom"]]
-                section += str(seg["id"])
+                #section += str(seg["id"])AC n'enregistre pas les id initiaux
                 if j < len(stroke.features):
                     section += ","
             print(listline)
