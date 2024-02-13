@@ -12,7 +12,7 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
     Detect pastiness of a line object. The result is a list of sections of the original line.
     """
 
-    # Handle individual side
+    # Handle individual sides
     def __treat_side(line, width, cap_style, quad_segs):
         # Prepare the break points
         def __prepare_breaks(breaks, coords, lines, oline):
@@ -57,15 +57,16 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
                 b['p2'] = __project_point(b['o2'], coords, None)
 
             # Order the breaks using the length from the start of the original line to the projection of the break on the line
+            # This is useful when dealing with multiple breaks projected on the same segment.
             return sorted(breaks, key=lambda d: d['length'])
 
         # Create a conflict
-        def __create_conflict(breaks, i1, i2, coords, ctype):
+        def __create_conflict(breaks, i1, i2, coords, ctype, otype):
             # Retrieve the index of the first concerned node of the main line
             n = breaks[i1]['o{0}'.format(i2)][0]
 
             # Create the list entry
-            e = { 'type': ctype, 'node': n }
+            e = { 'type': ctype, 'node': n, 'distance': 0, 'order': otype }
 
             # Get coordinates of the projection of the node on the line and the associated vertex
             c, cl = breaks[i1]['p{0}'.format(i2)], coords[n]
@@ -102,8 +103,8 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
         # and skips the point processing
         skip = False
         # This storage will contain pairs of indexes of projected line parts
-        # between which a hole conflict exists. This allows the avoid treating break points
-        # that are not hole conflict.
+        # between which a hole conflict exists. This allows to avoid treating break points
+        # that are not hole conflicts.
         done = []
 
         # Storage for holes and pastes
@@ -132,15 +133,15 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
                         # Adding the group indicator to the done list
                         done.append([b['group'], breaks[i + 1]['group']])
 
-                        # Create the conflict for the first part of the hole conflict
-                        h1 = __create_conflict(breaks, i, 1, coords, 'hole')
-                        h4 = __create_conflict(breaks, i, 2, coords, 'hole')
+                        # Create the first conflict and add it to the list
+                        h1 = __create_conflict(breaks, i, 1, coords, 'hole', 'start')
+                        h2 = __create_conflict(breaks, i + 1, 1, coords, 'hole', 'end')
+                        conflicts.extend([h1, h2])
 
-                        # Create the conflict for the second part of the hole conflict
-                        h2 = __create_conflict(breaks, i + 1, 1, coords, 'hole')
-                        h3 = __create_conflict(breaks, i + 1, 2, coords, 'hole')
-
-                        conflicts.extend([(h1, h2), (h3, h4)])
+                        # Create the second conflict and add it to the list
+                        h3 = __create_conflict(breaks, i + 1, 2, coords, 'hole', 'start')
+                        h4 = __create_conflict(breaks, i, 2, coords, 'hole', 'end')
+                        conflicts.extend([h3, h4])
 
                         skip = True
                         continue
@@ -165,12 +166,12 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
             # If the distance is above 1.7 times the width of the symbol
             if maxdist > (1.7 * abs(width)):
                 # Here, it is a strict pastiness conflict
-                p1 = __create_conflict(breaks, i, 1, coords, 'paste')
-                p2 = __create_conflict(breaks, i, 2, coords, 'paste')
+                p1 = __create_conflict(breaks, i, 1, coords, 'paste', 'start')
+                p2 = __create_conflict(breaks, i, 2, coords, 'paste', 'end')
 
-                conflicts.append((p1, p2))
+                conflicts.extend([p1, p2])
 
-        return sorted(conflicts, key=lambda d: d[0]['node'])
+        return conflicts
 
     # Prepare the lines generated from the dilatation
     def __prepare_lines(groups):
@@ -202,40 +203,45 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
     lconflicts = __treat_side(line, width, cap_style, quad_segs)
     rconflicts = __treat_side(line, -width, cap_style, quad_segs)
 
+    # Sort the conflicts by node number and distance from the node
+    conflicts = sorted(rconflicts + lconflicts, key=lambda s: (s['node'], s['distance']))
+
     # Retrieve coordinates of the original line
     coords = list(line.coords)
 
-    # Copy the list of coordinates of the original line
-    newcoords = coords.copy()
-
+    # Storage for the final lines
     result = []
+    # The state flag identify the current pastiness level
+    state = 0
 
-    # Loop through conflicts
-    for conflict in rconflicts + lconflicts:       
-        # Retrieve start and end object
-        start, end = conflict
+    # This will be the first line
+    current = []
 
-        # Retrieve the type of conflict
-        ctype = start['type']
+    # Loop through the coordinates of the original line
+    for i, c in enumerate(coords):
+        # Add the current node of the original line
+        current.append(c)
 
-        # Retrieve the start and end node index
-        n1, n2 = start['node'], end['node']
+        for o in conflicts:
+            if o['node'] == i:
+                otype = o['order']
 
-        nodes = []
-        # Loop through the original line coordinates
-        for i, c in enumerate(coords):
-            # Append the index if it is between the start and end node index
-            if n1 <= i <= n2:
-                nodes.append(c)
-        
-        if 'distance' in start:
-            nodes[0] = start['coords']
+                if 'coords' in o:
+                    current.append(o['coords'])
+                    result.append({ 'paste': state, 'geometry': shapely.LineString(current) })
+                    n = o['coords']
+                else:
+                    if len(current) > 0:
+                        result.append({ 'paste': state, 'geometry': shapely.LineString(current) })
+                    n = c
+                
+                current = [n]
 
-        if 'distance' in end:
-            nodes.append(end['coords'])
+                if otype == 'start':
+                    state += 1
+                else:
+                    state -= 1
 
-        result.append({'geometry': shapely.LineString(nodes)})
+    result.append({ 'paste': state, 'geometry': shapely.LineString(current) })
 
-    make_gdf(result, 'sections')
-
-    return None
+    return result
