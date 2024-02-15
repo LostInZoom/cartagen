@@ -6,6 +6,8 @@ import geopandas as gpd
 
 from cartagen4py.utils.geometry.line import *
 
+from test_functions import *
+
 def offset_curve(line, offset, cap_style='round', quad_segs=8):
     """
     Offset a line using dilation on its left (positive offset) or right side (negative offset).
@@ -350,7 +352,7 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
                 c = calculate_extremity(xb, yb, xa, ya)
 
                 # Interpolate points between the last projected point and the rounded extremity c
-                rotation = 'cw' if offset < 0 else 'ccw'
+                rotation = 'ccw' if offset < 0 else 'cw'
 
                 # Replace the last point with the interpolation
                 pline[-1]['type'] = 'end'
@@ -376,7 +378,7 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
         proj = np.array([-direction[1], direction[0]])
 
         # Calculate the normalized buffer vector
-        nbv = offset * proj / np.linalg.norm(proj)
+        nbv = - offset * proj / np.linalg.norm(proj)
 
         # Create the two new points
         a1 = tuple(a + nbv)
@@ -390,7 +392,7 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
                 c = calculate_extremity(xa, ya, xb, yb)
 
                 # Interpolate points between the projected a1 point and the rounded extremity c
-                rotation = 'cw' if offset < 0 else 'ccw'
+                rotation = 'ccw' if offset < 0 else 'cw'
                 ip = circle_interpolation(a, c, a1, rotation=rotation, quad_segs=quad_segs)
 
                 # Add the interpolated points as the first entry
@@ -426,7 +428,7 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
             # If they are not           
             else:
                 # Making a circle interpolation between those two points.
-                rotation = 'cw' if offset < 0 else 'ccw'
+                rotation = 'ccw' if offset < 0 else 'cw'
                 t = 'convex'
                 p = circle_interpolation(a, b0, a1, rotation=rotation, quad_segs=quad_segs)
 
