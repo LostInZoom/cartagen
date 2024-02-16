@@ -4,9 +4,19 @@ from shapely.geometry import LineString, Point
 from math import pi, sqrt, exp
 from cartagen4py.utils.geometry.line import densify_geometry, to_2d, get_index_of_nearest_vertex
 
-# Compute the gaussian smoothing of a set of a LineString. Sigma is the gaussian filter parameter, and threshold is the subsampling parameter
-# This code is a port from the GaussianFilter class in the GeOxygene Java library. See p. 119-120 of the book "Algorithmic Foundation of Multi-Scale Spatial Representation" by Z. Li.
 def gaussian_smoothing(line, sigma, threshold):
+    """
+    Compute the gaussian smoothing of a set of a LineString.
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to smooth.
+    sigma : float
+        Gaussian filter strength.
+    threshold : int
+        Amount of nodes to add during the subsampling phase.
+    """
+
     # first resample the line, making sure there is a maximum distance between two consecutive vertices
     resampled = densify_geometry(line, threshold)
 
