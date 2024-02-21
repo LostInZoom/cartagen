@@ -3,7 +3,6 @@ import numpy as np
 from shapely.geometry import LineString
 
 from cartagen4py.utils.geometry.line import *
-from test_functions import *
 
 class SkeletonTIN:
     """
@@ -37,6 +36,7 @@ class SkeletonTIN:
         self.entries = []
 
         self.incoming = None
+        self.blended = []
 
         # Launching Delaunay's triangulation to populate nodes, edges and triangles
         self.__delaunay_triangulation(polygon)
@@ -324,6 +324,7 @@ class SkeletonTIN:
             # Else, retrieve the blended network without contained lines
             blended = [b for i, b in enumerate(blended) if i not in remove]
 
+        self.blended = blended
         return blended
 
     def __skeletonize(self, polygon, threshold_range):
