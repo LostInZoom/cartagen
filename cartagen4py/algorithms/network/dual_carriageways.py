@@ -155,7 +155,11 @@ def collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=3, 
                         incoming.append({ "geometry": egeom })
 
             # Calculate the skeleton
-            skeleton = SkeletonTIN(polygon, incoming=incoming, distance_douglas_peucker=distance_douglas_peucker, attributes=attributes)
+            skeleton = SkeletonTIN(polygon)
+            skeleton.add_incoming_lines(incoming)
+            skeleton.create_network(distance=distance_douglas_peucker)
+            skeleton.blend(attributes)
+
             skeletons.append(skeleton)
 
             # # Storing the original geometries of the crossroad
@@ -324,7 +328,7 @@ def collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=3, 
     for skeleton in skeletons:
         if skeleton is not None:
             # Storing the blended skeleton
-            collapsed.extend(skeleton.blend())
+            collapsed.extend(skeleton.blended)
 
     result = []
     remove = []
