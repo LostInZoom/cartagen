@@ -5,7 +5,7 @@ import pprint
 from cartagen4py.utils.geometry.dilation import *
 from cartagen4py.utils.geometry.line import *
 
-from test_functions import *
+#from test_functions import *
 
 def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
     """

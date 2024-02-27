@@ -11,7 +11,7 @@ data={'geometry':
          LineString([Point(2.2, 2),Point(3, 3)]),
          ],
         'name':
-            ["rue de la maison blanche",None,"rue de la maison blanche",None,None],
+            ["rue de la maison blanche",None,None,"rue de la maison blanche","rue de la maison blanche"],
         'id':
             [1,2,3,4,5]}
 lines =gpd.GeoDataFrame(data, crs="EPSG:4326")

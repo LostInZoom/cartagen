@@ -6,7 +6,7 @@ import geopandas as gpd
 
 from cartagen4py.utils.geometry.line import *
 
-from test_functions import *
+#from test_functions import *
 
 def offset_curve(line, offset, cap_style='round', quad_segs=8):
     """
