@@ -20,7 +20,7 @@ def gaussian_smoothing(line, sigma, threshold):
     # first resample the line, making sure there is a maximum distance between two consecutive vertices
     resampled = densify_geometry(line, threshold)
 
-    interval = round(4*sigma/threshold)
+    interval = round(4 * sigma / threshold)
     # if the interval is longer than the input line, we change the interval
     if(interval >= len(resampled.coords)):
         interval = len(resampled.coords) - 1
@@ -31,24 +31,25 @@ def gaussian_smoothing(line, sigma, threshold):
     c1 = 1.0 / (sigma * sqrt(2.0 * pi))
     # compute gassian weights and their sum
     weights = []
-    sum = 0
+    total = 0
     for k in range (0,interval+1):
         weight = c1 * exp(c2*k*k)
         weights.append(weight)
-        sum += weight
+        total += weight
         if k>0:
-            sum += weight
+            total += weight
     
     # extend the line at its first and last points with central inversion
     extended = __extend(resampled,interval)
+
     smoothed_coords = []
     for i in range(0,len(resampled.coords)):
         x = 0
         y = 0
         for k in range(-interval,interval+1):
             p1 = extended.coords[i-k+interval]
-            x += weights[abs(k)]*p1[0] / sum
-            y += weights[abs(k)]*p1[1] / sum
+            x += weights[abs(k)]*p1[0] / total
+            y += weights[abs(k)]*p1[1] / total
         smoothed_coords.append((x,y))
     
     # only return the points matching the input points in the resulting filtered line
@@ -62,6 +63,7 @@ def gaussian_smoothing(line, sigma, threshold):
             final_coords.append(point)
         else:
             final_coords.append(smoothed_coords[index])
+            resampled = LineString(list(resampled.coords).pop(index))
     
     return LineString(final_coords)
 
