@@ -63,7 +63,6 @@ def gaussian_smoothing(line, sigma, threshold):
             final_coords.append(point)
         else:
             final_coords.append(smoothed_coords[index])
-            resampled = LineString(list(resampled.coords).pop(index))
     
     return LineString(final_coords)
 
