@@ -314,7 +314,8 @@ Figure 12. A river network with color depicting the stroke.
 Figure 13. A river network with color depicting the Horton order : purple =1; yellow=2.
 
 .. method:: save_strokes_shp(path)
-
+    :param path: the access path to the file in which the stroke must be recorded
+   :type kind: str
     This algorithm allows to save the computed stroke in a shapefile. The algorithm merges all segment belonging to a stroke in a new entity that has as attribute an id generated as a serial and the comma-separated list of IDs of initial sections used to construct the stroke
     The 'path' parameter allows to specify where the output shapefile must be saved.
 
