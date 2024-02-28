@@ -1,5 +1,6 @@
 from cartagen4py.processes.AGENT.actions.generalisation_action import GeneralisationAction
 from cartagen4py.algorithms.buildings.random_displacement import BuildingDisplacementRandom
+from cartagen4py.algorithms.blocks.building_elimination import *
 import geopandas as gpd
 
 class RandomBlockDisplacementAction(GeneralisationAction):
@@ -36,3 +37,14 @@ class PromBlockEliminationAction(GeneralisationAction):
     def compute(self):
         """Compute the action, i.e. triggers the algorithm."""
         # TODO
+        roads = [section.feature['geometry'] for section in self.agent.sections]
+        buildings = [component.feature['geometry'] for component in self.agent.components]
+        corners, corner_areas = corner_buildings(buildings, roads)
+        triangulation = block_triangulation(buildings,roads,30.0)
+        congestion = []
+        for building in buildings:
+            congestion.append(building_congestion(building,triangulation,30.0))
+        elimination = building_elimination_ranking_in_block(buildings, triangulation, congestion, 250.0, corners)
+        for eliminated in elimination:
+            # check if we have to eliminate even more
+            building = buildings[eliminated[0][0]]
