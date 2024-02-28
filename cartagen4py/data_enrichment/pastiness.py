@@ -5,8 +5,6 @@ import pprint
 from cartagen4py.utils.geometry.dilation import *
 from cartagen4py.utils.geometry.line import *
 
-#from test_functions import *
-
 def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
     """
     Detect pastiness of a line object. The result is a list of sections of the original line.
@@ -96,8 +94,6 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
 
         # Prepare the break points
         breaks = __prepare_breaks(breaks, coords, lines, line)
-
-        # make_gdf(breaks, 'breaks')
 
         # This flag handles projected points right after a hole conflict
         # and skips the point processing
