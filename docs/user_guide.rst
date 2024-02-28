@@ -277,36 +277,64 @@ Stroke computation (for river networks)
 
 .. class:: RiverStrokeNetwork(lines, attributeNames)
 
-    This Class contains methods allowing the computation of the strokes in a river network. Strokes are network segments that follow the perceptual grouping principle of Good Continuity (Gestalt).
-    In particular, for a hydrographic network, we can compute stroke from sources to sink while computing Strahler order.
-    The initialization of this class is required prior to computing strokes, it includes the precomputing of neighbouring relations between edges of the network.
-    The 'lines' parameter gives the geopanda data frame containing the line entwork geometries and attributes. The 'attributesNames' parameter is the list of attribute names (as str) to be used as a criterion for continuity. 
+    This Class contains methods allowing the computation of the strokes in a river network. 
+    
+    :param lines: The geopanda dataframe from which the network must be initialized. It must contain an 'id' column with a unique id (the name is case sensitive). Geometry must be simple LineString (no MultiLineString). The geometry can have a Z value but inconsistencies in Z value may make the stroke research fails.  
+    :type lines: GeoDataFrame
+    :param attributeNames: List of attribute names to be used as a criteria for continuity.
+    :type attributeNames: list[str]
+    Strokes are network segments that follow the perceptual grouping principle of Good Continuity (Gestalt). The initialization of this class is required prior to computing strokes, it includes the precomputing of neighbouring relations between edges of the network.
+
 
 .. method:: buildRiverStrokes(self, attributeNames,deviatAngle, deviatSum)
 
-    This method computes the stroke in the network, first, it identifies each source as a departure for a stroke adds them to the downstream section list and sets its Strahler order to 1.
+    This method computes strokes in a RiverStrokeNetwork, add updates its strokes attributes. It can find strokes in complex braided networks.
+
+    :param self: The RiverNetwork in which we expect to compute strokes
+    :type self: RiverStrokeNetwork
+    :param attributeNames: List of attribute names to be used as a criteria for continuity.
+    :type attributeNames: list[str]
+    :param deviatAngle: Thresholds for the maximum angle between two segments at the junction of two sections belonging to the same stroke.
+    :type deviatAngle: float
+    :param deviatSum: Thresholds for the maximum angle between two sections belonging to the same stroke.
+    :type deviatAngle, deviatSum: float
+    Stroke are computed from sources to sink while computing Strahler order.
+    First, it identifies each source as a departure for a stroke adds them to the downstream section list and sets its Strahler order to 1.
     Then the main loop runs through the downstream section list, pops the current element and adds the next section in its stroke (if exists).
-    This algorithm can find strokes in complex braided networks.
-    'attributeNames', is the list of attribute names (as str) to be used as a criteria for continuity.
-    'deviatAngle', and 'deviatSum' are the thresholds for geometric continuity that respectively represent the maximum angle between two segments at the junction of two sections belonging to the same stroke and the maximum angle between two sections belonging to the same stroke.
-    The algorithm updates the attributes strokes of class NetworkStroke that contain the list of strokes in the network. 
+
 
 .. code-block:: pycon
-    data={'geometry':
-        [LineString([Point(1,4),Point(1, 3)]),LineString([Point(1.5,3.5),Point(1, 3)]),
-         LineString([Point(1, 3),Point(1, 2.4)]), LineString([Point(1, 2.4),Point(0.8, 1.8),Point(0.9, 1.5)]),
-         LineString([Point(1, 2.4),Point(1.2, 2.1)]), LineString([Point(1.2, 2.1),Point(0.9, 1.5)]),
-         LineString([Point(0.9, 1.5),Point( 1.2,0.6)]), LineString([Point(1.2, 2.1),Point( 1.2,0.6)]),
-         LineString([Point( 1.2,0.6),Point(1.1, 0.3)]), LineString([Point(1.1, 0.3),Point(1, 0)]),
+from shapely.geometry import LineString, Point
+import geopandas as gpd
+from cartagen4py.data_enrichment import RiverStrokeNetwork
+import matplotlib.pyplot as plt
+
+data={'geometry':
+        [LineString([Point(1,4),Point(1, 3)]),
+         LineString([Point(1.5,3.5),Point(1, 3)]),
+         LineString([Point(1, 3),Point(1, 2.4)]),
+         LineString([Point(1, 2.4),Point(0.8, 1.8),Point(0.9, 1.5)]),
+         LineString([Point(1, 2.4),Point(1.2, 2.1)]),
+         LineString([Point(1.2, 2.1),Point(0.9, 1.5)]),
+         LineString([Point(0.9, 1.5),Point( 1.2,0.6)]),
+         LineString([Point(1.2, 2.1),Point( 1.2,0.6)]),
+         LineString([Point( 1.2,0.6),Point(1.1, 0.3)]),
+         LineString([Point(1.1, 0.3),Point(1, 0)]),
          LineString([Point(0.5, 2),Point(1.1, 0.3)])],
-        'id': [1,2,3,4,5,6,8,9,10,11,12]}
-    lines =gpd.GeoDataFrame(data, crs="EPSG:4326")
-    sn=RiverStrokeNetwork(lines,None)
-    sn.buildRiverStrokes([], 45,30)
-    array=sn.reconstruct_strokes()
-    gdf = gpd.GeoDataFrame(array,  columns = ['id', 'geom',"strahler"],crs="epsg:2154",geometry="geom")   
-    gdf.plot('id')
-    gdf.plot('strahler')
+        'id':[1,2,3,4,5,6,8,9,10,11,12]}
+lines =gpd.GeoDataFrame(data, crs="EPSG:4326")
+
+sn=RiverStrokeNetwork(lines,None)
+
+sn.buildRiverStrokes([], 45,30)
+array=sn.reconstruct_strokes()
+gdf = gpd.GeoDataFrame(array,  columns = ['id', 'geom',"strahler"],crs="epsg:4326",geometry="geom")
+
+a=gdf.plot('id')
+plt.show()
+
+b=gdf.plot('strahler')
+plt.show()
 
 .. plot:: code/riverstroke.py
 
@@ -314,10 +342,14 @@ Figure 12. A river network with color depicting the stroke.
 Figure 13. A river network with color depicting the Horton order : purple =1; yellow=2.
 
 .. method:: save_strokes_shp(path)
-    This algorithm allows to save the computed stroke in a shapefile. The algorithm merges all segment belonging to a stroke in a new entity that has as attribute an id generated as a serial and the comma-separated list of IDs of initial sections used to construct the stroke
-    The 'path' parameter allows to specify where the output shapefile must be saved.
-    :param path: the access path to the file in which the stroke must be recorded
+
+    This method save the computed stroke in a shapefile. 
+    
+    :param path: The access path to the file in which the stroke must be recorded
     :type path: str
+    
+    The saved shapefile is made with segment belonging to a unique stroke merged in a geometries  the attributes of each geometries are an id (generated as a serial) and the comma-separated list of IDs of initial sections used to construct the stroke.
+
 
 
 
