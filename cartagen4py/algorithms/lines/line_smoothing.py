@@ -17,76 +17,92 @@ def gaussian_smoothing(line, sigma, threshold):
         Amount of nodes to add during the subsampling phase.
     """
 
-    # first resample the line, making sure there is a maximum distance between two consecutive vertices
+    # First resample the line, making sure there is a maximum distance between two consecutive vertices
     resampled = densify_geometry(line, threshold)
 
+    # Calculate the interval (number of vertex to take into consideration when smoothing)
     interval = round(4 * sigma / threshold)
-    # if the interval is longer than the input line, we change the interval
-    if(interval >= len(resampled.coords)):
+    # If the interval is longer than the input line, we change the interval and recalculate the sigma
+    if interval >= len(resampled.coords):
         interval = len(resampled.coords) - 1
         sigma = interval * threshold / 4
     
-    # compute gaussian coefficients
+    # Compute gaussian coefficients
     c2 = -1.0 / (2.0 * sigma * sigma)
     c1 = 1.0 / (sigma * sqrt(2.0 * pi))
-    # compute gassian weights and their sum
+
+    # Compute the gaussian weights and their sum
     weights = []
     total = 0
-    for k in range (0,interval+1):
-        weight = c1 * exp(c2*k*k)
+    for k in range (0, interval + 1):
+        weight = c1 * exp(c2 * k * k)
         weights.append(weight)
         total += weight
-        if k>0:
+        if k > 0:
             total += weight
     
-    # extend the line at its first and last points with central inversion
-    extended = __extend(resampled,interval)
+    # Extend the line at its first and last points with central inversion
+    extended = __extend(resampled, interval)
 
     smoothed_coords = []
-    for i in range(0,len(resampled.coords)):
-        x = 0
-        y = 0
-        for k in range(-interval,interval+1):
-            p1 = extended.coords[i-k+interval]
-            x += weights[abs(k)]*p1[0] / total
-            y += weights[abs(k)]*p1[1] / total
+    for i in range(0, len(resampled.coords)):
+        x, y = 0, 0
+        for k in range(-interval , interval + 1):
+            p1 = extended.coords[i - k + interval]
+            x += weights[abs(k)] * p1[0] / total
+            y += weights[abs(k)] * p1[1] / total
         smoothed_coords.append((x,y))
-    
-    # only return the points matching the input points in the resulting filtered line
+
+    # Only return the points matching the input points in the resulting filtered line
     final_coords = []
-    for point in line.coords:
-        # get the index of point in resampled
-        index = get_index_of_nearest_vertex(resampled, Point(to_2d(point[0], point[1], 0)))
-        # check the distance to the line
-        dist = line.distance(Point(smoothed_coords[index]))
-        if index < 6 and dist > (threshold * 3):
-            final_coords.append(point)
+    # Stores for index of already treated vertices
+    done = []
+    # Loop through initial vertices
+    for point in list(line.coords):
+        # Set the distance to infinite
+        distance = float("inf")
+        nearest = None
+        # Loop through smoothed coordinates
+        for i in range(len(smoothed_coords)):
+            # Check that the index has not been already added
+            if i not in done:
+                # Calculate distance from the point
+                d = Point(smoothed_coords[i]).distance(Point(point))
+                if d < distance:
+                    # Update distance and nearest index if below existing
+                    distance, nearest = d, i
+
+        # If a nearest point has been found, add it to the new line
+        if nearest is not None:
+            final_coords.append(smoothed_coords[nearest])
+            # Add the index as treated already
+            done.append(nearest)
         else:
-            final_coords.append(smoothed_coords[index])
-    
+            final_coords.append(point)
+
     return LineString(final_coords)
 
 # Extend the given set of points at its first and last points of k points using central inversion.
 def __extend(line, interval):
-    nb_vert = len(line.coords)
-    first = line.coords[0]
-    last = line.coords[nb_vert-1]
-    new_coords = []
-    for i in range(0,nb_vert+2*interval):
-        position = i - interval
-        if(i < interval):
-            p = line.coords[position]
-            new_coords.append(__central_inversion(first,p))
-        else:
-            if(position >= nb_vert):
-                beyond = position - nb_vert +1
-                p = line.coords[nb_vert-1-beyond]
-                new_coords.append(__central_inversion(last,p))
-            else:
-                p = line.coords[position]
-                new_coords.append(p)
+    # Get the coordinates of the vertices
+    coords = list(line.coords)
+    # Get the first and last vertex
+    first, last = coords[0], coords[-1]
 
-    return LineString(new_coords)
+    # Get the index of the penultimate vertex
+    # -2 is to avoid taking the last vertex
+    pen = len(coords) - 2
+
+    # Set the start of the line as the central inversion of n first vertices (n = interval)
+    result = [__central_inversion(first, coords[i]) for i in range(interval, 0, -1)]
+
+    # Add the full line as the middle part of the line
+    result.extend(coords)
+
+    # Add the end of the line as the central inversion of n last vertices (n = interval)
+    result.extend([__central_inversion(last, coords[i]) for i in range(pen, pen - interval, -1)])
+
+    return LineString(result)
 
 # Compute the central inversion of a position. origin is the center of symmetry and p is the point to inverse.
 def __central_inversion(origin, p):
