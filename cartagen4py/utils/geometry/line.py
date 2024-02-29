@@ -48,23 +48,35 @@ def polygons_3d_to_2d(polygons):
        polygons_2d.append(Polygon(coords_2d,interiors))
     return polygons_2d
 
-# densifies a line with vertices every 'step' along the line
-def densify_geometry (line_geometry, step):
+def densify_geometry(line, step):
+    """
+    Densifies a line with vertices every 'step' along the line. Keep the start and end vertex.
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to densify.
+    step : float
+        The step (in meters) to resample the geometry
+    """
 
-    # step: add a vertice every step in whatever unit your coordinate reference system use.
+    # Get the length of the line
+    length = line.length 
     
-    length_m=line_geometry.length # get the length of the line
+    # Storage for final vertices, starting with the start of the line
+    xy = [(line.coords[0])]
     
-    xy=[] # to store new tuples of coordinates
+    for distance in np.arange(step, int(length), step):
+        # Interpolate a point every step along the old line
+        point = line.interpolate(distance)
+        # Add the tuple of coordinates
+        xy.append((point.x, point.y))
     
-    for distance_along_old_line in np.arange(0,int(length_m),step): 
+    # Add the last point of the line if it doesn't already exist
+    if xy[-1] != line.coords[-1]:
+        xy.append(line.coords[-1])
     
-        point = line_geometry.interpolate(distance_along_old_line) # interpolate a point every step along the old line
-        xp,yp = point.x, point.y # extract the coordinates
-    
-        xy.append((xp,yp)) # and store them in xy list
-    
-    return LineString(xy) # Here, we finally create a new line with densified points.
+    # Here, we return a new line with densified points.
+    return LineString(xy)
 
 # returns the index of a vertex in a line. Returns -1 if the point given is not a vertex of the line
 def get_index_of_vertex(line, vertex, tolerance = 0.01):
