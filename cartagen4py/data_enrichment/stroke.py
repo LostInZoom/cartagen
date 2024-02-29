@@ -1,5 +1,5 @@
 import math
-
+from itertools import combinations
 import numpy as np
 from shapely.geometry import LineString, Point, MultiLineString
 from shapely import ops
@@ -19,8 +19,8 @@ class Stroke:
         Stroke.COUNTER += 1
     
     def is_good_continuity(temp_geom, geom_foll,deviatAngle, deviatSum):
-        angleThresh = deviatAngle / 180.0 * math.pi;
-        sumThresh = deviatAngle / 180.0 * math.pi;
+        angleThresh = deviatAngle / 180.0 * math.pi
+        sumThresh = deviatAngle / 180.0 * math.pi
     
         coord_ini1 = temp_geom["geom"].coords[0]
         coord_fin1 = temp_geom["geom"].coords[-1]
@@ -100,7 +100,7 @@ class Stroke:
           #il y a bonne continuité si l'angle est < 45° et la différence desangles < à 30°
           if (((inter_angle < (-angleThresh)) or (inter_angle > angleThresh)) and (angleTotalDiff < sumThresh)):
             return 2 * angleTotalDiff
-          return -1.0;
+          return -1.0
         #case where geomFoll has 2 vertices
         elif (v2g2 is None):
           angleTotalDiff = 0.0
@@ -154,70 +154,77 @@ class Stroke:
                         # remove 'a' from the followers set
                         followers.remove(a)
 
-    def filterFollowers(self,arc, followers):
+    def filterFollowers(self, arc, followers):
         loopFoll = []
         #loop on the followers to filter them
         loopFoll+=followers
         for a in loopFoll:
             if (a==arc):
                 #remove it from the set
-                followers.remove(a);
-                continue;
+                followers.remove(a)
+                continue
              #check that a does not belong to another stroke
             if (a in self.network.groupedFeatures):
                   #remove it from the set
-                  followers.remove(a);
-                  continue;
+                  followers.remove(a)
+                  continue
                   #check if it belongs to this stroke
             if (a in self.features):
              #remove it from the set
-                 followers.remove(a);
-                 continue;
+                 followers.remove(a)
+                 continue
             #check if it belongs to the network
             if (not a in self.network.features) :
-            #// remove it from the set
-                followers.remove(a);
+            # remove it from the set
+                followers.remove(a)
       
                         
-    def chooseNextSegment(self,arc, followers, attributeNames,deviatAngle, deviatSum):
+    def chooseNextSegment(self,arc, followers, attributeNames, deviatAngle, deviatSum):
         #first, if it's a node of degree two
         if (len(followers) == 1) :
             follower = next(iter(followers))
             if (not follower in self.features):#COR
-                return follower;
+                return follower
             return None
-        #then, filter the followers
+        # then, filter the followers
         self.filterFollowers(arc, followers)
         if (len(followers) == 0) :
             return None
-        #then, filter the followers from the attributeNames
+        # then, filter the followers from the attributeNames
         Stroke.attribute_filter(arc, followers, attributeNames)
         if (len(followers) == 0) :
             return None
         continuity,bestSegment = True, None
-        #Loop on the followers to choose the best continuity
+        # Loop on the followers to choose the best continuity
         minDiff = math.pi
         for follower in followers:
-            #get the continuity difference with this follower
+            # get the continuity difference with this follower
             diffContinuity = Stroke.is_good_continuity(arc, follower, deviatAngle, deviatSum) 
             if (diffContinuity > -1.0) :
-                  continuity = True;
+                  continuity = True
                   if (diffContinuity < minDiff) :
-                      #this is the current best continuity update the difference
-                      minDiff = diffContinuity;
-                      #change the bestSegment
-                      bestSegment = follower;
+                      # this is the current best continuity update the difference
+                      minDiff = diffContinuity
+                      # change the bestSegment
+                      bestSegment = follower
+        
+        # final verification: if we found a continuous follower, check if there is a better continuity between the followers themselves
         if (((continuity) and not bestSegment in self.network.groupedFeatures) or (minDiff < deviatAngle)) :
-            return bestSegment;
+            for pair in combinations(followers, 2):
+                diffContinuity = Stroke.is_good_continuity(pair[0], pair[1], deviatAngle, deviatSum)
+                if (diffContinuity > -1.0 and diffContinuity < minDiff) :
+                    # there is a pair of followers with a better continuity so we stop the stroke here and return None
+                    return None
+            return bestSegment
         return None
 
   
-    def one_side_stroke(self, side, attributeNames,deviatAngle,deviatSum):
-        #get the following network segments of the root of this stroke
+    def one_side_stroke(self, side, attributeNames, deviatAngle, deviatSum):
+        # get the following network segments of the root of this stroke
         node =None        
         node = self.root["geom"].coords[side]
         if (node is None):
-            return;
+            return
         followers =[]
         followers+=self.network.dic_neighbours[self.root["geom"].coords[side]]
         if self.root in followers:
@@ -226,32 +233,32 @@ class Stroke:
         continuity = True
         self.network.groupedFeatures.append(next1)
         while (continuity) :
-                #get the best candidate among the followers (the one with best continuity)
+                # get the best candidate among the followers (the one with best continuity)
                 best = self.chooseNextSegment(next1, followers, attributeNames,deviatAngle, deviatSum)
                 if (best is None):
                     break
-                #      // add this to the 2 sets (the network one and the stroke one)
+                # add this to the 2 sets (the network one and the stroke one)
                 if not side:
                     self.features.insert(0, best)
                 else:
                     self.features.append(best)
                 self.network.groupedFeatures.append(best) 
-                #get the followers of 'best'
+                # get the followers of 'best'
                 followers=[]
-                nextNode = best["geom"].coords[0];
+                nextNode = best["geom"].coords[0]
                 
                 side2=0
                 if (node==nextNode):
-                    nextNode = best["geom"].coords[-1];
+                    nextNode = best["geom"].coords[-1]
                     side2=-1 
                     
                 followers+=self.network.dic_neighbours[best["geom"].coords[side2]]#AC
                 followers.remove(best)
-                #if there is no follower, break
+                # if there is no follower, break
                 if (len(followers)== 0):
-                    break;
-                #update the 'next' segment with 'best'
-                next1 = best;
+                    break
+                # update the 'next' segment with 'best'
+                next1 = best
                 node = nextNode;         
     def __str__(self):
         liste=""
@@ -265,7 +272,7 @@ class StrokeNetwork:
             #Initialisation from a list of shapely geometry with the correct attributes
           self.features = features
           self.groupedFeatures = []
-          self.id = 0;
+          self.id = 0
           self.strokes = []
           
     def __init__(self, shapefile, attributeNames):
@@ -282,7 +289,7 @@ class StrokeNetwork:
             features+=[elem]
         self.features = features
         self.groupedFeatures = []
-        self.id = 0;
+        self.id = 0
         self.strokes = []
         self.dic_neighbours=StrokeNetwork.compute_neighbours(features)
         
@@ -313,11 +320,11 @@ class StrokeNetwork:
                 #build a new stroke object
                 stroke = Stroke(self, obj)
                 #// build the stroke on the initial side
-                stroke.one_side_stroke(0, attributeNames, deviatAngle, deviatSum);
+                stroke.one_side_stroke(0, attributeNames, deviatAngle, deviatSum)
                 #// build the stroke on the final side
-                stroke.one_side_stroke(-1, attributeNames, deviatAngle, deviatSum);
+                stroke.one_side_stroke(-1, attributeNames, deviatAngle, deviatSum)
                 #// add the stroke to the strokes set
-                self.strokes.append(stroke);
+                self.strokes.append(stroke)
     
     def reconstruct_strokes(self):
         strokes=self.strokes
