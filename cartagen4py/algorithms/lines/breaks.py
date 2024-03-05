@@ -15,31 +15,8 @@ def max_break(line, offset, exaggeration=1.0):
     The exagerration is a multiplication factor that amplifies the dilatation.
     """
 
-    # Get the bend side
-    def __get_bend_side(coords):
-        # The total angle of the bend
-        total = 0
-
-        # Get the start point of the bend
-        start = shapely.Point(coords[0])
-
-        # Loop through the nodes of the linestring, starting on the seconde node
-        for i in range(1, len(coords) - 1):
-            # Get the current and the next node coordinates
-            c1 = coords[i]
-            c2 = coords[i + 1]
-
-            # Add to the total the angle between the starting point and those two nodes
-            total += angle_3_pts(start, shapely.Point(c2), shapely.Point(c1))
-
-        # If the total is above 0, the bend is left sided, otherwise it right sided
-        if total > 0:
-            return 'left'
-        else:
-            return 'right'
-
     # Get the side of the bend
-    side = __get_bend_side(list(line.coords))
+    side = get_bend_side(line)
 
     # Change the offset in case of left sided bend
     if side == 'left':

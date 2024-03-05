@@ -244,3 +244,108 @@ def merge_linestrings(line1, line2):
     # Here, linstrings are not connected
     else:
         raise Exception("Provided LineStrings are not connected by their start or end vertex.")
+
+def inflexion_points(line, min_dir=120.0):
+    """
+    This algorithm extract inflexion points from a LineString object and return a list of index of inflexion points.
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to extract the inflexion points from.
+    min_dir : float
+        The minimum direction change (in degrees) between two consecutive inflexion points.
+        This parameter allows to remove micro inflexions from the results.
+    """
+
+    coords = list(line.coords)
+
+    # Storage for inflexion points
+    inflexion = []
+
+    # Storage for parts to check when micro inflexion points are detected
+    part = []
+
+    # Stores for the previous angle and the previous direction
+    prevangle = None
+    prevdir = None
+
+    # Loop through vertices
+    for i in range(1, len(coords) - 1):
+        # Get previous, current and next point
+        p1, p2, p3 = coords[i - 1], coords[i], coords[i + 1]
+
+        # Calculate angles formed by p1 and p2, and p1 and p3
+        a1 = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
+        a2 = np.arctan2(p3[1] - p1[1], p3[0] - p1[0])
+
+        # Calculate the direction of p1 p2
+        direction = np.degrees(a1) % 360
+        # Calculate the angle formed by the three points
+        alpha = a2 - a1
+
+        # Store if angle is positive or negative
+        angle = 1 if alpha > 0 else -1
+
+        # Check that previous angle has been calculated
+        if prevangle is not None:
+            # Check if the angle is not the same as the previous -> inflexion point
+            if angle != prevangle:
+                # Check that the previous direction has been calculated
+                if prevdir is not None:
+                    # If the absolute difference between the previous direction and the current one is above the direction threshold
+                    # It means that this is not a micro inflexion
+                    if abs(prevdir - direction) > min_dir:
+                        # Adding the middle of the part list, i.e. the middle of the micro inflexions
+                        inflexion.append(part[len(part) // 2])
+                        # Restart the part list with the current inflexion point
+                        part = [i]
+                    else:
+                        # Add the current point to the part list
+                        part.append(i)
+                # If not, append the point to the part
+                else:
+                    part.append(i)
+
+                # Set the previous angle as the direction of the current 
+                prevdir = direction
+        
+        # Set previous angle as current
+        prevangle = angle
+
+    # Append the last part's middle point
+    inflexion.append(part[len(part) // 2])
+
+    return inflexion
+
+
+def get_bend_side(line):
+    """
+    Return the side of the line bend, either left or right.
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to get the bend side from.
+    """
+    # Get the list of nodes
+    coords = list(line.coords)
+
+    # The total angle of the bend
+    total = 0
+
+    # Get the start point of the bend
+    start = shapely.Point(coords[0])
+
+    # Loop through the nodes of the linestring, starting on the seconde node
+    for i in range(1, len(coords) - 1):
+        # Get the current and the next node coordinates
+        c1 = coords[i]
+        c2 = coords[i + 1]
+
+        # Add to the total the angle between the starting point and those two nodes
+        total += angle_3_pts(start, shapely.Point(c2), shapely.Point(c1))
+
+    # If the total is above 0, the bend is left sided, otherwise it right sided
+    if total > 0:
+        return 'left'
+    else:
+        return 'right'
