@@ -9,7 +9,7 @@
 project = 'cartagen4py'
 copyright = '2023, IGN, Univ Gustave Eiffel'
 author = 'Guillaume Touya, Justin Berli'
-release = '0.2.12'
+release = '0.2.13'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
