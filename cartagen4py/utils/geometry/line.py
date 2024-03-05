@@ -3,6 +3,8 @@ import shapely
 from shapely.ops import split, nearest_points, snap
 from shapely.geometry import Point, Polygon, LineString
 
+from cartagen4py.utils.geometry.angle import *
+
 def get_shortest_edge_length(geom: LineString):
     min_length = float('inf')
     segments = get_linestring_segments(geom)
@@ -320,7 +322,7 @@ def inflexion_points(line, min_dir=120.0):
 
 def get_bend_side(line):
     """
-    Return the side of the line bend, either left or right.
+    Return the side of the interior of the bend regarding the line direction. (left or right)
     Parameters
     ----------
     line : shapely LineString
@@ -342,10 +344,22 @@ def get_bend_side(line):
         c2 = coords[i + 1]
 
         # Add to the total the angle between the starting point and those two nodes
-        total += angle_3_pts(start, shapely.Point(c2), shapely.Point(c1))
+        angle = angle_3_pts(start, shapely.Point(c2), shapely.Point(c1))
+
+        # Set the angle to be between 0 and 2*pi
+        if angle % (2 * np.pi) >= 0:
+            angle = abs(angle % (2 * np.pi))
+        else:
+            angle = angle % (2 * np.pi) + 2 * np.pi
+
+        # Set the angle to be between -pi and pi
+        if angle > np.pi:
+            angle = angle - 2 * np.pi
+
+        total += angle
 
     # If the total is above 0, the bend is left sided, otherwise it right sided
-    if total > 0:
-        return 'left'
-    else:
+    if total < 0:
         return 'right'
+    else:
+        return 'left'

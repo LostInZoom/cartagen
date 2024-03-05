@@ -19,7 +19,7 @@ def max_break(line, offset, exaggeration=1.0):
     side = get_bend_side(line)
 
     # Change the offset in case of left sided bend
-    if side == 'left':
+    if side == 'right':
         offset = - offset
 
     # Dilate the bend
