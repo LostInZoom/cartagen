@@ -3,8 +3,6 @@ import shapely
 from cartagen4py.algorithms.lines.line_smoothing import *
 from cartagen4py.utils.geometry.bends import *
 
-from test_functions import *
-
 def accordion(line, sigma, sample):
     """
     Apply the accordion algorithm to a linestring.

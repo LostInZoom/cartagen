@@ -6,10 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from cartagen4py import __version__
+
 project = 'cartagen4py'
-copyright = '2023, IGN, Univ Gustave Eiffel'
-author = 'Guillaume Touya, Justin Berli'
-release = '0.2.13'
+copyright = '2024, IGN, Univ Gustave Eiffel'
+author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
+release = '0.2.14'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
