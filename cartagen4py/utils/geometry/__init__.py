@@ -1,4 +1,5 @@
 from cartagen4py.utils.geometry.angle import *
+from cartagen4py.utils.geometry.bends import *
 from cartagen4py.utils.geometry.dilation import *
 from cartagen4py.utils.geometry.distances import *
 from cartagen4py.utils.geometry.extent import *
