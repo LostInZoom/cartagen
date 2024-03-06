@@ -49,7 +49,7 @@ class SkeletonTIN:
         Add new entry points that are not 'natural' skeleton entries.
         Connection can be 'joint', which forces the entry point to connect to the closest joint,
         or can be 'interior', which first look if there is an interior triangle inside the triangulation
-        and connect directly the entry point to the its skeleton joint. If no interior triangle is found,
+        and connect directly the entry point to its skeleton joint. If no interior triangle is found,
         apply 'joint' connection instead.
         """
         # Add the point
