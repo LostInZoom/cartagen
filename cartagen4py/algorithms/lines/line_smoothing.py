@@ -2,7 +2,7 @@
 
 from shapely.geometry import LineString, Point
 from math import pi, sqrt, exp
-from cartagen4py.utils.geometry.line import densify_geometry, to_2d, get_index_of_nearest_vertex
+from cartagen4py.utils.geometry.line import resample_line, to_2d, get_index_of_nearest_vertex
 
 def gaussian_smoothing(line, sigma, sample, densify=True):
     """
@@ -19,7 +19,7 @@ def gaussian_smoothing(line, sigma, sample, densify=True):
         Whether the resulting line should keep the new node density. Default to True.
     """
     # First resample the line, making sure there is a maximum distance between two consecutive vertices
-    resampled = densify_geometry(line, sample)
+    resampled = resample_line(line, sample)
 
     # Calculate the interval (number of vertex to take into consideration when smoothing)
     interval = round(4 * sigma / sample)

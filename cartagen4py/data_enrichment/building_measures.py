@@ -1,6 +1,6 @@
 # This file contains measures on buildings that can be used in constraints or inside algorithms.
 from cartagen4py.utils.geometry.segment import *
-from cartagen4py.utils.geometry.line import to_2d, get_nearest_vertex, densify_geometry
+from cartagen4py.utils.geometry.line import to_2d, get_nearest_vertex, resample_line
 from cartagen4py.utils.geometry.angle import angle_3_pts, angle_to_zero_pi, angle_between_2lines
 from shapely.ops import nearest_points, transform, triangulate, substring, split
 from shapely.geometry import MultiPolygon, MultiPoint, Polygon
@@ -240,7 +240,7 @@ def __cut_roads_at_corners(networks, angle_tolerance):
         # simplify the line to get sharper angles
         simp_road = road.simplify(1.0)
         # densify the simplified road
-        dense_road = densify_geometry(simp_road, 10.0)
+        dense_road = resample_line(simp_road, 10.0)
         for pt in dense_road.coords:
             if nb_pts_itr > 3:
                 # add the angle between [0,Pi/2] to the cumulated angle
