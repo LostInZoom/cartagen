@@ -1,7 +1,6 @@
 import geopandas as gpd
 import shapely, numpy, networkx
 
-from cartagen4py.algorithms.lines.line_smoothing import *
 from cartagen4py.utils.geometry.angle import *
 from cartagen4py.utils.geometry.dilation import *
 from cartagen4py.utils.geometry.line import *
@@ -53,9 +52,10 @@ def min_break(line, offset, sigma, threshold):
     # Get the nodes of the linestring
     coordinates = list(line.coords)
     start, end = coordinates[0], coordinates[-1]
+    base = shapely.LineString([start, end])
 
     # Add the center of the line formed by the last and first node of the list
-    entry = shapely.LineString([start, end]).centroid
+    entry = base.interpolate(base.length / 2)
     middle = entry.coords[0]
 
     coordinates.append(middle)
