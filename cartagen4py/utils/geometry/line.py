@@ -126,17 +126,20 @@ def __li_openshaw_simplification(line, cell_size):
     return line
     
 
-def gaussian_smoothing(line, sigma, sample, densify=True):
+def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
     """
     Compute the gaussian smoothing of a set of a LineString.
     Parameters
     ----------
     line : shapely LineString
         The line to smooth.
-    sigma : float
+    sigma : float optional
         Gaussian filter strength.
-    sample : int
+        Default value to 30.
+    sample : int optional
         The length in meter between each nodes after resampling the line.
+        If not provided, the sample is derived from the line and is the average distance between
+        each consecutive vertex divided by 3.
     densify : boolean optional
         Whether the resulting line should keep the new node density. Default to True.
     """
@@ -167,6 +170,18 @@ def gaussian_smoothing(line, sigma, sample, densify=True):
         result.extend([central_inversion(last, coords[i]) for i in range(pen, pen - interval, -1)])
 
         return LineString(result)
+   
+    if sigma is None:
+        sigma = 30
+
+    if sample is None:
+        coords = list(line.coords)
+        distances = []
+        for i in range(0, len(coords) - 2):
+            v1, v2 = coords[i], coords[i + 1]
+            distances.append(shapely.Point(v1).distance(shapely.Point(v2)))
+        avg = sum(distances) / len(distances)
+        sample = round(avg / 3)
 
     # First resample the line, making sure there is a maximum distance between two consecutive vertices
     resampled = resample_line(line, sample)
