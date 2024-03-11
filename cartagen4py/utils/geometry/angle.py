@@ -86,3 +86,10 @@ def angle_between_2lines(line1, line2):
     angle = angle_3_pts(Point(previous), Point(current), Point(following))
 
     return angle
+
+def get_curvature(p1, p2, p3):
+    """
+    Return the curvature, i.e, the inverse of the radius of the circumcircle
+    passing by the three given points.
+    """
+    return 1 / abs(p2.distance(p3) / (2 * np.sin(angle_3_pts(p3, p2, p1))))
