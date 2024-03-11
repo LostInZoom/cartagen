@@ -466,7 +466,14 @@ def extend_line_by_length(line, length, position='both'):
     if position == 'both' or position == 'end':
         new_line.append(__calculate_coords(vertex[-1], vertex[-2], length))
 
-    return LineString(new_line)    
+    return LineString(new_line)
+
+def get_line_middle_point(line):
+    """
+    Return the point located along the line at half its length.
+    """
+    return line.interpolate(line.length / 2)
+
         
 def split_line_at_point(line, point):
     """
