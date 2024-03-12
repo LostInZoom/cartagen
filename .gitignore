@@ -1,5 +1,6 @@
 .venv/
 .idea/
+.vscode/
 __pycache__
 util/__pycache__/
 evaluation/__pycache__/
