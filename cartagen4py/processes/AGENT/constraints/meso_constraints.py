@@ -35,3 +35,40 @@ class ComponentsSatisfactionConstraint(GeneralisationConstraint):
         # propose the action that activates the micro agents
         action = MesoMicroActivation(self,self.agent,1)
         self.actions.append([action, self, 1])
+
+class BlockDensityConstraint(GeneralisationConstraint):
+    
+    def __init__(self, importance, agent):
+        self.importance = importance
+        self.agent = agent
+        self.type = "BlockDensity"
+
+    def compute_priority(self):
+        """compute the priority of the constraint given its current state."""
+        #TODO
+        self.priority = 10
+        
+    def compute_current_value(self):
+        """compute the current value of the constraint."""
+        #TODO
+        self.current_value = self.agent.get_components_satisfaction()
+
+    def compute_goal_value(self):
+        """compute the goal value of the constraint."""
+        #TODO
+        return
+
+    def compute_satisfaction(self):
+        """compute the satisfaction of the constraint according to the current and goal values."""
+        if(self.agent.deleted):
+            self.satisfaction = 100.0
+            return
+        #TODO
+        self.compute_current_value()
+        # the satisfaction is directly the components statisfaction value
+        self.satisfaction = self.current_value
+
+    def compute_actions(self):
+        # propose the action that activates the micro agents
+        #TODO
+        self.actions.append([None, self, 1])
