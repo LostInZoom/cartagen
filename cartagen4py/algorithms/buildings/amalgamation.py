@@ -63,7 +63,7 @@ def __edge_removal(polygon, edge_length):
         if(angle < math.pi/4):
             # offset case
             # create a vector from the edge
-            vector = Vector2D(nextEdge)
+            vector = Vector2D.from_segment(nextEdge)
             # keep last vertex of final_coords in memory
             last_vertex = final_coords[len(final_coords)-1]
             # remove the last two vertices
@@ -91,7 +91,7 @@ def __edge_removal(polygon, edge_length):
         else:
             # intrusion or protrusion case
             # create a vector from the edge
-            vector = Vector2D(nextEdge)
+            vector = Vector2D.from_segment(nextEdge)
             # remove the last two vertices
             l_element = len(final_coords)-2
             final_coords = final_coords[:l_element]
