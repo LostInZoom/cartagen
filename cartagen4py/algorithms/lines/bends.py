@@ -29,6 +29,8 @@ def accordion(line, width, sigma=None, sample=None):
 
     # Storage for the future distorded individual lines
     distorded = []
+
+    test = []
     
     for bend in bs.bends:
         # Get the translation vector
@@ -118,21 +120,6 @@ def accordion(line, width, sigma=None, sample=None):
     return shapely.affinity.translate(displaced, bm.x - dm.x, bm.y - dm.y)
 
 def __get_vector(bend, width):
-    # Get the point from multiple points where it crosses but not intersects
-    def get_intersection(multipoint, base):
-        point = None
-        # Loop through single geometries
-        for p in multipoint.geoms:
-            # If the point is different from the provided one
-            if p.coords[0] != base:
-                if point is None:
-                    # Set the result as this one if the result already exist
-                    point = p
-                else:
-                    # Raise an exception if point is already set
-                    raise Exception('Two points crosses the same bend.')
-        return point
-
     # Check on both sides if the translation crosses the bend
     def check_translation(base, bend, width, angle, dx, dy):
         # Translate the base point using the vector
@@ -143,19 +130,22 @@ def __get_vector(bend, width):
         # Extend the line by twice the width of the bend on both sides
         eline = extend_line_by_length(tline, bend.width * 2)
 
-        # Check if the extended line crosses the bend
-        if shapely.crosses(eline, bend.bend):
-            # If so, retrieve the intersection point where it crosses
-            point = get_intersection(shapely.intersection(eline, bend.bend), base)
+        # Create the bend without the base vertex to avoid intersection there
+        crossline = LineString([ x for x in list(bend.bend.coords) if x != base ])
+        # Calculate the intersection
+        intersection = shapely.intersection(eline, crossline)
+
+        # Check that intersection is a point.
+        if intersection.geom_type == 'Point':
             # Get the distance between the base point and the intersection
-            dist = Point(base).distance(point)
+            dist = Point(base).distance(intersection)
             n = np.sqrt(pow(dx, 2) + pow(dy, 2))
             return np.array([(dx / n) * (width - dist), (dy / n) * (width - dist)])
         else:
-            # If the extended line doesn't cross the bend
+            # If the interseection is not a point
             # Check that the end point has not been tried already
             if base == list(bend.bend.coords)[-1]:
-                # Here, no crossing where found
+                # Here, no intersection where found
                 return None
             else:
                 # Restart the function using the end point as the base
