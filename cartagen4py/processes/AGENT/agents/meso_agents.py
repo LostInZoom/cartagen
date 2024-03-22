@@ -1,6 +1,7 @@
 from cartagen4py.processes.AGENT.agents.abstract_agents import MesoAgent
 from shapely.ops import unary_union
 from cartagen4py.data_enrichment.building_measures import *
+from cartagen4py.data_enrichment.urban.block_measures import *
 
 class BlockAgent(MesoAgent):
 
@@ -27,12 +28,12 @@ class BlockAgent(MesoAgent):
         if len(self.components) == 0:
             return 0.0
         
+        block_geom = self.feature['geometry']
         building_area = 0.0
         for building in self.components:
             if building.deleted:
                 continue
             # if the building is no longer inside the block, do not count it
-            block_geom = self.feature['geometry']
             building_geom = building.feature['geometry']
             if block_geom.intersects(building_geom) == False:
                 continue
@@ -60,3 +61,45 @@ class BlockAgent(MesoAgent):
             roads.append(road['geometry'])
         self.triangulation = block_triangulation(buildings, roads, 30)
         return self.triangulation
+    
+    def get_initial_density(self, road_sizes):
+        """
+        Computes the initial density of the block (with the initial size of the building), before generalisation.
+        ----------
+        road_sizes : list of floats
+            a lists of symbol widths for all the sections around the block. 
+            The list uses the same order as the sections around the block.        
+        """
+
+        if len(self.components) == 0:
+            return 0.0
+        
+        block_geom = self.feature['geometry']
+        building_area = 0.0
+        for building in self.components:
+            building_geom = building.feature['geometry']
+            building_area += building_geom.area
+        # now compute the area of road symbols inside the block
+        road_id = 0
+        polygons = []
+        for road in self.sections:
+            symbol_width = road_sizes[road_id]
+            polygons.append(road['geometry'].buffer(symbol_width))
+            road_id += 1
+        merged_symbols = unary_union(polygons)
+        inter = merged_symbols.intersection(block_geom)
+
+        return (inter.area + building_area)/block_geom.area
+    
+    def get_mean_overlapping_rate(self, min_sep, road_sizes):
+        buildings = []
+        for building in self.components:
+            if building.deleted:
+                continue
+            building_geom = building.feature['geometry']
+            buildings.append(building_geom)
+        roads = []
+        for road in self.sections:
+            roads.append(road['geometry'])
+        return mean_building_overlap_rate(buildings, min_sep, roads, road_sizes)
+

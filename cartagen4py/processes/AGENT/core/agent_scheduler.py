@@ -12,7 +12,7 @@ def run_agents(agents, lifecycle='basic', store_states=False, verbose=0):
             # run the basic lifecycle on the current agent
             __activate_agent_basic(agent, verbose=verbose)
 
-def __activate_agent_basic(agent, store_states=False, validity_satisfaction = 0.5, verbose=False):
+def __activate_agent_basic(agent, store_states=False, validity_satisfaction = 0.5, verbose=0):
     # clean the possibly previously created and stored states
     if(store_states):
         agent.clean_states()
