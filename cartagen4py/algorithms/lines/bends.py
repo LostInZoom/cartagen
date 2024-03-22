@@ -5,7 +5,6 @@ from shapely import LineString, Point
 from cartagen4py.utils.geometry.bends import *
 from cartagen4py.utils.geometry.line import *
 
-from test_functions import *
 
 def accordion(line, width, sigma=None, sample=None):
     """
