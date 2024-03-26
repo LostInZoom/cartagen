@@ -7,6 +7,7 @@ from cartagen4py.utils.geometry.bends import *
 from cartagen4py.utils.geometry.line import *
 from cartagen4py.utils.geometry.segment import *
 
+
 def accordion(line, width, sigma=None, sample=None):
     """
     Apply the accordion algorithm (Plazanet, 1996) to a linestring.

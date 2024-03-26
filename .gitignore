@@ -22,3 +22,7 @@ cartagen4qgis-template
 
 # Pypi token file
 .pypirc
+cartagen4py/algorithms/__pycache__/__init__.cpython-310.pyc
+cartagen4py/algorithms/buildings/__pycache__/__init__.cpython-310.pyc
+/cartagen4py/algorithms/buildings/__pycache__
+*.pyc
