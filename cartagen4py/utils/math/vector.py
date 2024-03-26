@@ -74,7 +74,7 @@ class Vector2D:
         """
         Return a new vector with a new norm.
         """
-        vector = Vector2D.from_point(Point(self.x, self.y))
+        vector = self.copy()
         vector.normalize()
         vector.scalar_multiplication(norm)
         return vector
@@ -97,3 +97,17 @@ class Vector2D:
         Calculate the vector product between this vector and a given one.
         """
         return self.x * vector.y - self.y * vector.x
+
+    def project(self, direction):
+        """
+        Project the vector in a given direction.
+        """
+        if direction >= (np.pi * 2):
+            direction = direction - np.pi * 2
+        # if direction % (2 * np.pi) >= 0:
+        #     direction = abs(direction % (2 * np.pi))
+        # else:
+        #     direction = direction % (2 * np.pi) + 2 * np.pi
+        unit = Vector2D.from_angle(direction, 1)
+        norm = self.scalar_product(unit)
+        return unit.change_norm(norm)

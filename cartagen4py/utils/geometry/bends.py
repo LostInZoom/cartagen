@@ -13,18 +13,64 @@ class Bend:
     def __init__(self, line):
         self.bend = line
         self.side = get_bend_side(line)
+        self.base = None
+        self.middle = None
+        self.height = None
+        self.width = None
+        self.summit = None
+        self.isummit = None
+        self.orientation = None
 
-        # Get the bend line as a vertex list
+    def get_base(self):
+        """
+        Get the base of the bend. i.e. the line connecting the start and end point
+        of the bend.
+        """
         coords = list(self.bend.coords)
+        self.base = LineString([coords[0], coords[-1]])
+        return self.base
 
-        # Calculate the base segment
-        base = LineString([coords[0], coords[-1]])
-
-        self.width = base.length
-
-        # Calculate the base point of the base segment
+    def get_middle(self):
+        """
+        Get the middle of the base of the bend.
+        """
+        base = self.base
+        if base is None:
+            base = self.get_base()
         self.middle = base.interpolate(base.length / 2)
+        return self.middle
 
+    def get_width(self):
+        """
+        Get the width of the bend. i.e. the length of the line connecting the start
+        and end point of the bend.
+        """
+        base = self.base
+        if base is None:
+            base = self.get_base()
+        self.width = base.length
+        return self.width
+
+    def get_height(self):
+        """
+        Get the height of the bend.
+        """
+        summit = self.summit
+        if summit is None:
+            summit = self.get_summit()
+        middle = self.middle
+        if middle is None:
+            middle = self.get_middle()
+        self.height = LineString([middle, summit]).length
+        return self.height
+
+    def get_summit(self):
+        """
+        Calculate the summit of the bend.
+        """
+        if self.summit is not None:
+            return self.summit
+        
         # Smooth the bend
         smoothed = gaussian_smoothing(self.bend, densify=False)
         # Get the vertices list
@@ -32,6 +78,8 @@ class Bend:
 
         curvature_max = 0
         smooth_summit = None
+        summit = None
+        isummit = None
         # Loop through vertices without first and last
         for i in range(1, len(scoords) - 2):
             # Get the previous, current and next vertex
@@ -45,23 +93,69 @@ class Bend:
 
         # Set the distance to infinite
         distance = float("inf")
-        for c in coords:
+        for i, c in enumerate(list(self.bend.coords)):
             d = Point(c).distance(smooth_summit)
             if d < distance:
                 # Update distance and nearest index if below existing
                 distance = d
-                self.summit = Point(c)
+                summit = Point(c)
+                isummit = i
+
+        self.isummit = isummit
+        self.summit = summit
+        return summit
+
+    def get_orientation(self):
+        """
+        Calculate the orientation of the bend.
+        """
+        summit = self.summit
+        if summit is None:
+            summit = self.get_summit()
+        middle = self.middle
+        if middle is None:
+            middle = self.get_middle()
 
         # Calculate the orientation of the bend
-        orientation = np.arctan2(self.summit.y - self.middle.y, self.summit.x - self.middle.x)
-
+        orientation = np.arctan2(summit.y - middle.y, summit.x - middle.x)
         # Set the orientation between 0 and 2pi
         modulo = orientation % (2 * np.pi)
         if modulo >= 0:
             self.orientation = abs(modulo)
         else:
             self.orientation = modulo + 2 * np.pi
+        return self.orientation
 
+    def get_symetry(self):
+        """
+        Retrieve the measure of the bend symetry. Value between 0 and 1.
+        """
+        # Get the summit
+        summit = self.summit
+        if summit is None:
+            summit = self.get_summit()
+
+        # Get vertices coordinates
+        coords = list(self.bend.coords)
+        line = []
+        l1, l2 = None, None
+
+        # Loop through coordinates
+        for i, c in enumerate(coords):
+            # Append the coordinate to the list
+            line.append(c)
+            # If it's the summit
+            if i == self.isummit:
+                # Set l1 to be the length of the first half of the bend
+                l1 = LineString(line).length
+                # Restart the line
+                line = [c]
+        # Set l2 to be the length of the second part of the bend
+        l2 = LineString(line).length
+        # Calculate the symetry measure
+        self.symetry = min(l1, l2) / max(l1, l2)
+        return self.symetry
+        
 class BendSerie:
     """
     Create a serie of bends from a given linestring object.
