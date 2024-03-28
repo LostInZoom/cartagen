@@ -186,6 +186,60 @@ def schematization(line, sigma=None, sample=None):
         Gaussian smoothing arguments -> The length in meter between each nodes after resampling the line.
         Default to None which will let the gaussian smoothing algorithm derived it from the line.
     """
+    # Treat a part of the schematization
+    def schematize_part(coords, wpoint, summits):
+        # Get the start vertex and create the translation vector
+        start = Point(coords[0])
+        vector = Vector2D.from_points(start, wpoint)
+
+        # Get the orientation of the last segment of the part
+        main = Segment(coords[0], coords[1]).orientation()
+        # Get the perpendicular orientation
+        perp = main + np.pi / 2
+        # Get it between 0 & 2pi
+        if perp > (2 * np.pi):
+            perp -= 2 * np.pi
+
+        # Project the vector on the main and perpendicular orientation
+        vmain = vector.project(main)
+        vperp = vector.project(perp)
+
+        # Isolate the first half of the first bend of part 1
+        lasthalf = []
+        halflength = 0
+        # Loop through points starting at the penultimate vertex towards the start
+        for i in range(1, len(coords)):
+            # Get the point coordinates
+            point = coords[i]
+            # Calculate the length of the segment using the previous point
+            halflength += LineString([point, coords[i - 1]]).length
+            # Break when reaching the 1st summit
+            if point in summits:
+                break
+            # Append the point to the list
+            lasthalf.append(point)
+            
+        schematized = []
+        total = 0
+        # Loop again starting at the penultimate vertex
+        for i in range(1, len(coords)):
+            point = coords[i]
+            # Increment the total length with the current segment length
+            total += LineString([point, coords[i - 1]]).length
+            # Get the current point
+            projected = Point(point)
+            # If the point is in the first half of the first bend
+            if point in lasthalf:
+                # Cushion the point using the main vector, i.e. the orientation of the last semgent
+                vect = vmain.change_norm(vmain.get_norm() * (1 - total / halflength))
+                projected = vect.translate(projected)
+            # Then, for every point, cushion the translation using also the perpendicular vector
+            vect = vperp.change_norm(vperp.get_norm() * (1 - total / length1))
+            projected = vect.translate(projected)
+            # Add the point to the start of the list
+            schematized.append(projected)
+        
+        return schematized
 
     schematized = []
 
@@ -307,7 +361,8 @@ def schematization(line, sigma=None, sample=None):
     # Calculate the ratio of those two lengths
     ratio = length1 / length2
 
-    # Get start and end point of the line joining both parts
+    # Get start and end point of the line formed by the last vertex 
+    # of part 1 and the first vertex of part 2
     start, end = Point(coords1[-1]), Point(coords2[0])
     # Create the line
     linejoin = LineString([start, end])
@@ -325,98 +380,14 @@ def schematization(line, sigma=None, sample=None):
 
     # Create the anchor point
     wpoint = v.translate(start)
-    # Calculate both translation vectors for both parts
-    v1 = Vector2D.from_points(start, wpoint)
-    v2 = Vector2D.from_points(end, wpoint)
 
-    # TREATING PART 1
-    # Get the orientation of the last segment of the part
-    main1 = Segment(coords1[-2], coords1[-1]).orientation()
-    # Get the perpendicular orientation
-    perp1 = main1 + np.pi / 2
-    # Get it between 0 & 2pi
-    if perp1 > (2 * np.pi):
-        perp1 -= 2 * np.pi
+    # Reverse the first part to match the order
+    coords1.reverse()
+
+    # Schematize the first part
+    part1 = schematize_part(coords1, wpoint, summit1)
+    part2 = schematize_part(coords2, wpoint, summit2)
+    part1.reverse()
     
-    # Project the vector on the main and perpendicular orientation
-    vmain1 = v1.project(main1)
-    vperp1 = v1.project(perp1)
-
-    # Isolate the first half of the first bend of part 1
-    lasthalf = []
-    halflength = 0
-    # Loop through points starting at the penultimate vertex towards the start
-    for i in range(len(coords1) - 2, -1, -1):
-        # Get the point coordinates
-        point = coords1[i]
-        # Calculate the length of the segment using the previous point
-        halflength += LineString([point, coords1[i + 1]]).length
-        # Break when reaching the 1st summit
-        if point in summit1:
-            break
-        # Append the point to the list
-        lasthalf.append(point)
-        
-    schematized = []
-    total = 0
-    # Loop again starting at the penultimate vertex
-    for i in range(len(coords1) - 2, -1, -1):
-        point = coords1[i]
-        # Increment the total length with the current segment length
-        total += LineString([point, coords1[i + 1]]).length
-        # Get the current point
-        projected = Point(point)
-        # If the point is in the first half of the first bend
-        if point in lasthalf:
-            # Cushion the point using the main vector, i.e. the orientation of the last semgent
-            vect = vmain1.change_norm(vmain1.get_norm() * (1 - total / halflength))
-            projected = vect.translate(projected)
-        # Then, for every point, cushion the translation using also the perpendicular vector
-        vect = vperp1.change_norm(vperp1.get_norm() * (1 - total / length1))
-        projected = vect.translate(projected)
-        # Add the point to the start of the list
-        schematized.insert(0, projected)
-    
-    # Add the weighting point 
-    schematized.append(wpoint)
-
-    # TREATING PART 2
-    # cf. part 1 when not explained
-    main2 = Segment(coords2[0], coords2[1]).orientation()
-    perp2 = main2 + np.pi / 2
-    if perp2 > (2 * np.pi):
-        perp2 -= 2 * np.pi
-    
-    vmain2 = v2.project(main2)
-    vperp2 = v2.project(perp2)
-
-    lasthalf = []
-    halflength = 0
-    # Here, navigate starting at the second vectex of the part towards the end
-    for i in range(1, len(coords2)):
-        point = coords2[i]
-        halflength += LineString([point, coords2[i - 1]]).length
-        # Break when reaching the first summit
-        if point in summit2:
-            break
-        lasthalf.append(point)
-
-    total = 0
-    # Loop through vertices starting at the second towards the end
-    for i in range(1, len(coords2)):
-        point = coords2[i]
-        total += LineString([point, coords2[i - 1]]).length
-        projected = Point(point)
-        if point in lasthalf:
-            # Same as part one when the point is in the first half of the first bend
-            vect = vmain2.change_norm(vmain2.get_norm() * (1 - total / halflength))
-            projected = vect.translate(projected)
-
-        # Same as part 1 for every points
-        vect = vperp2.change_norm(vperp2.get_norm() * (1 - total / length2))
-        projected = vect.translate(projected)
-        # Append the point to the end of the list
-        schematized.append(projected)
-
     # Return the constructed linestring
-    return LineString(schematized)
+    return LineString(part1 + [wpoint] + part2)
