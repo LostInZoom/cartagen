@@ -5,7 +5,17 @@ from cartagen4py.utils.network import *
 
 def detect_dead_ends(roads, outside_faces=True):
     """
-    This function detects dead ends inside a road network and returns their geometries.
+    This function detects dead ends inside a road network.
+    Returns the roads detected as dead-ends with attributes.
+    Return None if none were found.
+    Parameters
+    ----------
+    roads : geopandas GeoDataFrame of LineStrings
+        The road network to analyze.
+    importance : str optional.
+        The attribute name of the data on which road importance is based.
+        Default value is set to None which means every road is taken for the network face calculation.
+    value : int optional.
     """
 
     crs = roads.crs

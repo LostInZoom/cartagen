@@ -236,7 +236,8 @@ Measures on map features
   2.0
 
 Stroke computation (in general)
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Strokes are network segments that follow the perceptual grouping principle of Good Continuity (Gestalt).
 
 .. class:: StrokeNetwork(lines, attributeNames)
@@ -306,7 +307,7 @@ Figure 11. A set of lines with colour depicting the stroke it belongs to using t
 
 
 Stroke computation (for river networks)
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: RiverStrokeNetwork(lines, attributeNames)
 
@@ -384,6 +385,111 @@ Figure 13. A river network with color depicting the Horton order : purple =1; ye
     The saved shapefile is made with segment belonging to a unique stroke merged in a geometries  the attributes of each geometries are an id (generated as a serial) and the comma-separated list of IDs of initial sections used to construct the stroke.
 
 
+Road network enrichment
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Those functions characterize different specificities of a road network by interpreting its layout and shape.
+
+.. method:: detect_roundabouts(network, area_threshold=40000, miller_index=0.95)
+
+    This function detects roundabouts inside a road network.
+    Returns the polygons representing the roundabouts extent as a geopandas GeoDataFrame.
+    Returns None if no roundabouts where found.
+    
+    :param network: The GeoDataFrame containing the road network as LineString geometries.
+    :type network: geopandas GeoDataFrame
+    :param area_threshold: The area (in square meters) above which the object is not considered a roundabout. The default value is set to 40000.
+    :type area_threshold: int, optional
+    :param miller_index: Index of compactess that determines if the shape is round or not. The default value is set to 0.97.
+    :type miller_index: float, optional
+    
+.. code-block:: pycon
+
+    # Detect roundabouts using default parameters
+    detect_roundabouts(network)
+
+.. plot:: code/detect_roundabouts.py
+
+.. method:: detect_branching_crossroads(roads, area_threshold=2500, maximum_distance_area=0.5, roundabouts=None, allow_middle_node=True, middle_angle_tolerance=10.0, allow_single_4degree_node=True)
+
+    This function detects branching crossroads inside a road network.
+    Returns a GeoDataFrame of polygons representing their extents.
+    
+    :param network: The GeoDataFrame containing the road network as LineString geometries.
+    :type network: geopandas GeoDataFrame
+    :param area_threshold: The area (in square meters) above which the object is not considered a branching crossroads. The default value is set to 2500.
+    :type area_threshold: int, optional
+    :param area_threshold: The maximum distance area between the actual polygon and the triangle formed by the 3 nodes connecting the junction to the rest of the network. The default value is set to 0.5.
+    :type maximum_distance_area: float, optional
+    :param roundabouts: The polygons representing the network faces considered as roundabouts. If provided, it offers a better detection of branching crossroads. The default value is set to None.
+    :type roundabouts: geopandas GeoDataFrame of Polygons, optional
+    :param allow_middle_node: If set to True, allow 4 nodes to form the crossroads, but each must have a degree of 3 and the 'middle' node must have an angle of 180°. Default value set to False.
+    :type allow_middle_node: boolean, optional
+    :param middle_angle_tolerance: If allow_middle_node is set to True, indicate an angle tolerance in degree for the fourth node of the crossroad to be considered the middle node. Default value is set to 10.0.
+    :type middle_angle_tolerance: float, optional
+    :param allow_single_4degree_node: If set to True, allow one and only one node to have a degree of 4. Default value set to False.
+    :type allow_single_4degree_node: float, optional
+    
+.. code-block:: pycon
+
+    # Detect branching crossroads using default parameters
+    detect_branching_crossroads(network)
+
+.. plot:: code/detect_branching_crossroads.py
+
+.. method:: detect_dual_carriageways(roads, importance=None, value=None, concavity=0.85, elongation=6.0, compactness=0.12, area=60000.0, width=20.0, huber=16)
+
+    Detects dual carriageways within a road network. Dual carriageways are derived from the network faces.
+    Return road separators as GeoDataFrame polygons.
+    
+    :param roads: The GeoDataFrame containing the road network as LineString geometries.
+    :type roads: geopandas GeoDataFrame
+    :param importance: The attribute name of the data on which road importance is based. Default value is set to None which means every road is taken for the network face calculation.
+    :type importance: str, optional
+    :param value: Maximum value of the importance attribute. Roads with an importance higher than this value will not be taken. Default value is set to None.
+    :type value: int, optional
+    :param concavity: Minimum concavity above which the face is a dual carriageway. It represents the factor between the polygon surface and its convex hull surface. Default value is set to 0.85.
+    :type concavity: float, optional
+    :param elongation: Minimum elongation above which the face is a dual carriageway. It represents the ratio between the length and the width of the minimum rotated rectangle containing the polygon. Default value is set to 6.0.
+    :type elongation: float, optional
+    :param compactness: Maximum compactness below which the face is a dual carriageway. (4*pi*area/perimeter^2)Default value is set to 0.12.
+    :type compactness: float, optional
+    :param area: Area factor to detect very long motorways. Do not change if you don't know what you are doing. Default value is set to 60000.0.
+    :type area: float, optional
+    :param width: Minimum width above which the face is a dual carriageway. It represents the width of the minimum rotated rectangle containing the polygon. Default value is set to 20.0.
+    :type width: float, optional
+    :param huber: Huber width for long motorways. Do not change. Default value is set to 16.
+    :type huber: int, optional
+
+.. code-block:: pycon
+
+    # Detect dual carriageways using default parameters
+    detect_dual_carriageways(network)
+
+.. plot:: code/detect_dual_carriageways.py
+
+.. method:: detect_dead_ends(roads, outside_faces=True)
+
+    This function detects dead ends inside a road network.
+    Returns the roads detected as dead-ends. Five attributes are added, namely:
+    - face: the id of the network face it belongs to.
+    - deid: the id of the dead end group inside a given face.
+    - connected: set to 'true' if the dead end group is connected to the network.
+    - root: set to true if the road section is the root of the dead end group, i.e. the section connecting the dead end group to the road network.
+    - hole: set to true if the road section touches a hole inside the dead end group.
+    Return None if none were found.
+    
+    :param roads: The GeoDataFrame containing the road network as LineString geometries.
+    :type roads: geopandas GeoDataFrame
+    :param outside_faces: If set to true, detects dead-ends on the network faces located on the border.
+    :type outside_faces: boolean, optional
+
+.. code-block:: pycon
+
+    # Detect dead ends using default parameters
+    detect_dead_ends(network)
+
+.. plot:: code/detect_dead_ends.py
 
 
 Apply map generalisation complex processes

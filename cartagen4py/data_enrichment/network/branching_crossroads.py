@@ -39,10 +39,11 @@ def detect_branching_crossroads(roads, area_threshold=2500,
     """
 
     crs = roads.crs
+    roads = roads.to_dict('records')
 
     network = []
-    for road in roads.geometry:
-        network.append(road)
+    for road in roads:
+        network.append(road['geometry'])
 
     faces = calculate_network_faces(network, convex_hull=False)
     tree = shapely.STRtree(network)

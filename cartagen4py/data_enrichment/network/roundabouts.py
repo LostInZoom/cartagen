@@ -4,7 +4,7 @@ import numpy as np
 from cartagen4py.utils.partitioning import *
 from cartagen4py.utils.network import *
 
-def detect_roundabouts(network, area_threshold=40000, miller_index=0.95):
+def detect_roundabouts(roads, area_threshold=40000, miller_index=0.95):
     """
     This function detects roundabouts inside a road network and returns polygons representing the roundabout extent.
     Returns None if no roundabouts where found.
@@ -19,13 +19,14 @@ def detect_roundabouts(network, area_threshold=40000, miller_index=0.95):
         Index of compactess that determines if the shape is round or not.
         The default value is set to 0.97.
     """
-    crs = network.crs
+    crs = roads.crs
+    roads = roads.to_dict('records')
 
-    roads = []
-    for road in network.geometry:
-        roads.append(road)
+    network = []
+    for road in roads:
+        network.append(road['geometry'])
 
-    faces = calculate_network_faces(roads, convex_hull=False)
+    faces = calculate_network_faces(network, convex_hull=False)
 
     roundabouts = []
     index = 0

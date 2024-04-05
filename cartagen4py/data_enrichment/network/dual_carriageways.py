@@ -6,27 +6,45 @@ from cartagen4py.utils.partitioning import *
 from cartagen4py.utils.network import *
 
 def detect_dual_carriageways(
-        network, importance=None, value=None,
+        roads, importance=None, value=None,
         concavity=0.85, elongation=6.0, compactness=0.12,
         area=60000.0, width=20.0, huber=16
     ):
     """
-    Detect dual carriageways and return road separators.
+    Detect dual carriageways and return road separators. Dual carriageways are derived from the network faces.
     Return None if none were found.
     Parameters
     ----------
-    network : geopandas GeoDataFrame of LineStrings
+    roads : geopandas GeoDataFrame of LineStrings
         The road network to analyze.
     importance : str optional.
         The attribute name of the data on which road importance is based.
         Default value is set to None which means every road is taken for the network face calculation.
     value : int optional.
-        The maximum value of the importance attribute. Roads with an importance higher than this value will not be taken.
+        Maximum value of the importance attribute. Roads with an importance higher than this value will not be taken.
         Default value is set to None.
+    concavity : float optional.
+        Minimum concavity above which the face is a dual carriageway. It represents the factor between the polygon surface and its convex hull surface.
+        Default value is set to 0.85.
+    elongation : float optional.
+        Minimum elongation above which the face is a dual carriageway. It represents the ratio between the length and the width of the minimum rotated rectangle containing the polygon.
+        Default value is set to 6.0.
+    compactness : float optional.
+        Maximum compactness below which the face is a dual carriageway. (4*pi*area/perimeter^2)
+        Default value is set to 0.12.
+    area : float optional.
+        Area factor to detect very long motorways. Do not change if you don't know what you are doing.
+        Default value is set to 60000.0.
+    width : float optional.
+        Minimum width above which the face is a dual carriageway. It represents the width of the minimum rotated rectangle containing the polygon.
+        Default value is set to 20.0.
+    huber : int optional.
+        Huber width for long motorways. Do not change.
+        Default value is set to 16.
     """
-    crs = network.crs
+    crs = roads.crs
 
-    network = network.to_dict('records')
+    roads = roads.to_dict('records')
 
     if (importance is not None and value is None) or (importance is None and value is not None):
         raise Exception("Provide both arguments (importance, value) or none.")
@@ -35,22 +53,22 @@ def detect_dual_carriageways(
     if importance is not None and value is not None:
         attribute = True
 
-    roads = []
-    for road in network:
+    network = []
+    for road in roads:
         if attribute:
             if int(road[importance]) <= value:
-                roads.append(road['geometry'])
+                network.append(road['geometry'])
         else:
-            roads.append(road['geometry'])
+            network.append(road['geometry'])
 
-    faces = calculate_network_faces(roads, convex_hull=False)
-    tree = shapely.STRtree(roads)
+    faces = calculate_network_faces(network, convex_hull=False)
+    tree = shapely.STRtree(network)
 
     separators = []
     index = 0
     for face in faces:
         add, infos = is_dual_carriageway(
-            face, roads, tree,
+            face, network, tree,
             concavity=concavity,
             elongation=elongation,
             compactness=compactness,
