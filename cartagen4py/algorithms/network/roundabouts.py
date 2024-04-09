@@ -9,10 +9,13 @@ def collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=N
     Collapse detected roundabouts below the provided diameter to a point and return the new network.
     Parameters
     ----------
-    network : geopandas GeoDataFrame of LineStrings.
+    network : geopandas GeoDataFrame of LineStrings
         The road network where roundabouts will be collapsed.
-    roundabouts : geopandas GeoDataFrame of Polygons.
+    roundabouts : geopandas GeoDataFrame of Polygons
         The polygons representing the faces of the network detected as roundabouts.
+    crossroads : geopandas GeoDataFrame of Polygons, optional
+        The polygons representing the faces of the network detected as branching crossroads. This
+        allows incoming branching crossroads on roundabouts to be collapsed as well. 
     maximum_diameter : float, optional.
         The diameter, in meter, below which roundabouts are collapsed.
         Default value is set to None. 

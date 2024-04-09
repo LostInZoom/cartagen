@@ -5,7 +5,7 @@ from shapely.ops import unary_union, linemerge
 from cartagen4py.utils.network import *
 from cartagen4py.utils.geometry.line import *
 
-def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None,):
+def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None):
     """
     Collapse detected branching crossroads below the provided area to a point and return the new network.
     Parameters
@@ -14,13 +14,13 @@ def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_a
         The road network where branching crossroads will be collapsed.
     crossroads : geopandas GeoDataFrame of Polygons.
         The polygons representing the faces of the network detected as branching crossroads.
-    maximum_area : float, optional.
-        The area, in square meter, below which branching crossroads are collapsed.
-        Default value is set to None. 
     roundabouts : geopandas GeoDataFrame of Polygons, optional.
         The polygons representing the faces of the network detected as roundabouts.
         Provide a better collapsing when provided.
         Default value is set to None.
+    maximum_area : float, optional.
+        The area, in square meter, below which branching crossroads are collapsed.
+        Default value is set to None. 
     """
 
     # Retrieve crs for output
