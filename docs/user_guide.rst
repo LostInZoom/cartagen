@@ -178,6 +178,93 @@ Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means
 
 Figure 9. A set of points reduced to depth 2 of the quadtree, with the selection mode. The selected points are displayed in red.
 
+
+Road network generalization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Those functions are used to generalized specific features inside a road network. Those tools are used in conjonction with the
+data enrichment tools.
+
+.. method:: collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=None)
+
+    This function collapse detected roundabouts inside a road network.
+    **It is recommended to detect both roundabouts and branching crossroads before collapsing them, this approach yields better results.**
+    Returns the new road network as a geopandas GeoDataFrame.
+    
+    :param roads: The road network where roundabouts will be collapsed.
+    :type roads: geopandas GeoDataFrame of LineStrings
+    :param roundabouts: The polygons representing the faces of the network detected as roundabouts.
+    :type roundabouts: geopandas GeoDataFrame of Polygons
+    :param crossroads: The polygons representing the faces of the network detected as branching crossroads. This allows incoming branching crossroads on roundabouts to be collapsed as well. 
+    :type crossroads: geopandas GeoDataFrame of Polygons, optional
+    :param maximum_diameter: The diameter below which roundabouts are not collapsed.
+    :type maximum_diameter: float, optional
+    
+.. code-block:: pycon
+
+    # Detect roundabouts using default parameters
+    roundabouts = detect_roundabouts(roads)
+
+    # Detect branching crossroads using default parameters
+    branching = detect_branching_crossroads(roads)
+
+    # Collapse roundabouts with default parameters
+    collapsed = collapse_roundabouts(roads, roundabouts, crossroads=branching)
+
+.. plot:: code/collapse_roundabouts.py
+
+.. method:: collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None)
+
+    This function collapse detected branching crossroads inside a road network.
+    **It is recommended to detect both roundabouts and branching crossroads before collapsing them, this approach yields better results.**
+    Returns the new road network as a geopandas GeoDataFrame.
+    
+    :param roads: The road network where branching crossroads will be collapsed.
+    :type roads: geopandas GeoDataFrame of LineStrings
+    :param crossroads: The polygons representing the faces of the network detected as branching crossroads. 
+    :type crossroads: geopandas GeoDataFrame of Polygons
+    :param roundabouts: The polygons representing the faces of the network detected as roundabouts. This allows roundabouts to be collapsed at the same time.
+    :type roundabouts: geopandas GeoDataFrame of Polygons, optional
+    :param maximum_area: The area, in square meter, below which branching crossroads are collapsed. Default value is set to None. 
+    :type maximum_area: float, optional
+    
+.. code-block:: pycon
+
+    # Detect roundabouts using default parameters
+    roundabouts = detect_roundabouts(roads)
+
+    # Detect branching crossroads using default parameters
+    branching = detect_branching_crossroads(roads)
+
+    # Collapse branching crossroads with default parameters
+    collapsed = collapse_branching_crossroads(roads, branching, roundabouts=roundabouts)
+
+.. plot:: code/collapse_branching_crossroads.py
+
+.. method:: collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=3, propagate_attributes=None)
+
+    This function collapse detected dual carriageways inside a road network.
+    Returns the new road network as a geopandas GeoDataFrame.
+    
+    :param roads: The road network where branching crossroads will be collapsed.
+    :type roads: geopandas GeoDataFrame of LineStrings
+    :param crossroads: The polygons representing the faces of the network detected as branching crossroads. 
+    :type crossroads: geopandas GeoDataFrame of Polygons
+    :param roundabouts: The polygons representing the faces of the network detected as roundabouts. This allows roundabouts to be collapsed at the same time.
+    :type roundabouts: geopandas GeoDataFrame of Polygons, optional
+    :param maximum_area: The area, in square meter, below which branching crossroads are collapsed. Default value is set to None. 
+    :type maximum_area: float, optional
+    
+.. code-block:: pycon
+
+    # Detect branching crossroads using default parameters
+    carriageways = detect_dual_carriageways(roads)
+
+    # Collapse branching crossroads with default parameters
+    collapsed = collapse_branching_crossroads(roads, branching, roundabouts=roundabouts)
+
+.. plot:: code/collapse_dual_carriageways.py
+
 Enrich your data prior to map generalisation
 --------------------------------------------
 
@@ -413,6 +500,7 @@ Those functions characterize different specificities of a road network by interp
 .. method:: detect_branching_crossroads(roads, area_threshold=2500, maximum_distance_area=0.5, roundabouts=None, allow_middle_node=True, middle_angle_tolerance=10.0, allow_single_4degree_node=True)
 
     This function detects branching crossroads inside a road network.
+    **Although the roundabouts parameter is optional, it is recommended to detect roundabouts before branching crossroads to help their characterization.**
     Returns a GeoDataFrame of polygons representing their extents.
     
     :param network: The GeoDataFrame containing the road network as LineString geometries.
@@ -471,18 +559,20 @@ Those functions characterize different specificities of a road network by interp
 .. method:: detect_dead_ends(roads, outside_faces=True)
 
     This function detects dead ends inside a road network.
-    Returns the roads detected as dead-ends. Five attributes are added, namely:
-    - face: the id of the network face it belongs to.
-    - deid: the id of the dead end group inside a given face.
-    - connected: set to 'true' if the dead end group is connected to the network.
-    - root: set to true if the road section is the root of the dead end group, i.e. the section connecting the dead end group to the road network.
-    - hole: set to true if the road section touches a hole inside the dead end group.
-    Return None if none were found.
-    
+    Returns the roads detected as dead-ends. Return None if none were found.
+
     :param roads: The GeoDataFrame containing the road network as LineString geometries.
     :type roads: geopandas GeoDataFrame
     :param outside_faces: If set to true, detects dead-ends on the network faces located on the border.
     :type outside_faces: boolean, optional
+    
+Five attributes are added:
+
+* **face**: the id of the network face it belongs to.
+* **deid**: the id of the dead end group inside a given face.
+* **connected**: set to 'true' if the dead end group is connected to the network.
+* **root**: set to true if the road section is the root of the dead end group, i.e. the section connecting the dead end group to the road network.
+* **hole**: set to true if the road section touches a hole inside the dead end group.
 
 .. code-block:: pycon
 
