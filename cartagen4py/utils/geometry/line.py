@@ -177,10 +177,10 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
     if sample is None:
         coords = list(line.coords)
         distances = []
-        for i in range(0, len(coords) - 2):
+        for i in range(0, len(coords) - 1):
             v1, v2 = coords[i], coords[i + 1]
             distances.append(shapely.Point(v1).distance(shapely.Point(v2)))
-        avg = sum(distances) / len(distances)
+        avg = (sum(distances) / len(distances))
         sample = round(avg / 3)
 
     # First resample the line, making sure there is a maximum distance between two consecutive vertices
@@ -481,9 +481,6 @@ def split_line_at_point(line, point):
     Return the two new linestrings.
     Return None if the line and the point doesn't intersect.
     """
-    if line.distance(point) > 1e-8:
-        return None
-
     projected = nearest_points(point, line)[1]
     splitted = split(snap(line, projected, 0.0001), projected)
 
