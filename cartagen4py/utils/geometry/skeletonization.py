@@ -181,17 +181,18 @@ class SkeletonTIN:
                 self.bones.append(merged)
 
                 # Remove the interior node
-                self.interiors.pop(self.interiors.index(point))
+                if point in self.interiors:
+                    self.interiors.pop(self.interiors.index(point))
 
         # Start the recursion
         for e in entries:
             recursive_removal(e)
 
-    def create_network(self, distance=None):
+    def create_network(self, distance=None, smoothing=True):
         """
         Create the inside network from the skeleton bones.
-        The distance parameter is the distance used by the Douglas-Peucker algorithm. If not provided,
-        it doesn't apply any simplification.
+        The distance parameter is the distance used by the Douglas-Peucker algorithm. If not provided, it doesn't apply any simplification.
+        The smooth parameter specify whether a gaussian smoothing shoudl be applied.
         """
         bones = self.bones.copy()
         network = []
@@ -252,7 +253,12 @@ class SkeletonTIN:
                 self.network = list(shapely.simplify(network, tolerance=distance))
             else:
                 self.network = network
-        
+            
+            # Apply a gaussian smoothing to the network if selected
+            if smoothing:
+                for i, n in enumerate(self.network):
+                    self.network[i] = gaussian_smoothing(n)
+
         return self.network
 
     def blend(self, attributes):
