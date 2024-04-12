@@ -59,6 +59,7 @@ class BuildingSizeConstraint(GeneralisationConstraint):
 
 
     def compute_actions(self):
+        self.actions.clear()
         if(self.goal_value == 0.0):
             # propose to delete the agent
             action = DeletionAction(self,self.agent,1)
@@ -128,6 +129,7 @@ class BuildingGranularityConstraint(GeneralisationConstraint):
 
 
     def compute_actions(self):
+        self.actions.clear()
         # propose the simplification action
         action = SimplificationAction(self,self.agent,5,self.min_length_granularity)
         self.actions.append([action, self, 5])
@@ -194,6 +196,7 @@ class BuildingSquarenessConstraint(GeneralisationConstraint):
 
 
     def compute_actions(self):
+        self.actions.clear()
         # propose the squaring action
         action = SquaringAction(self,self.agent,5)
         self.actions.append([action, self, 5])

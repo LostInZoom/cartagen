@@ -90,6 +90,8 @@ def __delete_side_polygon(polygon, segment, ring_index, parallel_limit, orthogon
         ya = a_[1] - a[1]
         xb = b_[0] - b[0]
         yb = b_[1] - b[1]
+        if (xa * yb - ya * xb == 0):
+            return False, polygon
         t = (xb * (a[1] - b[1]) - yb * (a[0] - b[0])) / (xa * yb - ya * xb)
         c_ = Point(a[0] + t * xa, a[1] + t * ya)
 

@@ -10,11 +10,12 @@ class BuildingDisplacementRandom:
     """
     Initialize random displacement object, with default length displacement factor and number of iterations per building
     """
-    def __init__(self, max_trials=25, max_displacement=10, network_partitioning=False, verbose=False):
+    def __init__(self, min_dist, max_trials=25, max_displacement=10, network_partitioning=False, verbose=False):
         self.MAX_TRIALS = max_trials
         self.MAX_DISPLACEMENT = max_displacement
         self.NETWORK_PARTITIONING = network_partitioning
         self.VERBOSE = verbose
+        self.MIN_DIST = min_dist
 
     def displace(self, buildings, roads, rivers, *networks):
         """
@@ -133,19 +134,20 @@ class BuildingDisplacementRandom:
         """
         geometry = None
         b = self.__BUILDINGS.iloc[processed_building].geometry
+        buffered = b.buffer(self.MIN_DIST)
         # For each buildings...
         for building in buildings:
             # Checking if it's not the same building
             if building != processed_building:
-                geometry = self.__get_overlapping_geometries(b, self.__BUILDINGS.iloc[building].geometry, geometry, "building")
+                geometry = self.__get_overlapping_geometries(buffered, self.__BUILDINGS.iloc[building].geometry, geometry, "building")
         
         # For each road section
         for road in roads:
-            geometry = self.__get_overlapping_geometries(b, road, geometry, "road")
+            geometry = self.__get_overlapping_geometries(buffered, road, geometry, "road")
 
         # For each river section
         for river in rivers:
-            geometry = self.__get_overlapping_geometries(b, river, geometry, "river")
+            geometry = self.__get_overlapping_geometries(buffered, river, geometry, "river")
 
         # Returning the area of the geometry if it exists
         if (geometry is None) or (geometry.is_empty == True) or (geometry.area == 0):

@@ -61,15 +61,13 @@ def measure_block_simulated_density(block, buildings, building_min_size, roads):
 
     return symbol_area / block.area
 
-def mean_building_overlap_rate(block, buildings, min_sep, roads, road_sizes):
+def mean_building_overlap_rate(buildings, min_sep, roads, road_sizes):
     """
     Measures the mean of the overlapping rates for the buildings of the block. The overlapping rate of a building is the ratio between
     the portions of the building overlapping another symbol (road or building), and the are of the building. The value is between 0 and 1 
     where 0 means that no building overlap another building or the road symbol. 
     Parameters
     ----------
-    block : a shapely Polygon 
-        The polygon represents the measured block, i.e. the face of the road graph.
     buildings : list of shapely Polygon features.
         The geometries of the buildings inside the block.
     min_sep : float.
@@ -99,9 +97,20 @@ def mean_building_overlap_rate(block, buildings, min_sep, roads, road_sizes):
         road_id = 0
         for road in roads:
             symbol_width = road_sizes[road_id]
+            if road.distance(building) > (min_sep+symbol_width):
+                continue
             overlap = road.buffer(symbol_width).intersection(building)
             if overlap.is_empty:
                 continue
             overlap_geoms.append(overlap)
             road_id += 1
         overlap_geom = unary_union(overlap_geoms)
+        if overlap_geom.is_empty:
+            continue
+        mean += overlap_geom.area
+    
+    if nb > 0:
+        return mean / nb
+    else:
+        return 0.0
+

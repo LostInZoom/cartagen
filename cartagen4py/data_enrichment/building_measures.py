@@ -72,8 +72,17 @@ def block_triangulation(buildings, networks, max_distance):
     for edge in raw_tri:
         point1 = Point(edge.coords[0])
         point2 = Point(edge.coords[1])
-        is_building1 = multi_buildings.contains(point1)
-        is_building2 = multi_buildings.contains(point2)
+        is_building1 = False
+        is_building2 = False
+        if multi_buildings.is_valid:
+            is_building1 = multi_buildings.contains(point1)
+            is_building2 = multi_buildings.contains(point2)
+        else:
+            for b in buildings:
+                if b.contains(point1):
+                    is_building1 = True
+                if b.contains(point2):
+                    is_building2 = True
 
         # edges between two buildings are kept
         if is_building1 and is_building2:
