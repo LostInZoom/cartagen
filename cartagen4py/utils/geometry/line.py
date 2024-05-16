@@ -181,7 +181,7 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
             v1, v2 = coords[i], coords[i + 1]
             distances.append(shapely.Point(v1).distance(shapely.Point(v2)))
         avg = (sum(distances) / len(distances))
-        sample = round(avg / 3)
+        sample = avg / 3
 
     # First resample the line, making sure there is a maximum distance between two consecutive vertices
     resampled = resample_line(line, sample)

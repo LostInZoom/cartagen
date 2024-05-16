@@ -188,7 +188,7 @@ class SkeletonTIN:
         for e in entries:
             recursive_removal(e)
 
-    def create_network(self, distance=None, smoothing=True):
+    def create_network(self, distance=None, smoothing=False):
         """
         Create the inside network from the skeleton bones.
         The distance parameter is the distance used by the Douglas-Peucker algorithm. If not provided, it doesn't apply any simplification.
