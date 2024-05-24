@@ -4,7 +4,7 @@ import geopandas as gpd
 
 network = gpd.read_file("data/detect_dead_ends.geojson")
 deadends = c4.detect_dead_ends(network)
-collapsed = c4.eliminate_dead_ends(network, deadends, 250, keep_longest=False)
+collapsed = c4.eliminate_dead_ends(network, deadends, 250)
 
 original = network.plot(edgecolor='gray',linewidth=1)
 collapsed.plot(ax=original, color='red', linewidth=1)
