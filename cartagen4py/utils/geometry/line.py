@@ -136,7 +136,7 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_ext
     sigma : float optional
         Gaussian filter strength.
         Default value to 30, which is a high value.
-    sample : int optional
+    sample : float optional
         The length in meter between each nodes after resampling the line.
         If not provided, the sample is derived from the line and is the average distance between
         each consecutive vertex.
