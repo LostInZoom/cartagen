@@ -126,7 +126,7 @@ def __li_openshaw_simplification(line, cell_size):
     return line
     
 
-def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
+def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_extremities=False):
     """
     Compute the gaussian smoothing of a set of a LineString.
     Parameters
@@ -135,11 +135,11 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
         The line to smooth.
     sigma : float optional
         Gaussian filter strength.
-        Default value to 30.
+        Default value to 30, which is a high value.
     sample : int optional
         The length in meter between each nodes after resampling the line.
         If not provided, the sample is derived from the line and is the average distance between
-        each consecutive vertex divided by 3.
+        each consecutive vertex.
     densify : boolean optional
         Whether the resulting line should keep the new node density. Default to True.
     """
@@ -181,7 +181,7 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
             v1, v2 = coords[i], coords[i + 1]
             distances.append(shapely.Point(v1).distance(shapely.Point(v2)))
         avg = (sum(distances) / len(distances))
-        sample = avg / 3
+        sample = avg
 
     # First resample the line, making sure there is a maximum distance between two consecutive vertices
     resampled = resample_line(line, sample)
@@ -220,7 +220,7 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
         smoothed_coords.append((x,y))
 
     if densify:
-        return LineString(smoothed_coords)
+        final_coords = smoothed_coords
     else:
         # Only return the points matching the input points in the resulting filtered line
         final_coords = []
@@ -248,8 +248,12 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True):
                 done.append(nearest)
             else:
                 final_coords.append(point)
-
-        return LineString(final_coords)
+        
+    if preserve_extremities:
+        final_coords[0] = Point(coords[0])
+        final_coords[-1] = Point(coords[-1])
+    
+    return LineString(final_coords)
 
 def get_bend_side(line):
     """

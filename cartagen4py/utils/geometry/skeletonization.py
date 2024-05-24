@@ -257,11 +257,11 @@ class SkeletonTIN:
             # Apply a gaussian smoothing to the network if selected
             if smoothing:
                 for i, n in enumerate(self.network):
-                    self.network[i] = gaussian_smoothing(n)
+                    self.network[i] = gaussian_smoothing(n, preserve_extremities=True)
 
         return self.network
 
-    def blend(self, attributes):
+    def blend(self, attributes, sigma=None):
         """
         Blend the given network with the created skeleton. Relies on entry points.
         It works only if incoming lines where provided during the skeleton creation.
@@ -329,6 +329,12 @@ class SkeletonTIN:
         else:
             # Else, retrieve the blended network without contained lines
             blended = [b for i, b in enumerate(blended) if i not in remove]
+
+        # Apply a gaussian smoothing to the blended network if selected
+        if sigma is not None:
+            for i, n in enumerate(blended):
+                geom = n['geometry']
+                blended[i]['geometry'] = gaussian_smoothing(geom, sigma=sigma, preserve_extremities=True)
 
         self.blended = blended
         return blended
