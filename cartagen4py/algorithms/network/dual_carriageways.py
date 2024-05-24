@@ -7,8 +7,19 @@ from cartagen4py.utils.network import *
 
 def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None):
     """
-    Collapse dual carriageways using the polygon skeleton made from a Delaunay Triangulation
-    TODO: Handle carriageways connected by only one point.
+    Collapse dual carriageways using the polygon skeleton made from a Delaunay Triangulation.
+    Parameters
+    ----------
+    roads : geopandas GeoDataFrame of LineStrings.
+        The road network where dual carriageways will be collapsed.
+    carriageways : geopandas GeoDataFrame of Polygons.
+        The polygons representing the faces of the network detected as dual carriageways.
+    sigma : float, optional.
+        If not None, apply a gaussian smoothing to the collapsed dual carriageways to avoid jagged lines that can be created during the TIN skeleton creation.
+        Default value is set to None which doesn't apply any smoothing.
+    propagate_attributes : list of str, optional.
+        Propagate the provided list of column name to the resulting network. The propagated attribute is the one from the longest line.
+        Default value is set to None. 
     """
     # Retrieve crs for output
     crs = roads.crs
