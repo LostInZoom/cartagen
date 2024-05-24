@@ -276,6 +276,33 @@ data enrichment tools.
 
 .. plot:: code/collapse_dual_carriageways.py
 
+.. method:: eliminate_dead_ends(roads, deadends, length, keep_longest=True)
+
+    This function eliminates dead ends inside a road network if the length of their main component is below a given threshold.
+    If the dead end is simple (i.e. just one road), the main component is the road.
+    If the dead end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
+    If the dead end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
+    Returns the roads network without the unwanted dead ends as a GeoDataFrame.
+
+    :param roads: The GeoDataFrame containing the dead ends as LineString geometries.
+    :type roads: geopandas GeoDataFrame
+    :param deadends: The LineString representing the roads of the network detected as dead ends.
+    :type deadends: geopandas GeoDataFrame of Polygons
+    :param length: The length below which dead ends are eliminated.
+    :type length: float
+    :param keep_longest: If set to true, in case of complex dead end, keep the main component (c.f. description) if above the provided length.
+    :type keep_longest: boolean, optional
+
+.. code-block:: pycon
+
+    # Detect dead ends using default parameters
+    deadends = detect_dead_ends(network)
+
+    # Eliminate dead ends using a length threshold of 250
+    eliminated = eliminate_dead_ends(network, deadends, 250)
+
+.. plot:: code/collapse_dead_ends.py
+
 Enrich your data prior to map generalisation
 --------------------------------------------
 
