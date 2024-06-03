@@ -36,6 +36,8 @@ def calculate_network_faces(*networks, convex_hull=True):
 # Returns a tuple with objects and faces polygons
 # TODO: Manage centroids that happens to be on the edges of the networks faces
 def network_partition(objects, *networks):
+    obj = objects.to_dict('records')
+
     # Create an empty tuple to store future partitions
     partition = ([], [])
 
@@ -47,18 +49,27 @@ def network_partition(objects, *networks):
     faces = calculate_network_faces(*shapes)
 
     # Calculate the centroids of each objects and store them in a list
-    centroids = objects.centroid
+    centroids = []
+    for o in obj:
+        centroids.append(o['geometry'].centroid)
 
     # Create the spatial index for the objects centroids
-    tree = centroids.sindex
+    tree = shapely.STRtree(centroids)
 
     # Loop through all network faces
     for face in faces:
         # Retrieve objects that intersects the considered network face
-        intersects = tree.query(face)
+        intersects = list(tree.query(face, predicate='intersects'))
+
+        indexes = []
+        # Make sure it truly intersects before adding
+        for i in intersects:
+            if shapely.intersects(centroids[i], face):
+                indexes.append(i)
+
         # If objects are intersecting the considered network face
-        if len(intersects) > 0:
-            partition[0].append(intersects)
+        if len(indexes) > 0:
+            partition[0].append(indexes)
             partition[1].append(face)
 
     return partition

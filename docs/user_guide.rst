@@ -46,12 +46,22 @@ Figure 1. Two polylines simplified with the Visvalingam-Whyatt algorithm.
 Figure 2. Two polylines simplified with the Raposo algorithm.
 
 
-.. method:: gaussian_smoothing(line, sigma, threshold)
+.. method:: gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_extremities=False)
 
-    Compute the gaussian smoothing of a set of a LineString. With a smoothing, the shape of the line is simpler but the number of vertices remains the same: the vertices are slightly moved to obtain a smoother shape.
-    Sigma is the gaussian filter parameter (the bigger sigma is, the smoother the shape), and threshold is the subsampling parameter, i.e. the step in meters to densify the line prior to the smoothing.
+    Apply a gaussian smoothing to a shapely LineString.
     This code is a port from the GaussianFilter class in the GeOxygene Java library. See p. 119-120 of the book "Algorithmic Foundation of Multi-Scale Spatial Representation" by Z. Li.
+    Returns the smoothed LineString as a shapely geometry.
 
+    :param line: The line to smooth.
+    :type line: shapely LineString
+    :param sigma: Gaussian filter strength (the bigger sigma is, the smoother the shape). If not provided, will be set to 30, which is quite high.
+    :type sigma: float, optional
+    :param sample: The length in meter between each nodes after resampling the line. If not provided, the sample is derived from the line and is the average distance between each consecutive vertex.
+    :type sample: float, optional
+    :param densify: Whether the resulting line should keep the new node density calculated using the sample value. Default to True.
+    :type densify: boolean, optional
+    :param preserve_extremities: After smoothing, replace first and last node by the first and last node of the provided line to ensure start and end node are preserved.
+    :type preserve_extremities: boolean, optional
 
 .. code-block:: pycon
 
@@ -216,7 +226,8 @@ data enrichment tools.
 .. method:: collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None)
 
     This function collapse detected branching crossroads inside a road network.
-    **It is recommended to detect both roundabouts and branching crossroads before collapsing them, this approach yields better results.**
+    **It is recommended to detect both roundabouts and branching crossroads before collapsing them, this approach yields better results.
+    Then, the collapsing of branching crossroads connected to a roundabout is conducted using the roundabout collapsing algorithm.**
     Returns the new road network as a geopandas GeoDataFrame.
     
     :param roads: The road network where branching crossroads will be collapsed.
@@ -241,19 +252,19 @@ data enrichment tools.
 
 .. plot:: code/collapse_branching_crossroads.py
 
-.. method:: collapse_dual_carriageways(roads, carriageways, distance_douglas_peucker=3, propagate_attributes=None)
+.. method:: collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None)
 
     This function collapse detected dual carriageways inside a road network.
     Returns the new road network as a geopandas GeoDataFrame.
     
-    :param roads: The road network where branching crossroads will be collapsed.
+    :param roads: The road network where dual carriageways will be collapsed.
     :type roads: geopandas GeoDataFrame of LineStrings
-    :param crossroads: The polygons representing the faces of the network detected as branching crossroads. 
-    :type crossroads: geopandas GeoDataFrame of Polygons
-    :param roundabouts: The polygons representing the faces of the network detected as roundabouts. This allows roundabouts to be collapsed at the same time.
-    :type roundabouts: geopandas GeoDataFrame of Polygons, optional
-    :param maximum_area: The area, in square meter, below which branching crossroads are collapsed. Default value is set to None. 
-    :type maximum_area: float, optional
+    :param carriageways: The polygons representing the faces of the network detected as dual carriageways.
+    :type carriageways: geopandas GeoDataFrame of Polygons
+    :param sigma: If not None, apply a gaussian smoothing to the collapsed dual carriageways to avoid jagged lines that can be created during the TIN skeleton creation.
+    :type sigma: float, optional
+    :param propagate_attributes: Propagate the provided list of column name to the resulting network. The propagated attribute is the one from the longest line.
+    :type propagate_attributes: list of str, optional
     
 .. code-block:: pycon
 
@@ -261,9 +272,36 @@ data enrichment tools.
     carriageways = detect_dual_carriageways(roads)
 
     # Collapse branching crossroads with default parameters
-    collapsed = collapse_branching_crossroads(roads, branching, roundabouts=roundabouts)
+    collapsed = collapse_dual_carriageways(roads, carriageways, sigma=2)
 
 .. plot:: code/collapse_dual_carriageways.py
+
+.. method:: eliminate_dead_ends(roads, deadends, length, keep_longest=True)
+
+    This function eliminates dead ends inside a road network if the length of their main component is below a given threshold.
+    If the dead end is simple (i.e. just one road), the main component is the road.
+    If the dead end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
+    If the dead end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
+    Returns the roads network without the unwanted dead ends as a GeoDataFrame.
+
+    :param roads: The GeoDataFrame containing the dead ends as LineString geometries.
+    :type roads: geopandas GeoDataFrame
+    :param deadends: The LineString representing the roads of the network detected as dead ends.
+    :type deadends: geopandas GeoDataFrame of Polygons
+    :param length: The length below which dead ends are eliminated.
+    :type length: float
+    :param keep_longest: If set to true, in case of complex dead end, keep the main component (c.f. description) if above the provided length.
+    :type keep_longest: boolean, optional
+
+.. code-block:: pycon
+
+    # Detect dead ends using default parameters
+    deadends = detect_dead_ends(network)
+
+    # Eliminate dead ends using a length threshold of 250
+    eliminated = eliminate_dead_ends(network, deadends, 250)
+
+.. plot:: code/collapse_dead_ends.py
 
 Enrich your data prior to map generalisation
 --------------------------------------------

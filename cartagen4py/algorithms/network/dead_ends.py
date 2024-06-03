@@ -5,7 +5,22 @@ import geopandas as gpd
 
 def eliminate_dead_ends(roads, deadends, length, keep_longest=True):
     """
-    Eliminate dead ends from a road network if they are smaller than the given length.
+    This function eliminates dead ends inside a road network if the length of their main component is below a given threshold.
+    If the dead end is simple (i.e. just one road), the main component is the road.
+    If the dead end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
+    If the dead end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
+    Returns the roads network without the unwanted dead ends as a GeoDataFrame.
+    Parameters
+    ----------
+    roads : geopandas GeoDataFrame of LineStrings.
+        The GeoDataFrame containing the dead ends as LineString geometries.
+    deadends : geopandas GeoDataFrame of LineString.
+        The LineString representing the roads of the network detected as dead ends.
+    length : float.
+        The length below which dead ends are eliminated.
+    keep_longest : boolean, optional.
+        If set to true, in case of complex dead end, keep the main component (c.f. description) if above the provided length.
+        Default is set to True.
     """
 
     # Retrieve crs for output
