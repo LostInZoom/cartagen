@@ -6,6 +6,22 @@ from shapely.geometry import LineString, Point, Polygon, MultiPoint
 from cartagen4py.utils.geometry.angle import *
 from cartagen4py.utils.tessellation.hexagonal import *
 
+def douglas_peucker(line, distance_tolerance, preserve_topology=True):
+    """
+    Returns a simplified version of the line using the Douglas-Peucker algorithm (Douglas & Peucker, 1973).
+    This is a simple wrapper around the shapely function simplify().
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to simplify.
+    distance_tolerance : float
+        Distance threshold in meters between the farthest point from the line formed by the current extremities.
+    preserve_topology : boolean optional
+        If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc).
+        The trade-off is computational expensivity. Default set to True.
+    """
+    return shapely.simplify(line, distance_tolerance, preserve_topology=preserve_topology)
+
 def visvalingam_whyatt(line, area_tolerance):
     """
     Visvalingam-Whyatt algorithm (1993)
