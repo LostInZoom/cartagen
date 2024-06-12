@@ -33,6 +33,7 @@ class ComponentsSatisfactionConstraint(GeneralisationConstraint):
         self.satisfaction = self.current_value
 
     def compute_actions(self):
+        self.actions.clear()
         # propose the action that activates the micro agents
         action = MesoMicroActivation(self,self.agent,1)
         self.actions.append([action, self, 1])
@@ -85,9 +86,16 @@ class BlockDensityConstraint(GeneralisationConstraint):
             self.satisfaction = 0.0
 
     def compute_actions(self):
+        self.actions.clear()
         if self.current_value > self.initial_density:
             nb_elim = 1
-            if self.satisfaction < 50:
+            if self.satisfaction < 75 and len(self.agent.components) <= 10:
+                nb_elim = 3
+            elif self.satisfaction < 75 and len(self.agent.components) < 15:
+                nb_elim = 4
+            elif self.satisfaction < 75:
+                nb_elim = 6
+            elif self.satisfaction < 85:
                 nb_elim = 2
             action = PromBlockEliminationAction(self,self.agent,2, nb_elim)
             self.actions.append([action, self, 2])
@@ -129,8 +137,9 @@ class BlockProximityConstraint(GeneralisationConstraint):
             self.satisfaction = 0.0
 
     def compute_actions(self):
+        self.actions.clear()
         # proposes displacement and then elimination
-        action = RandomBlockDisplacementAction(self,self.agent,3,self.road_sizes)
+        action = RandomBlockDisplacementAction(self,self.agent,3,self.road_sizes, self.min_sep)
         self.actions.append([action, self, 3])
         action2 = PromBlockEliminationAction(self,self.agent,1, 1)
         self.actions.append([action2, self, 1])

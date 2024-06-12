@@ -7,10 +7,12 @@ class Agent:
     satisfaction = 1.0
     constraints=[]
     actions_to_try = []
+    actions_tried = []
     deleted = False
     meso_agent = None
     feature = None
     type = ""
+    verbose = False
 
     def __init__(self, feature):
         self.id = next(Agent.newid)
@@ -32,7 +34,8 @@ class Agent:
         imp_sum = 0.0
         for constraint in self.constraints:
             constraint.compute_satisfaction()
-            print("satisfaction for constraint {}: {}".format(constraint.type, constraint.satisfaction))
+            if self.verbose:
+                print("satisfaction for constraint {}: {}".format(constraint.type, constraint.satisfaction))
             sum += constraint.satisfaction * constraint.importance
             imp_sum += constraint.importance
         
@@ -81,7 +84,7 @@ class Agent:
         if (self.deleted):
             return
         
-        self.actions_to_try = []
+        self.actions_to_try.clear()
         for constraint in self.constraints:
             if constraint.satisfaction >= 100:
                 continue
@@ -126,13 +129,13 @@ class MesoAgent(Agent):
             return 100
         return sum / nb
     
-    def get_best_component_to_activate(components):
+    def get_best_component_to_activate(self, components):
         """From a sublist of the components of the meso agent, returns the best one to activate as a micro agent.
             The default implementation returns the first of the list, whatever the satisfaction of the agent, or any kind of priority.
         """
         return components[0]
     
-    def manage_internal_side_effects(last_micro):
+    def manage_internal_side_effects(self, last_micro):
         """manages the side effects inside the meso if necessary
         ----------
         last_micro : Agent

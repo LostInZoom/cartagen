@@ -15,15 +15,17 @@ class BuildingDisplacementRandom:
         Default to 25. This means a building will be displaced 25 times and if no solution has been found, the building is not moved.
     max_displacement : float optional.
         The maximal displacement in meters allowed per iteration.
-        Default to 10. 
+        Default to 10.
     network_partitioning : list of geopandas GeoDataFrame of LineStrings.
         A list of GeoDataFrame representing the networks which will be used for the partitioning.
         Default value is set to None which doesn't apply any network partitioning.
     """
-    def __init__(self, max_trials=25, max_displacement=10, network_partitioning=None):
+    def __init__(self, min_dist, max_trials=25, max_displacement=10, network_partitioning=False, verbose=False):
         self.MAX_TRIALS = max_trials
         self.MAX_DISPLACEMENT = max_displacement
         self.NETWORK_PARTITIONING = network_partitioning
+        self.VERBOSE = verbose
+        self.MIN_DIST = min_dist
 
     def displace(self, buildings, width, *networks):
         """
@@ -42,7 +44,7 @@ class BuildingDisplacementRandom:
         crs = buildings.crs
         records = buildings.to_dict('records')
         self.__BUILDINGS = records
-        
+
         buffer = []
         # Unpack the provided networks
         for line in networks:
@@ -53,7 +55,7 @@ class BuildingDisplacementRandom:
         if self.NETWORK_PARTITIONING is not None:
             # Create the partitions -> tuple ([buildings index], [partition polygon geometry])
             partitions = network_partition(buildings, *self.NETWORK_PARTITIONING)
-            
+
             # Loop through each partition
             for i, partition in enumerate(partitions[0]):
                 # Create the spatial index for the buffered network
@@ -145,17 +147,21 @@ class BuildingDisplacementRandom:
         Calculate the area of overlapping between buildings, roads and rivers
         """
         geometry = None
-        geom = self.__BUILDINGS[index]['geometry']
-
+        b = self.__BUILDINGS.iloc[processed_building].geometry
+        buffered = b.buffer(self.MIN_DIST)
         # For each buildings...
         for building in buildings:
             # Checking if it's not the same building
-            if building != index:
-                geometry = self.__get_overlapping_geometries(geom, self.__BUILDINGS[building]['geometry'], geometry)
-        
-        # For each line
-        for line in buffer:
-            geometry = self.__get_overlapping_geometries(geom, line, geometry)
+            if building != processed_building:
+                geometry = self.__get_overlapping_geometries(buffered, self.__BUILDINGS.iloc[building].geometry, geometry, "building")
+
+        # For each road section
+        for road in roads:
+            geometry = self.__get_overlapping_geometries(buffered, road, geometry, "road")
+
+        # For each river section
+        for river in rivers:
+            geometry = self.__get_overlapping_geometries(buffered, river, geometry, "river")
 
         # Returning the area of the geometry if it exists
         if (geometry is None) or (geometry.is_empty == True) or (geometry.area == 0):

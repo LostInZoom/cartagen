@@ -41,12 +41,10 @@ class BlockAgent(MesoAgent):
             building_area += max([building_min_size,building_geom.area])
 
         # now compute the area of road symbols inside the block
-        road_id = 0
         polygons = []
-        for road in self.sections:
-            symbol_width = road_sizes[road_id]
+        for index, road in self.sections.iterrows():
+            symbol_width = road_sizes[index]
             polygons.append(road['geometry'].buffer(symbol_width))
-            road_id += 1
         merged_symbols = unary_union(polygons)
         inter = merged_symbols.intersection(block_geom)
 
@@ -57,7 +55,7 @@ class BlockAgent(MesoAgent):
         roads = []
         for building in self.components:
             buildings.append(building.feature['geometry'])
-        for road in self.sections:
+        for index, road in self.sections.iterrows():
             roads.append(road['geometry'])
         self.triangulation = block_triangulation(buildings, roads, 30)
         return self.triangulation
@@ -80,12 +78,10 @@ class BlockAgent(MesoAgent):
             building_geom = building.feature['geometry']
             building_area += building_geom.area
         # now compute the area of road symbols inside the block
-        road_id = 0
         polygons = []
-        for road in self.sections:
-            symbol_width = road_sizes[road_id]
+        for index, road in self.sections.iterrows():
+            symbol_width = road_sizes[index]
             polygons.append(road['geometry'].buffer(symbol_width))
-            road_id += 1
         merged_symbols = unary_union(polygons)
         inter = merged_symbols.intersection(block_geom)
 
@@ -99,7 +95,8 @@ class BlockAgent(MesoAgent):
             building_geom = building.feature['geometry']
             buildings.append(building_geom)
         roads = []
-        for road in self.sections:
+        for index, road in self.sections.iterrows():
             roads.append(road['geometry'])
-        return mean_building_overlap_rate(buildings, min_sep, roads, road_sizes)
+        rate = mean_building_overlap_rate(buildings, min_sep, roads, road_sizes)
+        return rate
 

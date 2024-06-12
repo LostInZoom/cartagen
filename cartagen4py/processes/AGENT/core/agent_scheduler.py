@@ -12,7 +12,7 @@ def run_agents(agents, lifecycle='basic', store_states=False, verbose=0):
             # run the basic lifecycle on the current agent
             __activate_agent_basic(agent, verbose=verbose)
 
-def __activate_agent_basic(agent, store_states=False, validity_satisfaction = 0.5, verbose=0):
+def __activate_agent_basic(agent, store_states=False, validity_satisfaction = 0.5, verbose=0, iter_max = 20):
     # clean the possibly previously created and stored states
     if(store_states):
         agent.clean_states()
@@ -41,14 +41,16 @@ def __activate_agent_basic(agent, store_states=False, validity_satisfaction = 0.
         return 
     
     # the agent is not satisfied: try to improve its satisfaction by triggering some actions
-    while(True):
+    i = 0
+    while(i < iter_max):
         # test if there are actions to try
         if(len(agent.actions_to_try)==0):
             # all possible action have been tried: the best possible state as been reached
             break
-
+        
         # take the next action to try from the list
         action_proposal = agent.get_best_action_proposal()
+        
         if(action_proposal == None):
             if verbose > 0:
                 print("agent {} has no more action to try".format(agent.id)) 
@@ -56,7 +58,7 @@ def __activate_agent_basic(agent, store_states=False, validity_satisfaction = 0.
         action = action_proposal[0]
         #agent.remove_action_to_try(action_proposal)
 
-        if verbose > 1:
+        if verbose > 0:
             print("selected action: {}".format(action_proposal))
 
         # store the geometry of the agent before the action
@@ -92,12 +94,14 @@ def __activate_agent_basic(agent, store_states=False, validity_satisfaction = 0.
             # the agent has improved his state, but other actions are necessary
             if verbose > 0:
                 print("agent {} improved but is still unsatisfied".format(agent.id)) 
+            i += 1
             continue
         else:
             # the state is not valid and the agent is backtracked to its previous state
             if verbose > 0:
-                print("agent {} did not improved so it is backtracked to previous state".format(agent.id)) 
+                print("agent {} did not improve so it is backtracked to previous state".format(agent.id)) 
             agent.feature['geometry'] = previous_geom
+            i += 1
 
 
 
