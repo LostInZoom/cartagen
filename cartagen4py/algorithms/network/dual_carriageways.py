@@ -176,6 +176,7 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
             originals.extend(crossroad.original)
 
         else:
+            # Add None to keep the order of the indexes
             skeletons.append(None)
 
     # Here, carriageways connected by their short sides are treated
