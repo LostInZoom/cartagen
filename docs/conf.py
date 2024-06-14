@@ -18,7 +18,9 @@ master_doc = 'index'
 source_suffix = '.rst'
 extensions = [
     'sphinx.ext.autodoc',
-    'matplotlib.sphinxext.plot_directive'
+    'sphinx.ext.autosummary',
+    'matplotlib.sphinxext.plot_directive',
+    'sphinx_remove_toctrees'
 ]
 
 templates_path = ['_templates']
@@ -28,6 +30,7 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_book_theme'
+remove_from_toctrees = ["reference/*"]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

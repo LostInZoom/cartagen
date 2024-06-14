@@ -8,6 +8,8 @@ from cartagen4py.utils.tessellation.hexagonal import *
 
 def douglas_peucker(line, distance_tolerance, preserve_topology=True):
     """
+    Douglas-Peucker simplification (1973).
+
     Returns a simplified version of the line using the Douglas-Peucker algorithm (Douglas & Peucker, 1973).
     This is a simple wrapper around the shapely function simplify().
     Parameters
@@ -24,7 +26,7 @@ def douglas_peucker(line, distance_tolerance, preserve_topology=True):
 
 def visvalingam_whyatt(line, area_tolerance):
     """
-    Visvalingam-Whyatt algorithm (1993)
+    Visvalingam-Whyatt simplification (1993).
     """
     def contains_another_point(line, pt, index):
         first = line.coords[index-1]
@@ -71,9 +73,13 @@ def visvalingam_whyatt(line, area_tolerance):
 
 def raposo_simplification(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
-    Raposo simplification algorithm (2010): uses an hexagonal tessallation, with a size related to the final scale, 
-    and the algorithm only retains one vertex per hexagonal cell. Be careful, it uses the scale as parameter. If the centroid parameter 
-    is True, the vertices inside an hexagon cell are replaced by the centroid of the cell; if it is False, they are replaced by the nearest
+    Raposo simplification algorithm (2010).
+    
+    Uses an hexagonal tessellation, with a size related to the final scale, 
+    and the algorithm only retains one vertex per hexagonal cell. Be careful,
+    it uses the scale as parameter. If the centroid parameter 
+    is True, the vertices inside an hexagon cell are replaced by the centroid of the cell;
+    if it is False, they are replaced by the nearest
     vertex to the centroid of the cell.
     """
     width = 0
@@ -144,7 +150,8 @@ def __li_openshaw_simplification(line, cell_size):
 
 def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_extremities=False):
     """
-    Compute the gaussian smoothing of a set of a LineString.
+    Apply a gaussian smoothing to a LineString.
+
     Parameters
     ----------
     line : shapely LineString
@@ -274,6 +281,7 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_ext
 def get_bend_side(line):
     """
     Return the side of the interior of the bend regarding the line direction. (left or right)
+
     Parameters
     ----------
     line : shapely LineString
@@ -363,6 +371,7 @@ def polygons_3d_to_2d(polygons):
 def resample_line(line, step):
     """
     Densifies a line with vertices every 'step' along the line. Keep the start and end vertex.
+    
     Parameters
     ----------
     line : shapely LineString

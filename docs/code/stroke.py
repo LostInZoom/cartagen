@@ -1,6 +1,6 @@
 from shapely.geometry import LineString, Point
 import geopandas as gpd
-from cartagen4py.data_enrichment import StrokeNetwork
+from cartagen4py.enrichment import StrokeNetwork
 import matplotlib.pyplot as plt
 
 data={'geometry':

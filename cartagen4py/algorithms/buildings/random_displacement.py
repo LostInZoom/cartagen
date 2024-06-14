@@ -4,7 +4,7 @@ import geopandas as gpd
 import shapely
 from cartagen4py.utils.partitioning.network import network_partition
 
-class BuildingDisplacementRandom:
+class RandomDisplacement:
     """
     Initialize random displacement object.
     Parameters
@@ -20,11 +20,10 @@ class BuildingDisplacementRandom:
         A list of GeoDataFrame representing the networks which will be used for the partitioning.
         Default value is set to None which doesn't apply any network partitioning.
     """
-    def __init__(self, min_dist, max_trials=25, max_displacement=10, network_partitioning=False, verbose=False):
+    def __new__(self, min_dist, max_trials=25, max_displacement=10, network_partitioning=False):
         self.MAX_TRIALS = max_trials
         self.MAX_DISPLACEMENT = max_displacement
         self.NETWORK_PARTITIONING = network_partitioning
-        self.VERBOSE = verbose
         self.MIN_DIST = min_dist
 
     def displace(self, buildings, width, *networks):

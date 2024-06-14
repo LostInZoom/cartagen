@@ -22,7 +22,7 @@ p3 = gp.GeoSeries(symbolized_roads)
 envgdf = gp.GeoDataFrame(geometry=p1)
 roadgdf = gp.GeoDataFrame(geometry=p3)
 riversgdf = gp.GeoDataFrame(geometry=gp.GeoSeries([]))
-displacement = c4.BuildingDisplacementRandom(3.5, network_partitioning=False)
+displacement = c4.RandomDisplacement(3.5, network_partitioning=False)
 displaced = displacement.displace(envgdf,roadgdf,riversgdf)
 
 p2 = displaced.geometry

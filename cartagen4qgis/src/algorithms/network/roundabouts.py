@@ -36,7 +36,7 @@ from qgis.core import (
 )
 
 from cartagen4py.utils.partitioning import *
-from cartagen4py.data_enrichment import is_roundabout
+from cartagen4py.enrichment import is_roundabout
 
 from cartagen4qgis import PLUGIN_ICON
 from cartagen4qgis.src.tools import *

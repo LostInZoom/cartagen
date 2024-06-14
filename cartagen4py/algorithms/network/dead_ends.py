@@ -5,10 +5,12 @@ import geopandas as gpd
 
 def eliminate_dead_ends(roads, deadends, length, keep_longest=True):
     """
-    This function eliminates dead ends inside a road network if the length of their main component is below a given threshold.
-    If the dead end is simple (i.e. just one road), the main component is the road.
-    If the dead end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
-    If the dead end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
+    Eliminates dead ends inside a road network if the length of their main component is below a given threshold.
+
+    The main component of a dead end is defined as:
+    - If the dead end is simple (i.e. just one road), the main component is the road.
+    - If the dead end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
+    - If the dead end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
     Returns the roads network without the unwanted dead ends as a GeoDataFrame.
     Parameters
     ----------
@@ -64,6 +66,8 @@ def eliminate_dead_ends(roads, deadends, length, keep_longest=True):
     for fid, face in enumerate(deadengeom):
         # Loop through each group inside this face
         for gid, group in enumerate(face):
+            print(fid, gid)
+            print(deadendgroups[fid][gid])
             # Here, treating unconnected dead ends
             if deadendgroups[fid][gid][0]['connected'] is False:
                 # Add them to the remove list
