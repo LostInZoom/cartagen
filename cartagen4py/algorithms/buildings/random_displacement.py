@@ -6,21 +6,23 @@ from cartagen4py.utils.partitioning.network import network_partition
 
 class RandomDisplacement:
     """
-    Initialize random displacement object.
+    Iteratively displace buildings that overlap with each other and/or a provided network.
+
     Parameters
     ----------
-    max_trials : int optional.
+    max_trials : int optional
         When a building intersects an other building or the network, a random displacement is apply. If the building still
         intersects an other building or the network, this represents a trial.
         Default to 25. This means a building will be displaced 25 times and if no solution has been found, the building is not moved.
-    max_displacement : float optional.
+    max_displacement : float optional
         The maximal displacement in meters allowed per iteration.
         Default to 10.
-    network_partitioning : list of geopandas GeoDataFrame of LineStrings.
+    network_partitioning : list of geopandas GeoDataFrame of LineStrings
         A list of GeoDataFrame representing the networks which will be used for the partitioning.
         Default value is set to None which doesn't apply any network partitioning.
+    
     """
-    def __new__(self, min_dist, max_trials=25, max_displacement=10, network_partitioning=False):
+    def __init__(self, min_dist, max_trials=25, max_displacement=10, network_partitioning=None):
         self.MAX_TRIALS = max_trials
         self.MAX_DISPLACEMENT = max_displacement
         self.NETWORK_PARTITIONING = network_partitioning
@@ -28,17 +30,25 @@ class RandomDisplacement:
 
     def displace(self, buildings, width, *networks):
         """
-        Displace the provided buildings.
+        Displace the provided buildings if they overlap each other or are closer than the width value to the provided networks.
+
         Parameters
         ----------
         buildings : geopandas GeoDataFrame of Polygons.
             The buildings to displace.
         width : float.
-            The width of the provided networks. A buffer is applied of the given with to the network and then is used to displace the buildings when overlapping.
+            The width of the provided networks. A buffer is applied of the given width to the network
+            and then is used to displace the buildings when overlapping.
         networks : geopandas GeoDataFrame of LineStrings, optional.
             The networks which will be used to displace the buildings.
             If no networks is provided, the building will only be moved if they intersects each other.
+
+        Returns
+        -------
+        geopandas GeoDataFrame of Polygons
+            The displaced buildings.
         """
+
         # Retrieve crs and convert buildings to list of dict records
         crs = buildings.crs
         records = buildings.to_dict('records')

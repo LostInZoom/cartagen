@@ -1,6 +1,6 @@
-======================
-CartAGen4Py
-======================
+========
+CartAGen
+========
 
 .. Documentation at RTD — https://readthedocs.org
 
@@ -32,13 +32,12 @@ Enrich your cartographic data
 Evaluate your generalised map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 .. toctree::
    :caption: User Guide
    :hidden:
 
    installation_py
-   user_guide
+   manual
 
 .. toctree::
    :caption: API Reference

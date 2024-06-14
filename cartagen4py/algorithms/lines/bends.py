@@ -9,20 +9,36 @@ from cartagen4py.utils.geometry.segment import *
 
 def accordion(line, width, sigma=None, sample=None):
     """
-    Apply the accordion algorithm (Plazanet, 1996) to a linestring.
-    Return a displaced linestring.
+    Stretches a line to enlarge each bend (Plazanet, 1996).
+
+    The Accordion algorithm is dedicated to the caricature of sinuous bend series.
+    Like the musical instrument, the Accordion algorithm stretches the road to enlarge each bend of the series.
+    The algorithm was developed in the 90’s by François Lecordix at IGN France.
+
+    The algorithm is part of the toolbox to generalise mountain roads that contain sinuous bend series.
+    The algorithm is rather used when there is room to enlarge the bend series.
+    When the diffusion of the enlargement to the connected roads causes more legibility problems than the
+    ones solved by Accordion, Bend schematization should be preferred.
+
     Parameters
     ----------
     line : shapely LineString
         The line to apply the accordion algorithm.
     width : float
         The width in meters of the casing of the symbol.
-    sigma : float optional
-        Gaussian smoothing arguments -> Gaussian filter strength to derive inflexion points.
-        Default to None which will let the gaussian smoothing algorithm derived it from the line.
-    sample : int optional
-        Gaussian smoothing arguments -> The length in meter between each nodes after resampling the line.
-        Default to None which will let the gaussian smoothing algorithm derived it from the line.
+    sigma : float, Default=None
+        Gaussian smoothing strength.
+    sample : int, Default=None
+        Gaussian smoothing sample size.
+
+    Returns
+    -------
+    shapely.LineString
+
+    See Also
+    --------
+    gaussian_smoothing : Gaussian smoothing for more information about sigma and sample parameters.
+    schematization : Schematization algorithm for bend series.
     """
     # Detect individual bends inside the smoothed line
     bs = BendSerie(line, sigma, sample)
@@ -173,18 +189,28 @@ def __get_vector(bend, width):
 
 def schematization(line, sigma=None, sample=None):
     """
-    Apply the schematization algorithm (Lecordix et al, 1997) to a given linestring.
-    Return the schematized linestring.
+    Remove bends from a line to simplify it (Lecordix et al, 1997).
+
+    Bend schematization is a caricature algorithm that removes one (or more) bend of a series while preserving the global shape of the bend series.
+    It was proposed in (Lecordix et al., 1997) and initially implemented in the late PlaGe platform.
+    The was implemented in CartAGen directly from the initial Ada PlaGe code.
+
+    Bends in the series are identified using inflexion points, and when the middle bends are removed, the inflexion points are displaced along the axis of the series,
+    the road is distorted to cushion the displacement of the inflexion points.
+
     Parameters
     ----------
     line : shapely LineString
         The line to apply the accordion algorithm.
-    sigma : float optional
-        Gaussian smoothing arguments -> Gaussian filter strength to derive inflexion points.
-        Default to None which will let the gaussian smoothing algorithm derived it from the line.
-    sample : int optional
-        Gaussian smoothing arguments -> The length in meter between each nodes after resampling the line.
-        Default to None which will let the gaussian smoothing algorithm derived it from the line.
+    sigma : float, Default=None
+        Gaussian smoothing strength.
+    sample : int, Default=None
+        Gaussian smoothing sample size.
+
+    See Also
+    --------
+    gaussian_smoothing : Gaussian smoothing for more information about sigma and sample parameters.
+    accordion : Accordion algorithm for bend series.
     """
     # Treat a part of the schematization
     def schematize_part(coords, wpoint, summits):
@@ -309,6 +335,8 @@ def schematization(line, sigma=None, sample=None):
     indiceremove = sorted(indiceremove, key=lambda d: d['indice'])
     sizeremove = sorted(sizeremove, key=lambda d: d['size'])
 
+    print(sizeremove)
+    print(indiceremove)
     # Handle particular case
     if len(bends) > 4:
         indiceremove.pop(sizeremove[-1]['index'])

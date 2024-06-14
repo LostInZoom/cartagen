@@ -2,3 +2,4 @@ matplotlib
 cartagen4py
 sphinx-book-theme
 sphinx-remove-toctrees
+numpydoc

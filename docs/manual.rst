@@ -1,17 +1,28 @@
-.. _user-guide:
+.. _manual:
 
-==========
-User Guide
-==========
+====================
+CartAGen User Manual
+====================
+
+:Authors: Guillaume Touya, Justin Berli, Azelle Courtial
+:Copyright:
+  This work is licensed under a `European Union Public Licence v1.2`__.
+
+.. __: https://eupl.eu/
+
+.. _intro:
+
+Introduction
+============
 
 Please note that this user guide is still under construction and some functions of the library are still not enough documented or not documented at all. 
 Feel free to contact us if you need documentation for a specific function.
 
-Apply map generalisation operations
------------------------------------
+Generalisation operations
+-------------------------
 
-Lines
-^^^^^
+Lines simplification
+^^^^^^^^^^^^^^^^^^^^
 
 .. method:: douglas_peucker(line, distance_tolerance, preserve_tolerance)
 
@@ -31,7 +42,7 @@ Lines
   >>> douglas_peucker(line, 1)
   <LINESTRING (2 0, 2 4, 3 5, 5 7)>
 
-.. plot:: code/simplification_douglas.py
+.. plot:: code/line_simplification.py
 
 Two polylines simplified with the Douglas-Peucker algorithm.
 
@@ -149,7 +160,7 @@ Groups of objects
 Figure 6. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 
-.. class:: BuildingDisplacementRandom(max_trials=25, max_displacement=10, network_partitioning=False, verbose=False)
+.. class:: RandomDisplacement(max_trials=25, max_displacement=10, network_partitioning=False, verbose=False)
 
     This algorithm displaces buildings that overlap with each other and/or other features. The algorithm was never published but was available in CartAGen. It is an iterative process that selects the building with the most overlaps, and then pushes slightly the building in a random direction. If the overlaps are reduced, the displacement is commited and a new iteration starts. If the overlaps are worse, the displacement is backtracked, and another one is tried.
     The 'max_trials' parameter gives the maximum number of random displacements tried on one building. The 'max_displacement' parameter is the maximum distance a building is allowed to move. For large datasets, the algorithm can work on smaller partitions, using the 'network_partitioning' parameter.
@@ -164,7 +175,7 @@ Figure 6. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 .. code-block:: pycon
 
-  displacement = BuildingDisplacementRandom(network_partitioning=False)
+  displacement = RandomDisplacement(network_partitioning=False)
   displaced_gdf = displacement.displace(building_gdf, road_gdf, rivers_gdf)
 
 .. plot:: code/random_displacement.py

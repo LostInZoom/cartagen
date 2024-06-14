@@ -14,8 +14,10 @@ Lines
 
     douglas_peucker
     visvalingam_whyatt
-    raposo_simplification
+    raposo
     gaussian_smoothing
+    accordion
+    schematization
 
 Polygons
 ^^^^^^^^
@@ -37,4 +39,4 @@ Groups of objects
     :toctree: reference/
 
     morphological_amalgamation
-    BuildingDisplacementRandom
+    RandomDisplacement
