@@ -1,7 +1,7 @@
 from cartagen4py.processes.AGENT.agents.abstract_agents import MesoAgent
 from shapely.ops import unary_union
-from cartagen4py.data_enrichment.building_measures import *
-from cartagen4py.data_enrichment.urban.block_measures import *
+from cartagen4py.enrichment.building_measures import *
+from cartagen4py.enrichment.urban.block_measures import *
 
 class BlockAgent(MesoAgent):
 

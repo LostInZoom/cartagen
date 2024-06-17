@@ -5,13 +5,30 @@ import pprint
 from cartagen4py.utils.geometry.dilation import *
 from cartagen4py.utils.geometry.line import *
 
-def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
+def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
     """
-    Detect pastiness of a line object. The result is a list of sections of the original line.
-    """
+    Detect pastiness of a line object.
+    Returns a list of dictionary as { 'paste': paste, 'geometry': geometry } where paste represents the number of conflicts (0 when no
+    conflicts are detected, 1 when a conflict exists on one side only, two when conflicts are on both side of the line) and geometry
+    is the shapely geometry of the line.
+    This algorithm subdivide the provided line into multiple chunks, thus modifying the geometry,
+    it is not a data enrichment function stricto sensu.
 
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to detect the pastiness from.
+    width : float
+        The width of the offset used to detect the pastiness.
+    cap_style : str optional
+        The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
+        Default to 'flat'.
+    quad_segs : int optional
+        The number of point allowed per circle quadrant when interpolating points using round method.
+        Default to 8.
+    """
     # Handle individual sides
-    def __treat_side(line, width, cap_style, quad_segs):
+    def __treat_side(line, tolerance, cap_style, quad_segs):
         # Prepare the break points
         def __prepare_breaks(breaks, coords, lines, oline):
             # Project the point on a segment or a vertex
@@ -81,10 +98,10 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
         coords = list(line.coords)
 
         # Calculate the offset points along the line
-        groups = offset_points(coords, width, cap_style, quad_segs)
+        groups = offset_points(coords, tolerance, cap_style, quad_segs)
 
         # Reconstruct the line into parts
-        parts, breaks = reconstruct_line(groups, line, width)
+        parts, breaks = reconstruct_line(groups, line, tolerance)
 
         # Merge parts that have a common set of coordinates
         groups = merge_connected_parts(parts)
@@ -160,7 +177,7 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
                     maxdist = d
 
             # If the distance is above 1.7 times the width of the symbol
-            if maxdist > (1.7 * abs(width)):
+            if maxdist > (1.7 * abs(tolerance)):
                 # Here, it is a strict pastiness conflict
                 p1 = __create_conflict(breaks, i, 1, coords, 'paste', 'start')
                 p2 = __create_conflict(breaks, i, 2, coords, 'paste', 'end')
@@ -196,8 +213,8 @@ def detect_pastiness(line, width, cap_style='flat', quad_segs=8):
         return lines
 
     # Calculate conflicts on both sides of the line
-    lconflicts = __treat_side(line, width, cap_style, quad_segs)
-    rconflicts = __treat_side(line, -width, cap_style, quad_segs)
+    lconflicts = __treat_side(line, tolerance, cap_style, quad_segs)
+    rconflicts = __treat_side(line, -tolerance, cap_style, quad_segs)
 
     # Sort the conflicts by node number and distance from the node
     conflicts = sorted(rconflicts + lconflicts, key=lambda s: (s['node'], s['distance']))

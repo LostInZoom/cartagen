@@ -10,8 +10,8 @@ slines = []
 
 # Looping through the geometry of each lines
 for line in lines.geometry:
-    # Simplifying lines using the Visvalingam-Whyatt algorithm with an area of 200
-    simplified = c4.raposo_simplification(line, 15000.0, 100000.0)
+    # Simplifying lines using the Douglas Peucker algorithm with an area of 200
+    simplified = c4.douglas_peucker(line, 5)
     # Adding the simplified line to list
     slines.append(simplified)
 

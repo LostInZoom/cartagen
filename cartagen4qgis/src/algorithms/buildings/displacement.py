@@ -37,7 +37,7 @@ from qgis.core import (
 
 import geopandas
 from cartagen4qgis import PLUGIN_ICON
-from cartagen4py import BuildingDisplacementRandom
+from cartagen4py import RandomDisplacement
 from shapely import Polygon
 from shapely.wkt import loads
 
@@ -167,7 +167,7 @@ class BuildingDisplacementRandomQGIS(QgsProcessingAlgorithm):
 
         network = self.parameterAsLayerList(parameters, self.INPUT_NETWORK, context)
 
-        d = BuildingDisplacementRandom(
+        d = RandomDisplacement(
             max_trials=maxtrials,
             max_displacement=maxdisp,
             network_partitioning=networkpart

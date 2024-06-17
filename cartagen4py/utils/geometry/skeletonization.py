@@ -7,8 +7,19 @@ from cartagen4py.utils.geometry.line import *
 class SkeletonTIN:
     """
     Create a polygon skeleton from a Delaunay triangulation.
+    The skeleton is represented by the lines (called bones) linking each middle point (called joints) of the edges
+    of the triangles computed by the Delaunay triangulation.
+    Parameters
+    ----------
+    polygon : shapely Polygon
+        The polygon to compute the skeleton from.
+    threshold_range : tuple optional
+        This value is only used for inner triangles calculated by the Delaunay triangulation.
+        If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
+        the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
+        else it uses the centroid of the triangle (value used by Wang, 2010).
     """
-    def __init__(self, polygon, threshold_range=[0.7, 1.4]):
+    def __init__(self, polygon, threshold_range=(0.7, 1.4)):
         # Stores polygon for future use
         self.polygon = polygon
 
@@ -46,11 +57,17 @@ class SkeletonTIN:
 
     def add_incoming_points(self, entries, connection='joint'):
         """
-        Add new entry points that are not 'natural' skeleton entries.
-        Connection can be 'joint', which forces the entry point to connect to the closest joint,
-        or can be 'interior', which first look if there is an interior triangle inside the triangulation
-        and connect directly the entry point to its skeleton joint. If no interior triangle is found,
-        apply 'joint' connection instead.
+        Add new entry points that are not 'natural' skeleton entries, i.e. entries derived from the
+        Delaunay triangulation.
+        Parameters
+        ----------
+        entries : shapely Polygon
+            The polygon to compute the skeleton from.
+        connection : str optional
+            Connection can be 'joint', which forces the entry point to connect to the closest joint,
+            or can be 'interior', which first look if there is an interior triangle inside the triangulation
+            and connect directly the entry point to its skeleton joint. If no interior triangle is found,
+            apply 'joint' connection instead.
         """
         # Add the point
         def add_point(entry, connection):
@@ -96,7 +113,13 @@ class SkeletonTIN:
 
     def add_incoming_lines(self, lines):
         """
-        Add incoming lines to the skeleton by adding entry points to the 'natural' skeleton entries.
+        Add incoming lines to the skeleton by adding entry points to the 'natural' skeleton entries,
+        i.e. entries derived from the Delaunay triangulation. Those lines must have their first or
+        last node be the same as a node from the provided polygon to calculate the skeleton.
+        Parameters
+        ----------
+        lines : Geopandas GeoDataFrame of LineStrings.
+            The incoming lines to add to the skeleton.
         """
         entries = []
         boundary = list(self.polygon.boundary.coords)
@@ -123,7 +146,14 @@ class SkeletonTIN:
 
     def remove_entries(self, entries):
         """
-        Reconstruct the skeleton by removing the provided skeleton entries.
+        Remove the provided points if they are entries of the skeleton.
+        The skeleton is reconstructed by removing the provided skeleton entries as well as all the joints and bones
+        that connects the entry to the rest of the skeleton. Be aware though, you can't remove an entry from
+        a skeleton having only two entries.
+        Parameters
+        ----------
+        entries : list of shapely Point.
+            The entry points to remove from the skeleton.
         """
         # Recursively remove the bones and joints connected the provided entry
         def recursive_removal(point):
@@ -184,15 +214,16 @@ class SkeletonTIN:
                 if point in self.interiors:
                     self.interiors.pop(self.interiors.index(point))
 
-        # Start the recursion
-        for e in entries:
-            recursive_removal(e)
+        # Start the recursion if the skeleton has more than two entries
+        if len(self.entries) > 2:
+            for e in entries:
+                recursive_removal(e)
 
-    def create_network(self, distance=None, smoothing=False):
+    def create_network(self):
         """
-        Create the inside network from the skeleton bones.
-        The distance parameter is the distance used by the Douglas-Peucker algorithm. If not provided, it doesn't apply any simplification.
-        The smooth parameter specify whether a gaussian smoothing shoudl be applied.
+        Create the inside network from the skeleton bones and joints. Bones are merged together if only one joint links them.
+        No smoothing or simplification are apply at this stage.
+        Returns the network calculated.
         """
         bones = self.bones.copy()
         network = []
@@ -248,23 +279,22 @@ class SkeletonTIN:
             coords = self.entries[0].coords[0]
             recursive_network_creation(coords, [])
 
-            # Add the network as a property after having simplified it
-            if distance is not None:
-                self.network = list(shapely.simplify(network, tolerance=distance))
-            else:
-                self.network = network
-            
-            # Apply a gaussian smoothing to the network if selected
-            if smoothing:
-                for i, n in enumerate(self.network):
-                    self.network[i] = gaussian_smoothing(n, preserve_extremities=True)
-
         return self.network
 
-    def blend(self, attributes, sigma=None):
+    def blend(self, attributes=None, sigma=None):
         """
-        Blend the given network with the created skeleton. Relies on entry points.
-        It works only if incoming lines where provided during the skeleton creation.
+        This method can only be used if incoming lines were provided using the add_incoming_lines() method.
+        Blends the incoming lines with the created skeleton network. It relies on entry points.
+        Parameters
+        ----------
+        attributes : list of dict optional.
+            A list of dict where the index matches the procided incoming lines. This dict represents the attributes
+            of the lines to be propagated to the new network. If None is provided, the resulting network will lack
+            the original attributes. You can use any attributes propagation you see fit prior to calculate the skeleton.
+        sigma : float optional.
+            The strength of the gaussian smoothing applied to the resulting blended network. If None is provided, no smoothing
+            is applied to the lines. Be careful that this method is destructive in the way that the vertices of incoming lines blended
+            with the skeleton are moved, thus, the entry points are lost.
         """
 
         if self.incoming is None:
