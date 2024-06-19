@@ -335,11 +335,21 @@ def schematization(line, sigma=None, sample=None):
     indiceremove = sorted(indiceremove, key=lambda d: d['indice'])
     sizeremove = sorted(sizeremove, key=lambda d: d['size'])
 
-    print(sizeremove)
-    print(indiceremove)
-    # Handle particular case
-    if len(bends) > 4:
-        indiceremove.pop(sizeremove[-1]['index'])
+    # print(sizeremove)
+    # print(indiceremove)
+    # # Handle particular case
+    # if len(bends) > 4:
+    #     i = sizeremove[-1]['index']
+    #     topop = None
+    #     for j, idx in enumerate(indiceremove):
+    #         if idx['index'] == i:
+    #             topop = j
+        
+    #     if topop is not None:
+    #         indiceremove.pop(topop)
+
+    # print(sizeremove)
+    # print(indiceremove)
 
     bend1, bend2 = None, None
 

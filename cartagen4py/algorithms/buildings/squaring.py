@@ -2,10 +2,40 @@
 import numpy as np
 from shapely.geometry import Polygon
 
-# this function encapsulates the above class methods to square a collection of polygons and return the squared geometries.
-def square_polygon(polygons,max_iteration=1000, norm_tolerance=0.05,
-            right_tolerance=10, flat_tolerance=10,
-            fixed_weight=5, right_weight=100, flat_weight=50):
+def square_polygons(
+        polygons, max_iteration=1000, norm_tolerance=0.05,
+        right_tolerance=10.0, flat_tolerance=10.0,
+        fixed_weight=5, right_weight=100, flat_weight=50
+    ):
+    """
+    Least squares based polygon squaring algorithm (Lokhat & Touya, 2016)
+
+    This is an implementation of the least squares based squaring algorithm
+    proposed by Lokhat & Touya (https://hal.science/hal-02147792).
+
+    Parameters
+    ----------
+    polygons : list of shapely.Polygon
+        The shapely polygons to square.
+    max_iteration : float, Default=1000
+        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
+        the norm tolerance threshold should be reached before the maximum number of iteration.
+    norm_tolerance : float, Default=0.05
+        The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
+    right_tolerance : float, Default=10.0
+        Tolerance in degrees to consider and angle to be right.
+    flat_tolerance : float, Default=10.0
+        Tolerance in degrees to consider and angle to be flat.
+    fixed_weight : int, Default=5
+        The weight of the angle constraint concerning an angle neither right nor flat.
+        A high value means those angles will be more likely to keep their value in the resulting polygon.
+    right_weight : int, Default=100
+        The weight of the angle constraint concerning right angles.
+        A high value means those angles will be more likely to keep their value in the resulting polygon.
+    flat_weight : int, Default=50
+        The weight of the angle constraint concerning flat angles.
+        A high value means those angles will be more likely to keep their value in the resulting polygon.
+    """
     squarer = Squarer(max_iteration, norm_tolerance,
             right_tolerance, flat_tolerance, 7,
             fixed_weight, right_weight, flat_weight, 10)
@@ -14,10 +44,12 @@ def square_polygon(polygons,max_iteration=1000, norm_tolerance=0.05,
     new_geoms = []
     for vertices in list_vertices:
         new_geoms.append(Polygon(vertices))
+
     return new_geoms
 
 class Squarer:
-    """Initialize squaring object, with default weights and tolerance set in the constructor
+    """
+    Initialize squaring object, with default weights and tolerance set in the constructor
     """
     def __init__(
             self, max_iteration=1000, norm_tolerance=0.05,

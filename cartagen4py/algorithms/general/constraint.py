@@ -11,7 +11,8 @@ class ConstraintMethod:
     Parameters
     ----------
     max_iteration : int optional
-        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set, the norm tolerance threshold should be reached before the maximum number of iteration.
+        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
+        the norm tolerance threshold should be reached before the maximum number of iteration.
         Default value is set to 1000.
     norm_tolerance : float optional
         The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.

@@ -24,87 +24,9 @@ Generalisation operations
 Lines simplification
 ^^^^^^^^^^^^^^^^^^^^
 
-.. method:: douglas_peucker(line, distance_tolerance, preserve_tolerance)
+Several algorithms for line simplification are available, including Douglas-Peucker(1973), Visvalingam-Whyatt and Raposo hexagon-based simplification.
 
-    Returns a simplified version of the line using the Douglas-Peucker algorithm (Douglas & Peucker, 1973).
-    This is a simple wrapper around the shapely function simplify().
-
-    :param line: The line to simplify.
-    :type line: shapely LineString
-    :param distance_tolerance: Distance threshold in meters between the farthest point from the line formed by the current extremities.
-    :type distance_tolerance: float, optional
-    :param preserve_tolerance: If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc). The trade-off is computational expensivity. Default set to True.
-    :type preserve_tolerance: float, optional
-
-.. code-block:: pycon
-
-  >>> line = LineString([(2, 0), (2, 4), (3, 4), (3, 5), (5, 7)])
-  >>> douglas_peucker(line, 1)
-  <LINESTRING (2 0, 2 4, 3 5, 5 7)>
-
-.. plot:: code/line_simplification.py
-
-Two polylines simplified with the Douglas-Peucker algorithm.
-
-
-.. method:: visvalingam_whyatt(line, area_tolerance)
-
-    Returns a simplified version of the line using the Visvalingam-Whyatt algorithm `(Visvalingam & Whyatt, 1993) <https://www.tandfonline.com/doi/abs/10.1179/000870493786962263?journalCode=ycaj20>`_.
-    The 'area_tolerance' is the minimum area of the triangle formed by three consecutive vertices, to keep the middle vertex in the simplified line.
-
-.. code-block:: pycon
-
-  >>> line = LineString([(2, 0), (2, 4), (3, 4), (3, 5), (5, 7)])
-  >>> visvalingam_whyatt(line, 1)
-  <LINESTRING (2 0, 2 4, 3 5, 5 7)>
-
-.. plot:: code/simplification_visvalingam.py
-
-Two polylines simplified with the Visvalingam-Whyatt algorithm.
-
-
-.. method:: raposo_simplification(line, initial_scale, final_scale, centroid=True, tobler=False)
-
-    Returns a simplified version of the line using the Raposo algorithm `(Raposo, 2013) <http://dx.doi.org/10.1080/15230406.2013.803707>`_.
-    The algorithm uses an hexagonal tessallation, with a size related to the final scale, and it only retains one vertex per hexagonal cell.
-    Be careful, it uses the scale as parameter. If the 'centroid' parameter is ''True'', the vertices inside an hexagon cell are replaced by the centroid of the cell; if it is ''False'', they are replaced by the nearest vertex to the centroid of the cell.
-    The Raposo algorithm is dedicated to the simplification of natural lines such as rivers, lakes or forests.
-
-.. code-block:: pycon
-
-  line = LineString([(2, 0), (2, 4), (3, 4), (3, 5), (5, 7)])
-  simplified_line = raposo_simplification(line, 10000.0, 50000.0)
-
-.. plot:: code/raposo.py
-
-Figure 2. Two polylines simplified with the Raposo algorithm.
-
-
-.. method:: gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_extremities=False)
-
-    Apply a gaussian smoothing to a shapely LineString.
-    This code is a port from the GaussianFilter class in the GeOxygene Java library. See p. 119-120 of the book "Algorithmic Foundation of Multi-Scale Spatial Representation" by Z. Li.
-    Returns the smoothed LineString as a shapely geometry.
-
-    :param line: The line to smooth.
-    :type line: shapely LineString
-    :param sigma: Gaussian filter strength (the bigger sigma is, the smoother the shape). If not provided, will be set to 30, which is quite high.
-    :type sigma: float, optional
-    :param sample: The length in meter between each nodes after resampling the line. If not provided, the sample is derived from the line and is the average distance between each consecutive vertex.
-    :type sample: float, optional
-    :param densify: Whether the resulting line should keep the new node density calculated using the sample value. Default to True.
-    :type densify: boolean, optional
-    :param preserve_extremities: After smoothing, replace first and last node by the first and last node of the provided line to ensure start and end node are preserved.
-    :type preserve_extremities: boolean, optional
-
-.. code-block:: pycon
-
-  line = LineString([(2, 0), (2, 4), (3, 4), (3, 5), (5, 7)])
-  smoothed_line = gaussian_smoothing(line, 3.0, 2.0)
-
-.. plot:: code/gaussian_smoothing.py
-
-Figure 3. A polyline smoothed with the Gaussian smoothing algorithm.
+.. plot:: code/manual/line_simplification.py
 
 Polygons
 ^^^^^^^^

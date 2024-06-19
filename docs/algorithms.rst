@@ -28,7 +28,7 @@ Polygons
     :toctree: reference/
 
     building_simplification_ruas
-    square_polygon
+    square_polygons
 
 Groups of objects
 ^^^^^^^^^^^^^^^^^
@@ -39,4 +39,4 @@ Groups of objects
     :toctree: reference/
 
     morphological_amalgamation
-    RandomDisplacement
+    random_displacement
