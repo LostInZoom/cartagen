@@ -1,23 +1,68 @@
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
+import geopandas as gpd
 import numpy
+import random
 
 def plot_debug(geom, *geoms):
     """
     Plot lines for debugging purposes.
-    """    
+    """
+    def add(sub, geom, color, linewidth=1):
+        if geom.geom_type == 'Polygon':
+            poly1 = Path.make_compound_path(Path(numpy.asarray(geom.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in geom.interiors])
+            sub.add_patch(PathPatch(poly1, facecolor=color, edgecolor=color, linewidth=linewidth))
+        elif geom.geom_type == 'LineString':
+            path = Path(numpy.asarray(geom.coords)[:, :2])
+            sub.add_patch(PathPatch(path, facecolor="none", edgecolor=color, linewidth=linewidth))
 
-    fig = plt.figure(1, (12, 12))
-    sub1 = fig.add_subplot(111)
-    sub1.axes.get_xaxis().set_visible(False)
-    sub1.axes.get_yaxis().set_visible(False)
-    path = Path(numpy.asarray(geom.coords)[:, :2])
-    sub1.add_patch(PathPatch(path, facecolor="none", edgecolor='gray', linewidth=1))
+    fig = plt.figure(1)
+    sub = fig.add_subplot(111)
+    sub.axes.get_xaxis().set_visible(False)
+    sub.axes.get_yaxis().set_visible(False)
 
-    for g in geoms:
-        pathn = Path(numpy.asarray(g.coords)[:, :2])
-        sub1.add_patch(PathPatch(pathn, facecolor="none", edgecolor='red', linewidth=1))
+    color = "#"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])
+    if isinstance(geom, list):
+        for g in geom:
+            if isinstance(g, dict):
+                add(sub, g['geometry'], color)
+            else:
+                add(sub, g, color)
+    elif isinstance(geom, gpd.GeoDataFrame):
+        for g in geom.geometry:
+            add(sub, g, color)
+    else:
+        add(sub, geom, color)
+    
+    for geom in geoms:
+        color = "#"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])
+        if isinstance(geom, list):
+            for g in geom:
+                if isinstance(g, dict):
+                    add(sub, g['geometry'], color)
+                else:
+                    add(sub, g, color)
+        elif isinstance(geom, gpd.GeoDataFrame):
+            for g in geom.geometry:
+                add(sub, g, color)
+        else:
+            add(sub, geom, color)
 
-    sub1.autoscale_view()
+    sub.autoscale_view()
     plt.show()
+
+def geojson_to_variable(geojson):
+    """
+    Generate a variable string to directly load the shapely geometry inside the Python file.
+    """
+    v = gpd.read_file(geojson)
+    v = v.to_dict('records')
+
+    s = "variable = ["
+    for o in v:
+        geom = "loads('{0}'), \n".format(o['geometry'].wkt)
+        s += geom
+    
+    s += "]"
+    print(s)

@@ -8,7 +8,7 @@ def square_polygons(
         fixed_weight=5, right_weight=100, flat_weight=50
     ):
     """
-    Least squares based polygon squaring algorithm (Lokhat & Touya, 2016)
+    Least squares based polygon squaring (Lokhat & Touya, 2016).
 
     This is an implementation of the least squares based squaring algorithm
     proposed by Lokhat & Touya (https://hal.science/hal-02147792).

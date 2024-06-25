@@ -3,26 +3,39 @@ import itertools
 import networkx, shapely
 import geopandas as gpd
 
-def eliminate_dead_ends(roads, deadends, length, keep_longest=True):
+def eliminate_dead_ends(roads, deadends, length=0, keep_longest=True):
     """
-    Eliminates dead ends inside a road network if the length of their main component is below a given threshold.
+    Eliminate dead-ends groups.
 
-    The main component of a dead end is defined as:
-    - If the dead end is simple (i.e. just one road), the main component is the road.
-    - If the dead end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
-    - If the dead end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
-    Returns the roads network without the unwanted dead ends as a GeoDataFrame.
+    Eliminates roads section detected as dead-ends inside a road network
+    if the length of their main component is below a given threshold.
+    
+    The **main component** of a dead-end is defined as:
+
+    * If the dead-end is simple (i.e. just one road), the main component is the road.
+    * If the dead-end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
+    * If the dead-end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
+    
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings.
-        The GeoDataFrame containing the dead ends as LineString geometries.
-    deadends : geopandas GeoDataFrame of LineString.
-        The LineString representing the roads of the network detected as dead ends.
-    length : float.
-        The length below which dead ends are eliminated.
-    keep_longest : boolean, optional.
-        If set to true, in case of complex dead end, keep the main component (c.f. description) if above the provided length.
-        Default is set to True.
+    roads : GeoPandas.GeoDataFrame with LineString geometries
+        The road network.
+    deadends : GeoPandas.GeoDataFrame with LineString geometries
+        Roads detected as dead-ends.
+    length : float, Default=0
+        Length below which dead-ends are eliminated. If left to 0, dead-ends are not eliminated.
+    keep_longest : boolean, Default=True
+        If set to True, in case of complex dead-end, keep only the main component (c.f. description)
+        or eliminate the whole dead-end group if False. This concerns also dead-ends with a length
+        above the provided threshold.
+
+    Returns
+    -------
+    GeoPandas.GeoDataFrame with LineString geometries
+
+    See Also
+    --------
+    detect_dead_ends
     """
 
     # Retrieve crs for output

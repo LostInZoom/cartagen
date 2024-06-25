@@ -1,5 +1,5 @@
 from cartagen4py.processes.AGENT.actions.generalisation_action import GeneralisationAction
-from cartagen4py.algorithms.buildings.random_displacement import RandomDisplacement
+from cartagen4py.algorithms.buildings.displacement import random_displacement
 from cartagen4py.algorithms.blocks.building_elimination import *
 import geopandas as gpd
 
@@ -21,7 +21,7 @@ class RandomBlockDisplacementAction(GeneralisationAction):
         buildings_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(components))
         # create an empty rivers geodataframe because the algorithm takes one as input
         rivers = gpd.GeoDataFrame(columns=['geom'], geometry='geom')
-        displacement = RandomDisplacement(self.min_sep, network_partitioning=False)
+        displacement = random_displacement(self.min_sep)
         displaced_gdf = displacement.displace(buildings_gdf, roads_gdf, rivers)
         for i in range(len(components)):
             component = self.agent.components[i]

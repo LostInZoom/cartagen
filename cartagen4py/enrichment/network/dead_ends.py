@@ -5,17 +5,32 @@ from cartagen4py.utils.network import *
 
 def detect_dead_ends(roads, outside_faces=True):
     """
-    This function detects dead ends inside a road network.
-    Returns the roads detected as dead-ends with attributes.
-    Return None if none were found.
+    Detect dead-ends groups.
+
+    This function detects dead-ends groups inside a road network. Groups of road sections
+    not connected to the rest of the network are considered dead-ends.
+
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings
-        The road network to analyze.
-    importance : str optional.
-        The attribute name of the data on which road importance is based.
-        Default value is set to None which means every road is taken for the network face calculation.
-    value : int optional.
+    roads : GeoPandas.GeoDataFrame with LineString geometries
+        The road network.
+    outside_faces : boolean, Default=True
+        Whether dead-ends should be calculated on the outside faces
+        of the road network.
+
+    Returns
+    -------
+    GeoPandas.GeoDataFrame of LineString geometries
+    Attributes:
+        * **face**: Index of the network face it belongs to.
+        * **deid**: Index of the dead end group inside a given face.
+        * **connected**: Set to true if the dead end group is connected to the network.
+        * **root**: Set to true if the road section is the root of the dead end group, i.e. the section connecting the dead end group to the road network.
+        * **hole**: Set to true if the road section touches a hole inside the dead end group.
+    
+    See Also
+    --------
+    eliminate_dead_ends
     """
 
     crs = roads.crs
@@ -117,7 +132,7 @@ def detect_dead_ends(roads, outside_faces=True):
     if len(deadends) > 0:
         return gpd.GeoDataFrame(deadends, crs=crs)
     else:
-        return None    
+        return gpd.GeoDataFrame([], crs=crs)    
 
 def __topological_grouping(indexes, geometries, face, hull):
     """

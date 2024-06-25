@@ -7,10 +7,12 @@ from cartagen4py.utils.geometry.line import *
 
 def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
     """
-    Detect pastiness of a line object.
+    Detect the pastiness of a series of bends (Mustière, 2001).
+
     Returns a list of dictionary as { 'paste': paste, 'geometry': geometry } where paste represents the number of conflicts (0 when no
     conflicts are detected, 1 when a conflict exists on one side only, two when conflicts are on both side of the line) and geometry
     is the shapely geometry of the line.
+
     This algorithm subdivide the provided line into multiple chunks, thus modifying the geometry,
     it is not a data enrichment function stricto sensu.
 
@@ -18,14 +20,16 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
     ----------
     line : shapely LineString
         The line to detect the pastiness from.
-    width : float
+    tolerance : float
         The width of the offset used to detect the pastiness.
-    cap_style : str optional
+    cap_style : str, Default='flat'
         The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
-        Default to 'flat'.
-    quad_segs : int optional
+    quad_segs : int, Default=8
         The number of point allowed per circle quadrant when interpolating points using round method.
-        Default to 8.
+
+    Returns
+    -------
+    list of dict
     """
     # Handle individual sides
     def __treat_side(line, tolerance, cap_style, quad_segs):

@@ -8,7 +8,7 @@ from cartagen4py.utils.geometry.segment import get_segment_list_polygon, Segment
 
 def building_simplification_ruas(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit = 20*pi/180):
     """
-    Building simplification algorithm from (Ruas, 1988).
+    Simplify buildings by removing edges (Ruas, 1988).
     
     The algorithm analyses the edges of the polygon to find the ones that should be removed and how they can be replaced.
     It was integrated in the AGENT project. Port of the CartAGen implementation of the algorithm.

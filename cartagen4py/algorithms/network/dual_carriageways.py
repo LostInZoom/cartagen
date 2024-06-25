@@ -7,19 +7,27 @@ from cartagen4py.utils.network import *
 
 def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None):
     """
-    Collapse dual carriageways using the polygon skeleton made from a Delaunay Triangulation.
+    Collapse dual carriageways using a TIN skeleton.
+
+    This function collapses the network faces considered as dual carriageways
+    using a skeleton calculated from a Delaunay triangulation.
+
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings.
-        The road network where dual carriageways will be collapsed.
-    carriageways : geopandas GeoDataFrame of Polygons.
+    roads : GeoPandas.GeoDataFrame with LineString geometries
+        The road network.
+    carriageways : GeoPandas.GeoDataFrame with Polygon geometries
         The polygons representing the faces of the network detected as dual carriageways.
-    sigma : float, optional.
-        If not None, apply a gaussian smoothing to the collapsed dual carriageways to avoid jagged lines that can be created during the TIN skeleton creation.
-        Default value is set to None which doesn't apply any smoothing.
-    propagate_attributes : list of str, optional.
-        Propagate the provided list of column name to the resulting network. The propagated attribute is the one from the longest line.
-        Default value is set to None. 
+    sigma : float, Default=None.
+        If not None, apply a gaussian smoothing to the collapsed dual carriageways to
+        avoid jagged lines that can be created during the TIN skeleton creation.
+    propagate_attributes : list of str, Default=None.
+        Propagate the provided list of column name to the resulting network.
+        The propagated attribute is the one from the longest line.
+
+    See Also
+    --------
+    detect_dual_carriageways
     """
     # Retrieve crs for output
     crs = roads.crs
@@ -165,14 +173,13 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
                     else:
                         incoming.append({ "geometry": egeom })
 
-            print(cid)
             # Calculate the skeleton
             skeleton = SkeletonTIN(polygon)
             skeleton.add_incoming_lines(incoming)
             skeleton.create_network()
             skeleton.blend(attributes, sigma=sigma)
             skeletons.append(skeleton)
-            
+
             # Storing the original geometries of the crossroad
             originals.extend(crossroad.original)
 

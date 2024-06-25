@@ -7,9 +7,9 @@ from cartagen4py.utils.geometry.bends import *
 from cartagen4py.utils.geometry.line import *
 from cartagen4py.utils.geometry.segment import *
 
-def accordion(line, width, sigma=None, sample=None):
+def accordion(line, width, sigma=30, sample=None):
     """
-    Stretches a line to enlarge each bend (Plazanet, 1996).
+    Stretch a series of bends to enlarge each bend (Plazanet, 1996).
 
     The Accordion algorithm is dedicated to the caricature of sinuous bend series.
     Like the musical instrument, the Accordion algorithm stretches the road to enlarge each bend of the series.
@@ -26,7 +26,7 @@ def accordion(line, width, sigma=None, sample=None):
         The line to apply the accordion algorithm.
     width : float
         The width in meters of the casing of the symbol.
-    sigma : float, Default=None
+    sigma : float, Default=30
         Gaussian smoothing strength.
     sample : int, Default=None
         Gaussian smoothing sample size.
@@ -37,8 +37,8 @@ def accordion(line, width, sigma=None, sample=None):
 
     See Also
     --------
-    gaussian_smoothing : Gaussian smoothing for more information about sigma and sample parameters.
-    schematization : Schematization algorithm for bend series.
+    schematization
+    gaussian_smoothing
     """
     # Detect individual bends inside the smoothed line
     bs = BendSerie(line, sigma, sample)
@@ -189,13 +189,15 @@ def __get_vector(bend, width):
 
 def schematization(line, sigma=None, sample=None):
     """
-    Remove bends from a line to simplify it (Lecordix et al, 1997).
+    Remove bends from series of bends to simplify it (Lecordix et al, 1997).
 
-    Bend schematization is a caricature algorithm that removes one (or more) bend of a series while preserving the global shape of the bend series.
+    Bend schematization is a caricature algorithm that removes one (or more)
+    bend of a series while preserving the global shape of the bend series.
     It was proposed in (Lecordix et al., 1997) and initially implemented in the late PlaGe platform.
     The was implemented in CartAGen directly from the initial Ada PlaGe code.
 
-    Bends in the series are identified using inflexion points, and when the middle bends are removed, the inflexion points are displaced along the axis of the series,
+    Bends in the series are identified using inflexion points, and when the middle
+    bends are removed, the inflexion points are displaced along the axis of the series,
     the road is distorted to cushion the displacement of the inflexion points.
 
     Parameters
@@ -206,6 +208,10 @@ def schematization(line, sigma=None, sample=None):
         Gaussian smoothing strength.
     sample : int, Default=None
         Gaussian smoothing sample size.
+
+    Returns
+    -------
+    shapely.LineString
 
     See Also
     --------
@@ -337,7 +343,7 @@ def schematization(line, sigma=None, sample=None):
 
     # print(sizeremove)
     # print(indiceremove)
-    # # Handle particular case
+    # Handle particular case
     # if len(bends) > 4:
     #     i = sizeremove[-1]['index']
     #     topop = None

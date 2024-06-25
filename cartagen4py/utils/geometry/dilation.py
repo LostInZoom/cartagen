@@ -8,7 +8,14 @@ from cartagen4py.utils.geometry.line import *
 
 def offset_curve(line, offset, cap_style='round', quad_segs=8):
     """
-    Offset a line using dilation on its left (positive offset) or right side (negative offset).
+    Dilate a line on one side.
+
+    The dilation is not a translation, it is the basis of the buffer.
+    This is not a wrapper of the shapely function, but a new version built from
+    the ground up to keep a relationship between the vertex of the line and the
+    resulting line. In this function, the relationship is lost, but other functions
+    keeping this relationship are exposed.
+    
     Parameters
     ----------
     line : shapely LineString
@@ -19,6 +26,18 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
         The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
     quad_segs : int optional
         The number of point allowed per circle quadrant when interpolating points using round method.
+
+    Returns
+    -------
+    list of shapely.LineString
+
+    See Also
+    --------
+    offset_points : 
+        This function preserves the relationship between the provided list of points and the result.
+        offset_point is used by offset_curve.
+    circle_interpolation :
+        The function used to interpolate point along the quadrant of a circle.
     """
 
     # Check if provided cap style is allowed
@@ -324,9 +343,34 @@ def reconstruct_line(groups, line, offset):
 
 def offset_points(points, offset, cap_style='round', quad_segs=8):
     """
+    Offset a list of points.
+
+    This function keeps the relationship between the points and the result.
     Generate offset points from the list of provided points.
     Returns a list with the same length as the number of provided points. 
     The list is composed of a list of points associated with each provided points.
+
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to offset.
+    offset : float
+        The length of the offset to apply. Negative value for left-side dilation, positive for right-side.
+    cap_style : str optional
+        The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
+    quad_segs : int optional
+        The number of point allowed per circle quadrant when interpolating points using round method.
+
+    Returns
+    -------
+    list of list of coordinates
+
+    See Also
+    --------
+    offset_curve : 
+        This function loses the relationship between the provided line vertex and the offset points.
+    circle_interpolation :
+        The function used to interpolate point along the quadrant of a circle.
     """
     def calculate_extremity(x1, y1, x2, y2):
         # Calculate the rounded extremity of the offset curve
@@ -446,9 +490,12 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
 
 def circle_interpolation(a, b, c, rotation='cw', quad_segs=8):
     """
+    Interpolate points along a circle quadrant.
+
     Given b and c two points at equal distance from a third point a, interpolates n points between
     b and c along the circle of center a and of radius ab. The number of provided point depends on the
     number of segments allowed per circle quadrant (default to 8).
+
     Parameters
     ----------
     a : tuple
@@ -457,12 +504,22 @@ def circle_interpolation(a, b, c, rotation='cw', quad_segs=8):
         Point B coordinates
     c : tuple
         Point C coordinates
-    rotation : str optional
+    rotation : str, Default='cw'
         Define the rotation direction, clockwise ('cw') or counterclockwise ('ccw').
-        Default is clockwise.
-    quad_segs : int optional
+    quad_segs : int, Default=8
         The number of point allowed on a quarter circle. This defines the number of interpolated points.
-        Default to 8.
+
+    Returns
+    -------
+    list of coordinates
+
+    Examples
+    --------
+    >>> a = (1, 1)
+    >>> b = (2, 1)
+    >>> c = (1, 2)
+    >>> circle_interpolation(a, b, c, quad_segs=2)
+    [(1, 2), (1.5, 1.8660254037844388), (1.8660254037844386, 1.5), (2, 1)]
     """
 
     # Create vectors
@@ -486,7 +543,7 @@ def circle_interpolation(a, b, c, rotation='cw', quad_segs=8):
     
     # Calculate the number of needed point to interpolate between b and c
     # This is based on the quad_segs argument
-    n_points = int(tangle / (np.pi / 2) * quad_segs) + 1
+    n_points = int(tangle / (np.pi / 2) * quad_segs) + 2
 
     # Start the interpolated point by b
     result = [b]

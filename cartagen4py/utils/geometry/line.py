@@ -37,7 +37,8 @@ def douglas_peucker(line, threshold, preserve_topology=True):
 
     See Also
     --------
-    visvalingam_whyatt : Visvalingam-Whyatt simplification.
+    visvalingam_whyatt
+    raposo
     """
     return shapely.simplify(line, threshold, preserve_topology=preserve_topology)
 
@@ -67,7 +68,8 @@ def visvalingam_whyatt(line, area_tolerance):
 
     See Also
     --------
-    douglas_peucker : Douglas-Peucker simplification.
+    douglas_peucker
+    raposo
     """
     def contains_another_point(line, pt, index):
         first = line.coords[index-1]
@@ -114,7 +116,7 @@ def visvalingam_whyatt(line, area_tolerance):
 
 def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
-    Hexagon-based line simplification (Raposo, 2010).
+    Hexagon-based line simplification (Raposo, 2013).
     
     This algorithm simplifies lines based on a hexagonal tessallation, and is described in (Raposo 2013).
     The algorithm also works for the simplification of the border of a polygon object.
@@ -151,6 +153,11 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     Returns
     -------
     shapely.LineString   
+
+    See Also
+    --------
+    douglas_peucker
+    visvalingam_whyatt
     """
     width = 0
     if tobler:
@@ -218,17 +225,16 @@ def __li_openshaw_simplification(line, cell_size):
     return line
     
 
-def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_extremities=False):
+def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extremities=False):
     """
-    Gaussian smoothing.
+    Smooth a line and attenuate its inflexion points.
 
     Parameters
     ----------
     line : shapely LineString
         The line to smooth.
-    sigma : float optional
-        Gaussian filter strength.
-        Default value to 30, which is a high value.
+    sigma : float, Default=30
+        Gaussian filter strength. Default value to 30, which is a high value.
     sample : float, Default=None
         The length in meter between each nodes after resampling the line.
         If not provided, the sample is derived from the line and is the average distance between
@@ -266,11 +272,8 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_ext
 
         return LineString(result)
    
-    if sigma is None:
-        sigma = 30
-
+    coords = list(line.coords)
     if sample is None:
-        coords = list(line.coords)
         distances = []
         for i in range(0, len(coords) - 1):
             v1, v2 = coords[i], coords[i + 1]

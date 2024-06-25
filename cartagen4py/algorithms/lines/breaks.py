@@ -8,29 +8,72 @@ from cartagen4py.utils.geometry.skeletonization import *
 
 def max_break(line, offset, exaggeration=1.0):
     """
-    Apply the max break algorithm (Mustière, 2001) to a shapely LineString.
-    It first finds the side of the road bend and dilates the line accordingly.
-    Returns the dilated shapely LineString.
-    The exagerration is a multiplication factor that amplifies the dilatation.
+    Spread a road bend and keep its shape (Mustière, 2001).
+
+    It first finds the side of the road bend and
+    dilates the line on its exterior side.
+
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to dilate.
+    offset : float
+        The distance to dilate.
+    exaggeration : float, Default=1.0
+        A multiplicator for the offset parameter.
+
+    Returns
+    -------
+    shapely.LineString
+
+    See Also
+    --------
+    detect_pastiness
+    min_break
     """
 
     # Get the side of the bend
     side = get_bend_side(line)
 
     # Change the offset in case of left sided bend
-    if side == 'right':
-        offset = - offset
+    if side == 'left':
+        offset = -offset
 
     # Dilate the bend
     dilated = offset_curve(line, offset*exaggeration, cap_style='flat', quad_segs=8)
     
     return shapely.LineString(dilated[0])
 
-def min_break(line, offset, sigma, threshold):
+def min_break(line, offset, sigma=30, sample=None):
     """
-    Apply the min break algorithm (Mustière, 2001) to a shapely LineString.
+    Spread a road bend and minimize its extent (Mustière, 2001).
+
+    This algorithm mimics the cartographic technique of
+    overlapping the internal border of the bend.
+
     It creates a polygon from the linestring by closing it at it extremities,
-    then it calculates the TIN skeleton, dilates it and returns the new line.
+    then it calculates the TIN skeleton, dilates it apply a gaussian smoothing.
+
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to dilate.
+    offset : float
+        The distance to dilate the skeleton.
+    sigma : float, Default=30
+        Gaussian smoothing strength.
+    sample : int, Default=None
+        Gaussian smoothing sample size.
+
+    Returns
+    -------
+    shapely.LineString
+
+    See Also
+    --------
+    detect_pastiness
+    max_break
+    gaussian_smoothing
     """
 
     # Create the offset of the skeleton
@@ -153,7 +196,7 @@ def min_break(line, offset, sigma, threshold):
     newline = shapely.LineString(coords)
 
     # Apply a gaussian smoothing to the line before offset
-    newline = gaussian_smoothing(newline, sigma, threshold)
+    newline = gaussian_smoothing(newline, sigma, sample)
 
     # Calculate the offset points along the skeleton
     left = __offset(newline, -offset)[0]

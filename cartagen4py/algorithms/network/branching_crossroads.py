@@ -7,20 +7,34 @@ from cartagen4py.utils.geometry.line import *
 
 def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None):
     """
-    Collapse detected branching crossroads below the provided area to a point and return the new network.
+    Collapse branching crossroads to a point on the main road (Touya, 2010).
+
+    Collapse detected branching crossroads below the provided area to a point on what
+    is detected as the main road. Detecting roundabouts beforehand is important as
+    branching crossroads connected to a roundabout won't be collapse by this algorithm.
+    
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings.
+    roads : GeoPandas.GeoDataFrame with LineString geometries
         The road network where branching crossroads will be collapsed.
-    crossroads : geopandas GeoDataFrame of Polygons.
-        The polygons representing the faces of the network detected as branching crossroads.
-    roundabouts : geopandas GeoDataFrame of Polygons, optional.
-        The polygons representing the faces of the network detected as roundabouts.
-        Provide a better collapsing when provided.
-        Default value is set to None.
-    maximum_area : float, optional.
+    crossroads : GeoPandas.GeoDataFrame with Polygon geometries
+        Polygons representing the faces of the network detected as branching crossroads.
+    roundabouts : GeoPandas.GeoDataFrame with Polygon geometries, Default=None
+        Polygons representing the faces of the network detected as roundabouts.
+        Crossroads connected to a roundabout won't be collapsed.
+    maximum_area : float, Default=None.
         The area, in square meter, below which branching crossroads are collapsed.
-        Default value is set to None. 
+        Collpase all crossraods if left to None.
+
+    Returns
+    -------
+    GeoPandas.GeoDataFrame of LineString geometries
+
+    See Also
+    --------
+    detect_roundabouts
+    detect_branching_crossroads
+    collapse_roundabouts
     """
 
     # Retrieve crs for output

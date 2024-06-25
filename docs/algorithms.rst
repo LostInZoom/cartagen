@@ -5,7 +5,7 @@ Algorithms
 ==========
 
 Lines
-^^^^^
+-----
 
 .. currentmodule:: cartagen4py
 
@@ -16,11 +16,10 @@ Lines
     visvalingam_whyatt
     raposo
     gaussian_smoothing
-    accordion
-    schematization
+    offset_curve
 
-Polygons
-^^^^^^^^
+Polygons and groups of polygons
+-------------------------------
 
 .. currentmodule:: cartagen4py
 
@@ -29,14 +28,52 @@ Polygons
 
     building_simplification_ruas
     square_polygons
+    morphological_amalgamation
+    random_displacement
 
-Groups of objects
-^^^^^^^^^^^^^^^^^
+Networks
+--------
+
+Algorithms specific for the generalisation of networks.
 
 .. currentmodule:: cartagen4py
 
 .. autosummary::
     :toctree: reference/
 
-    morphological_amalgamation
-    random_displacement
+    detect_roundabouts
+    collapse_roundabouts
+    detect_branching_crossroads
+    collapse_branching_crossroads
+    detect_dual_carriageways
+    collapse_dual_carriageways
+    detect_dead_ends
+    eliminate_dead_ends
+
+Mountain roads
+--------------
+
+Algorithms specific for the generalisation of mountain roads.
+
+.. currentmodule:: cartagen4py
+
+.. autosummary::
+    :toctree: reference/
+
+    detect_pastiness
+    max_break
+    min_break
+    accordion
+    schematization
+
+Dilation
+--------
+
+.. currentmodule:: cartagen4py
+
+.. autosummary::
+    :toctree: reference/
+
+    offset_curve
+    offset_points
+    circle_interpolation

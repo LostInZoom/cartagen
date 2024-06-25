@@ -3,11 +3,20 @@ import numpy as np
 from shapely.geometry import LineString
 
 from cartagen4py.utils.geometry.line import *
-from cartagen4py.utils.debug import *
+
+def skeletonize(polygon, threshold_range=(0.7, 1.4)):
+    skeleton = SkeletonTIN(polygon, threshold_range)
+    return skeleton.network
+
+def skeletonize_network(polygon, threshold_range=(0.7, 1.4)):
+    skeleton = SkeletonTIN(polygon, threshold_range)
+    network = skeleton.create_network()
+    return network
 
 class SkeletonTIN:
     """
     Create a polygon skeleton from a Delaunay triangulation.
+    
     The skeleton is represented by the lines (called bones) linking each middle point (called joints) of the edges
     of the triangles computed by the Delaunay triangulation.
     Parameters
@@ -280,7 +289,8 @@ class SkeletonTIN:
             coords = self.entries[0].coords[0]
             recursive_network_creation(coords, [])
 
-        return self.network
+        self.network = network
+        return network
 
     def blend(self, attributes=None, sigma=None):
         """
@@ -329,7 +339,7 @@ class SkeletonTIN:
                     if shapely.intersects(skline, entry):
                         inside = skline
 
-                print(plot_debug(self.incoming))
+                # print(plot_debug(self.incoming))
 
                 # Update the geometry of the incoming line by merging it with the intersecting skeleton line
                 blended[outindex]['geometry'] = merge_linestrings(outside, inside)
