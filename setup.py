@@ -8,7 +8,7 @@ if sys.version_info[:2] < (3, 8):
 
 # General informations
 name = 'cartagen4py'
-version = '0.3'
+version = '0.3.1'
 description = 'Python package to generalise geographic objects for cartographic purposes'
 url = 'https://github.com/LostInZoom/cartagen4py'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
@@ -22,8 +22,8 @@ packages = [
     'cartagen4py.algorithms.lines',
     'cartagen4py.algorithms.network',
     'cartagen4py.algorithms.points',
-    'cartagen4py.data_enrichment',
-    'cartagen4py.data_enrichment.network',
+    'cartagen4py.enrichment',
+    'cartagen4py.enrichment.network',
     'cartagen4py.evaluation',
     'cartagen4py.processes',
     'cartagen4py.utils',

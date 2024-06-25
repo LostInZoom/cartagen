@@ -1,17 +1,51 @@
-.. _user-guide:
+.. _manual:
 
-==========
-User Guide
-==========
+====================
+CartAGen User Manual
+====================
+
+:Authors: Guillaume Touya, Justin Berli, Azelle Courtial
+:Copyright:
+  This work is licensed under a `European Union Public Licence v1.2`__.
+
+.. __: https://eupl.eu/
+
+.. _intro:
+
+Introduction
+============
 
 Please note that this user guide is still under construction and some functions of the library are still not enough documented or not documented at all. 
 Feel free to contact us if you need documentation for a specific function.
 
-Apply map generalisation operations
------------------------------------
+Generalisation operations
+-------------------------
 
-Operations for lines
+Lines simplification
 ^^^^^^^^^^^^^^^^^^^^
+
+.. method:: douglas_peucker(line, distance_tolerance, preserve_tolerance)
+
+    Returns a simplified version of the line using the Douglas-Peucker algorithm (Douglas & Peucker, 1973).
+    This is a simple wrapper around the shapely function simplify().
+
+    :param line: The line to simplify.
+    :type line: shapely LineString
+    :param distance_tolerance: Distance threshold in meters between the farthest point from the line formed by the current extremities.
+    :type distance_tolerance: float, optional
+    :param preserve_tolerance: If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc). The trade-off is computational expensivity. Default set to True.
+    :type preserve_tolerance: float, optional
+
+.. code-block:: pycon
+
+  >>> line = LineString([(2, 0), (2, 4), (3, 4), (3, 5), (5, 7)])
+  >>> douglas_peucker(line, 1)
+  <LINESTRING (2 0, 2 4, 3 5, 5 7)>
+
+.. plot:: code/line_simplification.py
+
+Two polylines simplified with the Douglas-Peucker algorithm.
+
 
 .. method:: visvalingam_whyatt(line, area_tolerance)
 
@@ -24,9 +58,9 @@ Operations for lines
   >>> visvalingam_whyatt(line, 1)
   <LINESTRING (2 0, 2 4, 3 5, 5 7)>
 
-.. plot:: code/visvalingam.py
+.. plot:: code/simplification_visvalingam.py
 
-Figure 1. Two polylines simplified with the Visvalingam-Whyatt algorithm.
+Two polylines simplified with the Visvalingam-Whyatt algorithm.
 
 
 .. method:: raposo_simplification(line, initial_scale, final_scale, centroid=True, tobler=False)
@@ -72,8 +106,8 @@ Figure 2. Two polylines simplified with the Raposo algorithm.
 
 Figure 3. A polyline smoothed with the Gaussian smoothing algorithm.
 
-Operations for polygons
-^^^^^^^^^^^^^^^^^^^^^^^
+Polygons
+^^^^^^^^
 
 cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings. Only the algorithms that process one polygon at a time are documented in this section.
 
@@ -106,8 +140,8 @@ Figure 4. Four buildings simplified with the Ruas algorithm.
 
 Figure 5. Two buildings squared with the algorithm from (Lokhat & Touya, 2016).
 
-Operations for groups of objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Groups of objects
+^^^^^^^^^^^^^^^^^
 
 .. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
 
@@ -126,7 +160,7 @@ Operations for groups of objects
 Figure 6. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 
-.. class:: BuildingDisplacementRandom(max_trials=25, max_displacement=10, network_partitioning=False, verbose=False)
+.. class:: RandomDisplacement(max_trials=25, max_displacement=10, network_partitioning=False, verbose=False)
 
     This algorithm displaces buildings that overlap with each other and/or other features. The algorithm was never published but was available in CartAGen. It is an iterative process that selects the building with the most overlaps, and then pushes slightly the building in a random direction. If the overlaps are reduced, the displacement is commited and a new iteration starts. If the overlaps are worse, the displacement is backtracked, and another one is tried.
     The 'max_trials' parameter gives the maximum number of random displacements tried on one building. The 'max_displacement' parameter is the maximum distance a building is allowed to move. For large datasets, the algorithm can work on smaller partitions, using the 'network_partitioning' parameter.
@@ -141,7 +175,7 @@ Figure 6. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 .. code-block:: pycon
 
-  displacement = BuildingDisplacementRandom(network_partitioning=False)
+  displacement = RandomDisplacement(network_partitioning=False)
   displaced_gdf = displacement.displace(building_gdf, road_gdf, rivers_gdf)
 
 .. plot:: code/random_displacement.py
@@ -189,8 +223,8 @@ Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means
 Figure 9. A set of points reduced to depth 2 of the quadtree, with the selection mode. The selected points are displayed in red.
 
 
-Road network generalization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Road network
+^^^^^^^^^^^^
 
 Those functions are used to generalized specific features inside a road network. Those tools are used in conjonction with the
 data enrichment tools.
@@ -303,6 +337,39 @@ data enrichment tools.
 
 .. plot:: code/collapse_dead_ends.py
 
+Mountain roads
+^^^^^^^^^^^^^^
+
+Those functions are used to generalized mountain roads with a lot of bends.
+
+.. method:: detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8)
+
+    Detect pastiness of a line object.
+    Returns a list of dictionary as { "paste": **paste**, "geometry": **geometry** } where **paste** represents the number of conflicts (0 when no
+    conflicts are detected, 1 when a conflict exists on one side only, two when conflicts are on both side of the line) and **geometry**
+    is the shapely geometry of the line.
+    This algorithm subdivide the provided line into multiple chunks, thus modifying the geometry,
+    it is not a data enrichment function stricto sensu.
+    
+    :param line: The line to detect the pastiness from.
+    :type line: shapely LineString
+    :param tolerance: The Tolerance of the offset used to detect the pastiness.
+    :type tolerance: float
+    :param cap_style: The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'. Default to 'flat'.
+    :type cap_style: str, optional
+    :param quad_segs: The number of point allowed per circle quadrant when interpolating points using round method. Default to 8.
+    :type quad_segs: int, optional
+    
+.. code-block:: pycon
+
+    # Detect pastiness using a tolerance of 60 metres and default parameters
+    pastiness = detect_pastiness(line, 60)
+
+.. plot:: code/mountain_pastiness.py
+
+Detection of the pastiness of a line (the width represent the number of conflict as described in the method description)
+
+
 Enrich your data prior to map generalisation
 --------------------------------------------
 
@@ -395,7 +462,7 @@ Strokes are network segments that follow the perceptual grouping principle of Go
 
 	from shapely.geometry import LineString, Point
 	import geopandas as gpd
-	from cartagen4py.data_enrichment import StrokeNetwork
+	from cartagen4py.enrichment import StrokeNetwork
 	import matplotlib.pyplot as plt
 
 	data={'geometry':
@@ -465,7 +532,7 @@ Stroke computation (for river networks)
 .. code-block:: pycon
     from shapely.geometry import LineString, Point
     import geopandas as gpd
-    from cartagen4py.data_enrichment import RiverStrokeNetwork
+    from cartagen4py.enrichment import RiverStrokeNetwork
     import matplotlib.pyplot as plt
 
     data={'geometry':

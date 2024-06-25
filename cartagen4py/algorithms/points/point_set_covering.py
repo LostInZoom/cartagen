@@ -45,6 +45,11 @@ def delaunay_concave_hull(points, min_length):
                and hull_ext.intersects(Point(triangle.exterior.coords[2]))):
                 i += 1
                 continue
+            
+            # check that we do not create a multipolygon
+            if(hull.difference(triangle).geom_type == 'MultiPolygon'):
+                i += 1
+                continue
 
             segments = get_segment_list(triangle)
             for segment in segments:

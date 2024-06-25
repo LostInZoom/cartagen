@@ -6,9 +6,68 @@ from shapely.geometry import LineString, Point, Polygon, MultiPoint
 from cartagen4py.utils.geometry.angle import *
 from cartagen4py.utils.tessellation.hexagonal import *
 
+def douglas_peucker(line, threshold, preserve_topology=True):
+    """
+    Distance-based line simplification (Douglas & Peucker, 1973).
+
+    The Douglas-Peucker algorithm is a line filtering algorithm, which means that it
+    filters the vertices of the line (or polygon) to only retain the most important ones
+    to preserve the shape of the line. The algorithm iteratively searches the most
+    characteristics vertices of portions of the line and decides to retain
+    or remove them given a distance threshold.
+
+    The algorithm tends to unsmooth geographic lines, and is rarely used to simplify geographic features.
+    But it can be very useful to quickly filter the vertices of a line inside another algorithm.
+
+    This is a simple wrapper around the shapely.simplify() function.
+
+    Parameters
+    ----------
+    line : shapely LineString
+        The line to simplify.
+    threshold : float
+        The distance under which a vertex is removed from the line
+    preserve_topology : boolean, Default=True
+        If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc).
+        The trade-off is computational expensivity.
+
+    Returns
+    -------
+    shapely.LineString
+
+    See Also
+    --------
+    visvalingam_whyatt : Visvalingam-Whyatt simplification.
+    """
+    return shapely.simplify(line, threshold, preserve_topology=preserve_topology)
+
 def visvalingam_whyatt(line, area_tolerance):
     """
-    Visvalingam-Whyatt algorithm (1993)
+    Area-based line simplification (Visvalingam-Whyatt, 1993).
+
+    This algorithm performs a line simplification that produces less angular results than the filtering algorithm of Douglas and Peucker.
+    The algorithm was proposed by Visvalingam & Whyatt 1993. The principle of the algorithm is to select
+    the vertices to delete (the less characteristic ones) rather than choosing the vertices to
+    keep (in the Douglas and Peucker algorithm). To select the vertices to delete, there is an iterative process,
+    and at each iteration, the triangles formed by three consecutive vertices are computed. If the area of the smallest
+    triangle is smaller than a threshold (“area_tolerance” parameter), the middle vertex is deleted, and another iteration starts.
+
+    The algorithm is relevant for the simplification of natural line or polygon features such as rivers, forests, or coastlines.
+
+    Parameters
+    ----------
+    line : shapely.LineString
+        The line to simplify.
+    area_tolerance : float
+        The minimum triangle area to keep a vertex in the line.
+
+    Returns
+    -------
+    shapely.LineString
+
+    See Also
+    --------
+    douglas_peucker : Douglas-Peucker simplification.
     """
     def contains_another_point(line, pt, index):
         first = line.coords[index-1]
@@ -53,12 +112,45 @@ def visvalingam_whyatt(line, area_tolerance):
 
     return LineString(tuple(final_coords))
 
-def raposo_simplification(line, initial_scale, final_scale, centroid=True, tobler=False):
+def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
-    Raposo simplification algorithm (2010): uses an hexagonal tessallation, with a size related to the final scale, 
-    and the algorithm only retains one vertex per hexagonal cell. Be careful, it uses the scale as parameter. If the centroid parameter 
-    is True, the vertices inside an hexagon cell are replaced by the centroid of the cell; if it is False, they are replaced by the nearest
-    vertex to the centroid of the cell.
+    Hexagon-based line simplification (Raposo, 2010).
+    
+    This algorithm simplifies lines based on a hexagonal tessallation, and is described in (Raposo 2013).
+    The algorithm also works for the simplification of the border of a polygon object.
+    The idea of the algorithm is to put a hexagonal tessallation on top of the line to simplify,
+    the size of the cells depending on the targeted granularity of the line.
+    Similarly to the Li-Openshaw algorithm, only one vertex is kept inside each cell.
+    This point can be the centroid of the removed vertices, or a projection on the initial line of this centroid.
+    The shapes obtained with this algorithm are less sharp than the ones obtained with other algorithms such as Douglas-Peucker.
+
+    Tobler based formula to compute hexagonal cell size:
+    cell_size = 5 x l x s where l is the width of the line in the map in meters
+    e.g. 0.0005 for 0.5 mm, and s is the target scale denominator.
+
+    Raposo’s formula to compute hexagonal cell size:
+    cell_size = l / n x t / d where l is the length of the line,
+    n the number of vertices of the line, t the denominator of the target scale,
+    and d the denominator of the initial scale.
+
+    The algorithm is dedicated to the smooth simplification of natural features such as rivers, forests, coastlines, lakes.
+
+    Parameters
+    ----------
+    line : shapely.LineString
+        The line to simplify.
+    initial_scale : float
+        Initial scale of the provided line (25000.0 for 1:25000 scale).
+    final_scale : float
+        Final scale of the simplified line.
+    centroid : boolean, Default=True
+        If true, uses the center of the hexagonal cells as new vertex, if false, the center is projected on the nearest point in the initial line.
+    tobler : boolean, Default=False
+        If True, compute cell resolution based on Tobler’s formula.
+
+    Returns
+    -------
+    shapely.LineString   
     """
     width = 0
     if tobler:
@@ -128,7 +220,8 @@ def __li_openshaw_simplification(line, cell_size):
 
 def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_extremities=False):
     """
-    Compute the gaussian smoothing of a set of a LineString.
+    Gaussian smoothing.
+
     Parameters
     ----------
     line : shapely LineString
@@ -136,12 +229,14 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_ext
     sigma : float optional
         Gaussian filter strength.
         Default value to 30, which is a high value.
-    sample : float optional
+    sample : float, Default=None
         The length in meter between each nodes after resampling the line.
         If not provided, the sample is derived from the line and is the average distance between
         each consecutive vertex.
-    densify : boolean optional
+    densify : boolean, Default=True
         Whether the resulting line should keep the new node density. Default to True.
+    preserve_extremities : boolean, Default=False
+        Whether the final extremities of the line should be swapt with the extremities of the original line.
     """
     # Extend the given set of points at its first and last points of k points using central inversion.
     def extend(line, interval):
@@ -258,6 +353,7 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_ext
 def get_bend_side(line):
     """
     Return the side of the interior of the bend regarding the line direction. (left or right)
+
     Parameters
     ----------
     line : shapely LineString
@@ -347,6 +443,7 @@ def polygons_3d_to_2d(polygons):
 def resample_line(line, step):
     """
     Densifies a line with vertices every 'step' along the line. Keep the start and end vertex.
+    
     Parameters
     ----------
     line : shapely LineString

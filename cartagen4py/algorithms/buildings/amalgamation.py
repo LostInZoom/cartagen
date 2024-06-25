@@ -23,7 +23,7 @@ def morphological_amalgamation(buildings, buffer_size, edge_length):
     Examples
     --------
     >>> buildings = [Polygon([(1, 0), (9, 0), (9, 6), (1, 6), (1, 0)]),Polygon([(10, 0), (17, 0), (17, 6), (10, 6), (10, 0)])]
-     >>> morphological_amalgamation(buildings, 1.0, 1.0)
+    >>> morphological_amalgamation(buildings, 1.0, 1.0)
     <POLYGON ((1.207 1.983, 2.547 5.885, 16.768 4.282, 15.42 0.148, 1.207 1.983))>
     """
     output_collection = []
