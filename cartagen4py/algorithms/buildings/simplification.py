@@ -6,17 +6,23 @@ from shapely.geometry import Polygon, Point, LinearRing
 from cartagen4py.utils.geometry.segment import get_segment_list_polygon, Segment
 
 
-def building_simplification_ruas(building, edge_threshold, parallel_limit = 20 * pi / 180, orthogonal_limit = 20 * pi / 180):
+def building_simplification_ruas(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit = 20*pi/180):
     """
-    Building simplification algorithm from (Ruas, 1988), which was integrated in the AGENT project. Port of the CartAGen implementation of the algorithm.
+    Building simplification algorithm from (Ruas, 1988).
+    
     The algorithm analyses the edges of the polygon to find the ones that should be removed and how they can be replaced.
+    It was integrated in the AGENT project. Port of the CartAGen implementation of the algorithm.
 
     Parameters
     ----------
-    building : the shapely Polygon to be simplified
-    edge_threshold : the length of an edge to be considered in the simplification algorithm.
-    parallel_limit : the limit angle to consider an edge into the parallel case of the simplification algorithm. Default value: 20 * pi / 180
-    orthogonal_limit : the limit angle to consider an edge into the orthogonal case of the simplification algorithm. Default value: 20 * pi / 180
+    building : shapely.Polygon
+        The shapely building to be simplified.
+    edge_threshold : float
+        Minimum length of an edge to be considered by the simplification algorithm.
+    parallel_limit : float Default=20*pi/180
+        Limit angle to consider an edge into the parallel case of the simplification algorithm.
+    orthogonal_limit : float Default=20*pi/180
+        Limit angle to consider an edge into the orthogonal case of the simplification algorithm.
 
     Examples
     --------

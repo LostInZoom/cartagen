@@ -165,6 +165,7 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
                     else:
                         incoming.append({ "geometry": egeom })
 
+            print(cid)
             # Calculate the skeleton
             skeleton = SkeletonTIN(polygon)
             skeleton.add_incoming_lines(incoming)
@@ -326,7 +327,8 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
 
             # Here, there is no incoming line, which means both interior lines can be merged along with the junction line
             else:
-                # TODO: handle this situation by updating geometries somewhere... This line is one long line which is both skeletons middle lines merged together.
+                # TODO: handle this situation by updating geometries somewhere...
+                # This line is one long line which is both skeletons middle lines merged together.
                 # This situation should not appear.
                 merged = merge_linestrings(merge_linestrings(line1, linejunction), line2)
 

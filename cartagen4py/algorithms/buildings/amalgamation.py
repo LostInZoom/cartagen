@@ -11,7 +11,9 @@ from cartagen4py.utils.geometry.segment import get_segment_list
 # 
 def morphological_amalgamation(buildings, buffer_size, edge_length):
     """
-    This the amalgamation algorithm from Damen et al. 2008 (https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113).
+    This the amalgamation algorithm from (Damen et al., 2008)
+    
+    (https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113).
     Returns a list of amalgamated polygons from a list of polygons. The amalgamation is based on morphological dilations and erosions with a square cap.
 
     Parameters

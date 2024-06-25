@@ -3,6 +3,7 @@ import numpy as np
 from shapely.geometry import LineString
 
 from cartagen4py.utils.geometry.line import *
+from cartagen4py.utils.debug import *
 
 class SkeletonTIN:
     """
@@ -327,6 +328,8 @@ class SkeletonTIN:
                 for skline in network:
                     if shapely.intersects(skline, entry):
                         inside = skline
+
+                print(plot_debug(self.incoming))
 
                 # Update the geometry of the incoming line by merging it with the intersecting skeleton line
                 blended[outindex]['geometry'] = merge_linestrings(outside, inside)
