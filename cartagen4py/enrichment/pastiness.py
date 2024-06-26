@@ -9,16 +9,12 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
     """
     Detect the pastiness of a series of bends (Mustière, 2001).
 
-    Returns a list of dictionary as { 'paste': paste, 'geometry': geometry } where paste represents the number of conflicts (0 when no
-    conflicts are detected, 1 when a conflict exists on one side only, two when conflicts are on both side of the line) and geometry
-    is the shapely geometry of the line.
-
     This algorithm subdivide the provided line into multiple chunks, thus modifying the geometry,
     it is not a data enrichment function stricto sensu.
 
     Parameters
     ----------
-    line : shapely LineString
+    line : shapely.LineString
         The line to detect the pastiness from.
     tolerance : float
         The width of the offset used to detect the pastiness.
@@ -29,7 +25,13 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
 
     Returns
     -------
-    list of dict
+    list
+        A list of dict with the following keys:
+
+        - **paste** represents the number of conflicts (0 when no conflicts are detected,
+          1 when a conflict exists on one side only,
+          2 when conflicts are on both side of the line).
+        - **geometry** is the geometry of the line section.
     """
     # Handle individual sides
     def __treat_side(line, tolerance, cap_style, quad_segs):
@@ -195,9 +197,11 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
         lines = []
         # Loops through groups of nodes
         for group in groups:
+            coords = list(group.coords)
+
             # Create individual lines
             line = []
-            for node in group:
+            for node in coords:
                 line.append(node)
             
             # If the line has at least one node

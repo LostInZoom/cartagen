@@ -33,7 +33,7 @@ Polygons
 
 cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings. Only the algorithms that process one polygon at a time are documented in this section.
 
-.. method:: building_simplification_ruas(building, edge_threshold, parallel_limit = 20 * pi / 180, orthogonal_limit = 20 * pi / 180)
+.. method:: building_simplification(building, edge_threshold, parallel_limit = 20 * pi / 180, orthogonal_limit = 20 * pi / 180)
 
     Returns a simplified version of the building polygon using the algorithm from Anne Ruas (1988). The algorithm was later used to simplify buildings in the AGENT project.
     The 'edge_threshold' is the minimum length of an edge between two vertices of the building to be removed. The 'parallel_limit' and 'orthogonal_limit' parameters define to what extent two edges are considered parallel or orthogonal.
@@ -41,7 +41,7 @@ cartagen4py contains algorithms that process any type of polygons, and others sp
 .. code-block:: pycon
 
   >>> building = Polygon([(0, 0), (0, 10), (2, 10), (2, 9), (10, 9), (10, 0), (0, 0)])
-  >>> building_simplification_ruas(building, 2.5)
+  >>> building_simplification(building, 2.5)
   <POLYGON ((0 0, 0 9.5, 10 9.5, 10 0, 0 0))>
 
 .. plot:: code/building_simplification.py
@@ -300,7 +300,7 @@ Since the beginning of research on the automation of map generalisation, the nec
 Extracting implicit geographic structures
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. method:: compute_boffet_urban_areas(buildings, dilation_size, erosion_size, simplification_distance = 2)
+.. method:: boffet_areas(buildings, dilation_size, erosion_size, simplification_distance = 2)
 
     Computes the urban/built-up areas from a set of buildings, using a method from Boffet (2000). The algorithm computes buffers around each building ('dilation_size') and then merges all buffers.
     The merged areas are then further refined with an erosion ('erosion_size') and a Douglas & Peucker simplification ('simplification_distance').
@@ -308,9 +308,9 @@ Extracting implicit geographic structures
 .. code-block:: pycon
 
   # compute the built-up areas with a 25 m buffer and a 10 m erosion
-  urbanareas = compute_boffet_urban_areas(polygons, 25.0, 10.0)
+  urbanareas = boffet_areas(polygons, 25.0, 10.0)
 
-.. plot:: code/compute_boffet_urban_areas.py
+.. plot:: code/boffet_areas.py
 
 Figure 10. Building polygons converted into built-up areas using the Boffet algorithm.
 

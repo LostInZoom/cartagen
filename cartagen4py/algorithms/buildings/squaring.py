@@ -11,7 +11,17 @@ def square_polygons(
     Least squares based polygon squaring (Lokhat & Touya, 2016).
 
     This is an implementation of the least squares based squaring algorithm
-    proposed by Lokhat & Touya (https://hal.science/hal-02147792).
+    proposed by Lokhat & Touya. It is particularly useful to square buildings.
+
+    The method of least squares is a parameter estimation method
+    in regression analysis based on minimizing the sum of the squares
+    of the residuals (a residual being the difference between an
+    observed value and the fitted value provided by a model)
+    made in the results of each individual equation.
+
+    In practice, this function iteratively tries to resolve matrices
+    equations until a threshold norm is reached and the provided
+    constraint are satisfied.
 
     Parameters
     ----------
@@ -35,6 +45,27 @@ def square_polygons(
     flat_weight : int, Default=50
         The weight of the angle constraint concerning flat angles.
         A high value means those angles will be more likely to keep their value in the resulting polygon.
+
+    Returns
+    -------
+    list of shapely.Polygon
+
+    See Also
+    --------
+    building_simplification :
+        Simplification of building by edge elimination.
+
+    References
+    ----------
+    .. [1] Guillaume Touya, Imran Lokhat. Enhancing building footprints with squaring operations.
+       Journal of Spatial Information Science, 2016, 13, ⟨10.5311/JOSIS.2016.13.276⟩. ⟨hal-02147792⟩
+       https://hal.science/hal-02147792
+
+    Examples
+    --------
+    >>> building = Polygon([(0, 0), (0, 1), (1.1, 1), (1, 0)])
+    >>> square_polygons([building])
+    [<POLYGON ((-0.008 0.015, 0.012 1.011, 1.061 0.989, 1.035 -0.015, -0.008 0.015))>]
     """
     squarer = Squarer(max_iteration, norm_tolerance,
             right_tolerance, flat_tolerance, 7,
@@ -184,7 +215,7 @@ class Squarer:
                 #    self.indicesHrAig.append(t)
                 #elif (dot >= -hrTol1 and dot <= -hrTol2):
                 #    self.indicesHrObt.append(t)
-        print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)}')
+        # print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)}')
         #print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)} - HRa: {len(self.indicesHrAig)} - HRo: {len(self.indicesHrObt)}')
 
 
@@ -348,7 +379,7 @@ class Squarer:
         for i in range(self.MAX_ITERATION):
             dx = self.__compute_dx(points)
             points += dx.reshape((nb_points, 2))
-            print(i, np.linalg.norm(dx, ord=np.inf))
+            # print(i, np.linalg.norm(dx, ord=np.inf))
             if np.linalg.norm(dx, ord=np.inf) < self.NORM_TOLERANCE:
                 break
         self.nb_iters = i

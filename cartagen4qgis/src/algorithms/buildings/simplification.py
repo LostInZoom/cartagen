@@ -26,7 +26,7 @@ from qgis.core import QgsProcessing, QgsFeatureSink, QgsProcessingAlgorithm, Qgs
 from qgis.core import QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterNumber
 
 from cartagen4qgis import PLUGIN_ICON
-from cartagen4py import building_simplification_ruas
+from cartagen4py import building_simplification
 from shapely.wkt import loads
 
 class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
@@ -102,7 +102,7 @@ class BuildingSimplificationRuasQGIS(QgsProcessingAlgorithm):
             wkt = feature.geometry().asWkt()
             shapely_geom = loads(wkt)
 
-            simplified = building_simplification_ruas(shapely_geom, self.parameterAsInt(parameters,self.THRESHOLD,context))
+            simplified = building_simplification(shapely_geom, self.parameterAsInt(parameters,self.THRESHOLD,context))
 
             result = QgsFeature()
             result.setGeometry(QgsGeometry.fromWkt(simplified.wkt))

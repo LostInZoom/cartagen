@@ -54,16 +54,22 @@ def plot_debug(geom, *geoms):
     sub.autoscale_view()
     plt.show()
 
-def geojson_to_variable(geojson):
+def geojson_to_variable(geojson, write=False):
     """
     Generate a variable string to directly load the shapely geometry inside the Python file.
     """
     v = gpd.read_file(geojson)
     v = v.to_dict('records')
 
+    f = None
+    if write:
+        f = open('myfile.txt', 'w')
+
     s = "variable = ["
     for o in v:
         geom = "loads('{0}'), \n".format(o['geometry'].wkt)
+        if write:
+            f.write(geom)
         s += geom
     
     s += "]"

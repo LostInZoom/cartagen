@@ -6,7 +6,7 @@ zipfile = 'data/buildings.zip'
 df = gp.read_file(zipfile)
 polygons = df.geometry
 
-urbanareas = c4.compute_boffet_urban_areas(polygons,25.0, 10.0)
+urbanareas = c4.boffet_areas(polygons,25.0, 10.0)
 p1 = gp.GeoSeries(polygons)
 p2 = gp.GeoSeries(urbanareas)
 base = p2.plot(facecolor='none', edgecolor='red')

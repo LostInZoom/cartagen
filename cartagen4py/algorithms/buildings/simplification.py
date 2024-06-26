@@ -6,7 +6,7 @@ from shapely.geometry import Polygon, Point, LinearRing
 from cartagen4py.utils.geometry.segment import get_segment_list_polygon, Segment
 
 
-def building_simplification_ruas(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit = 20*pi/180):
+def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit = 20*pi/180):
     """
     Simplify buildings by removing edges (Ruas, 1988).
     
@@ -19,15 +19,20 @@ def building_simplification_ruas(building, edge_threshold, parallel_limit=20*pi/
         The shapely building to be simplified.
     edge_threshold : float
         Minimum length of an edge to be considered by the simplification algorithm.
-    parallel_limit : float Default=20*pi/180
+    parallel_limit : float, Default=20*pi/180
         Limit angle to consider an edge into the parallel case of the simplification algorithm.
-    orthogonal_limit : float Default=20*pi/180
+    orthogonal_limit : float, Default=20*pi/180
         Limit angle to consider an edge into the orthogonal case of the simplification algorithm.
+
+    See Also
+    --------
+    square_polygons :
+        Squares polygons using the least squares method.
 
     Examples
     --------
     >>> building = Polygon([(0, 0), (0, 10), (2, 10), (2, 9), (10, 9), (10, 0), (0, 0)])
-    >>> building_simplification_ruas(building, 2.5)
+    >>> building_simplification(building, 2.5)
     <POLYGON ((0 0, 0 9.5, 10 9.5, 10 0, 0 0))>
     """
 

@@ -199,8 +199,8 @@ def min_break(line, offset, sigma=30, sample=None):
     newline = gaussian_smoothing(newline, sigma, sample)
 
     # Calculate the offset points along the skeleton
-    left = __offset(newline, -offset)[0]
-    right = __offset(newline, offset)[0]
+    left = list(__offset(newline, -offset)[0].coords)
+    right = list(__offset(newline, offset)[0].coords)
 
     # Reverse the order on the right side
     right.reverse()

@@ -25,10 +25,11 @@ Polygons and groups of polygons
 .. autosummary::
     :toctree: reference/
 
-    building_simplification_ruas
+    building_simplification
     square_polygons
-    morphological_amalgamation
     random_displacement
+    morphological_amalgamation
+    boffet_areas
 
 Networks
 --------
