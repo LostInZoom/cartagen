@@ -35,7 +35,8 @@ def eliminate_dead_ends(roads, deadends, length=0, keep_longest=True):
 
     See Also
     --------
-    detect_dead_ends
+    detect_dead_ends :
+        Detect dead-ends groups inside a road network.
     """
 
     # Retrieve crs for output

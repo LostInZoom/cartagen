@@ -1,17 +1,152 @@
 import shapely, itertools
 import numpy as np
 from shapely.geometry import LineString
-
+from copy import deepcopy
 from cartagen4py.utils.geometry.line import *
 
-def skeletonize(polygon, threshold_range=(0.7, 1.4)):
-    skeleton = SkeletonTIN(polygon, threshold_range)
-    return skeleton.network
+from cartagen4py.utils.debug import plot_debug
 
-def skeletonize_network(polygon, threshold_range=(0.7, 1.4)):
+def skeletonize_natural(polygon, threshold_range=(0.7, 1.4)):
+    """
+    Create the natural TIN skeleton of a polygon.
+    
+    The natural skeleton means the entry points of the skeleton
+    are naturally calculated during the skeleton creation, it depends
+    on the Delaunay triangulation.
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon
+        The polygon to compute the skeleton from.
+    threshold_range : tuple, Default=(0.7, 1.4)
+        This value is only used for inner triangles calculated by the Delaunay triangulation.
+        If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
+        the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
+        else it uses the centroid of the triangle (default value used by Wang, 2010).
+
+    Returns
+    -------
+    skeleton : list
+        A list of shapely.LineString of the skeleton.
+
+    See Also
+    --------
+    skeletonize_artificial : 
+        Create a TIN skeleton by enforcing entry points.
+    skeletonize_network :
+        Create a TIN skeleton and blend it with the provided network.
+    """
+    # Generate the skeleton
     skeleton = SkeletonTIN(polygon, threshold_range)
-    network = skeleton.create_network()
-    return network
+    # Calculate the network from joinst and bones
+    n = skeleton.create_network()
+
+    return n
+
+def skeletonize_artificial(polygon, entries, connection='joint', threshold_range=(0.7, 1.4)):
+    """
+    Create a TIN skeleton from a polygon by enforcing entry points.
+    
+    The artificial skeleton means the entry points of the skeleton
+    are manually set and the natural entry points of the skeleton
+    calculated during the skeleton creation are removed.
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon
+        The polygon to compute the skeleton from.
+    entries : list of shapely.Point
+        The entry points of the skeleton.
+    connection : str, Default='joint'
+        Connection can be 'joint', which forces the entry point to connect to the closest joint,
+        or can be 'interior', which first look if there is an interior triangle inside the triangulation
+        and connect directly the entry point to its skeleton joint. If no interior triangle is found,
+        apply 'joint' connection instead.
+    threshold_range : tuple, Default=(0.7, 1.4)
+        This value is only used for inner triangles calculated by the Delaunay triangulation.
+        If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
+        the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
+        else it uses the centroid of the triangle (default value used by Wang, 2010).
+
+    Returns
+    -------
+    skeleton : list
+        A list of shapely.LineString of the skeleton.
+
+    See Also
+    --------
+    skeletonize_natural : 
+        Create the natural TIN skeleton.
+    skeletonize_network :
+        Create a TIN skeleton and blend it with the provided network.
+    """
+    # Generate the skeleton
+    skeleton = SkeletonTIN(polygon, threshold_range)
+    # Storing the natural entries
+    natural = skeleton.entries.copy()
+    # Add the artificial entries
+    skeleton.add_incoming_points(entries, connection)
+
+    # Keep only natural entries different from provided entries
+    remove = [ e for e in natural if e not in entries ]
+
+    # Remove the natural entries
+    skeleton.remove_entries(remove)
+
+    # Calculate the network
+    n = skeleton.create_network()
+
+    return n
+
+def skeletonize_network(polygon, network, sigma=None, attributes=None, threshold_range=(0.7, 1.4)):
+    """
+    Create an artificial TIN skeleton and blend it inside a network.
+    
+    This function first creates an artificial TIN skeleton by enforcing
+    entry points derived from the provided network (the entry points are the extremities
+    of the provided network touching the polygon ring). Then the network is blended
+    with the skeleton and an optional gaussian smoothing is apply. 
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon
+        The polygon to compute the skeleton from.
+    network : GeoPandas.GeoDataFrame
+        The network (LineString geometries) touching the ring of the polygon.
+    sigma : float, Default=None
+        Gaussian filter strength. By default, the skeleton is not smoothed.
+    attributes : list of dict, Default=None.
+        A list of dict where the index matches the provided network. This dict represents the attributes
+        of the lines to be propagated to the new network.
+        If None is provided, the resulting network will lack the original attributes.
+    threshold_range : tuple, Default=(0.7, 1.4)
+        This value is only used for inner triangles calculated by the Delaunay triangulation.
+        If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
+        the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
+        else it uses the centroid of the triangle (default value used by Wang, 2010).
+
+    Returns
+    -------
+    skeleton : GeoPandas.GeoDataFrame
+        A list of shapely.LineString of the skeleton.
+
+    See Also
+    --------
+    skeletonize_natural : 
+        Create the natural TIN skeleton.
+    skeletonize_artificial :
+        Create a TIN skeleton by enforcing entry points.
+    """
+    # Create the natural skeleton
+    skeleton = SkeletonTIN(polygon, threshold_range)
+    # Add incoming lines to the skeleton
+    skeleton.add_incoming_lines(network)
+    # Create the network
+    skeleton.create_network()
+    # Blend the network with the provided one
+    skeleton.blend(attributes, sigma=sigma)
+
+    return skeleton.blended
 
 class SkeletonTIN:
     """
@@ -19,15 +154,16 @@ class SkeletonTIN:
     
     The skeleton is represented by the lines (called bones) linking each middle point (called joints) of the edges
     of the triangles computed by the Delaunay triangulation.
+
     Parameters
     ----------
-    polygon : shapely Polygon
+    polygon : shapely.Polygon
         The polygon to compute the skeleton from.
-    threshold_range : tuple optional
+    threshold_range : tuple, Default=(0.7, 1.4)
         This value is only used for inner triangles calculated by the Delaunay triangulation.
         If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
         the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
-        else it uses the centroid of the triangle (value used by Wang, 2010).
+        else it uses the centroid of the triangle (default value used by Wang, 2010).
     """
     def __init__(self, polygon, threshold_range=(0.7, 1.4)):
         # Stores polygon for future use
@@ -42,12 +178,14 @@ class SkeletonTIN:
         # triangles are recursively removed from the list
         self.__triangles = []
         
-        # Stores future bones and joints, i.e. links and nodes created by the skeletonization
+        # Stores future bones and joints,
+        # i.e. links and nodes created by the skeletonization
         self.bones = []
         self.joints = []
 
         # Interiors joints are joints that are connected to more than two bones
         # i.e. joints created inside an interiors triangle during skeletonization
+        # They are updated when adding and removing entry points
         self.interiors = []
 
         # Stores the skeleton as a network
@@ -67,8 +205,9 @@ class SkeletonTIN:
 
     def add_incoming_points(self, entries, connection='joint'):
         """
-        Add new entry points that are not 'natural' skeleton entries, i.e. entries derived from the
-        Delaunay triangulation.
+        Add new entry points that are not 'natural' skeleton entries,
+        i.e. entries derived from the Delaunay triangulation.
+
         Parameters
         ----------
         entries : shapely Polygon
@@ -87,9 +226,9 @@ class SkeletonTIN:
                 distance = None
 
                 if connection == 'interior' and len(self.interiors) > 0:
-                    joints = self.interiors
+                    joints = self.interiors.copy()
                 else:
-                    joints = self.joints
+                    joints = self.joints.copy()
 
                 # Looping through joints
                 for joint in joints:
@@ -108,8 +247,14 @@ class SkeletonTIN:
                     # Add the joint and entry to the lists
                     self.joints.append(entry)
                     self.entries.append(entry)
+
                     # Add the bone for connectivity
                     self.bones.append(shapely.LineString([entry, closest]))
+
+                    # Add the closest point as a new interior joint
+                    if closest not in self.interiors:
+                        self.interiors.append(closest)
+
 
         if isinstance(entries, list):
             for entry in entries:
@@ -126,6 +271,7 @@ class SkeletonTIN:
         Add incoming lines to the skeleton by adding entry points to the 'natural' skeleton entries,
         i.e. entries derived from the Delaunay triangulation. Those lines must have their first or
         last node be the same as a node from the provided polygon to calculate the skeleton.
+
         Parameters
         ----------
         lines : Geopandas GeoDataFrame of LineStrings.
@@ -134,7 +280,7 @@ class SkeletonTIN:
         entries = []
         boundary = list(self.polygon.boundary.coords)
         self.incoming = lines
-        externals = [i['geometry'] for i in lines]
+        externals = [ i['geometry'] for i in lines ]
 
         # Loop through provided lines
         for line in externals:
@@ -157,15 +303,17 @@ class SkeletonTIN:
     def remove_entries(self, entries):
         """
         Remove the provided points if they are entries of the skeleton.
+
         The skeleton is reconstructed by removing the provided skeleton entries as well as all the joints and bones
         that connects the entry to the rest of the skeleton. Be aware though, you can't remove an entry from
         a skeleton having only two entries.
+
         Parameters
         ----------
         entries : list of shapely Point.
             The entry points to remove from the skeleton.
         """
-        # Recursively remove the bones and joints connected the provided entry
+        # Recursively remove the bones and joints connecting the provided entry
         def recursive_removal(point):
             # Remove specific joint from the list
             def remove_joint(joint):
@@ -208,19 +356,8 @@ class SkeletonTIN:
                     remove_bone(bone)
                     recursive_removal(next_point)
             elif len(bones) == 2:
-                # Here, the node intersects only two bones, they need to be reconnected
-                # and the interior node removed
-                # Remove both bones from the list
-                for bone in bones:
-                    remove_bone(bone)
-
-                # Merge the two intersecting bones
-                merged = merge_linestrings(bones[0], bones[1])
-                
-                # Add the merged bone
-                self.bones.append(merged)
-
-                # Remove the interior node
+                # Here, the node intersects two bones, it's an interior joint
+                # Recursion stops here, the interior joint is removed
                 if point in self.interiors:
                     self.interiors.pop(self.interiors.index(point))
 
@@ -311,7 +448,7 @@ class SkeletonTIN:
         if self.incoming is None:
             raise Exception("Incoming lines were not provided during the skeletonization. Cannot blend with the network.")
 
-        blended = self.incoming.copy()
+        blended = deepcopy(self.incoming)
         network = self.network.copy()
 
         remove = []

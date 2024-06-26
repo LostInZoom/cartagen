@@ -37,8 +37,8 @@ def accordion(line, width, sigma=30, sample=None):
 
     See Also
     --------
-    schematization
-    gaussian_smoothing
+    schematization : Simplify a line by removing a bend.
+    gaussian_smoothing : Smooth a line.
     """
     # Detect individual bends inside the smoothed line
     bs = BendSerie(line, sigma, sample)
@@ -217,6 +217,7 @@ def schematization(line, sigma=None, sample=None):
     --------
     gaussian_smoothing : Gaussian smoothing for more information about sigma and sample parameters.
     accordion : Accordion algorithm for bend series.
+    get_inflexion_points : Function to extract inflexion points.
     """
     # Treat a part of the schematization
     def schematize_part(coords, wpoint, summits):

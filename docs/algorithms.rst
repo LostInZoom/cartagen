@@ -16,7 +16,6 @@ Lines
     visvalingam_whyatt
     raposo
     gaussian_smoothing
-    offset_curve
 
 Polygons and groups of polygons
 -------------------------------
@@ -66,8 +65,8 @@ Algorithms specific for the generalisation of mountain roads.
     accordion
     schematization
 
-Dilation
---------
+Tools
+-----
 
 .. currentmodule:: cartagen4py
 
@@ -77,3 +76,8 @@ Dilation
     offset_curve
     offset_points
     circle_interpolation
+    resample_line
+    get_inflexion_points
+    skeletonize_natural
+    skeletonize_artificial
+    skeletonize_network

@@ -243,6 +243,10 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extre
         Whether the resulting line should keep the new node density. Default to True.
     preserve_extremities : boolean, Default=False
         Whether the final extremities of the line should be swapt with the extremities of the original line.
+
+    Returns
+    -------
+    shapely.LineString
     """
     # Extend the given set of points at its first and last points of k points using central inversion.
     def extend(line, interval):
@@ -355,12 +359,23 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extre
 
 def get_bend_side(line):
     """
-    Return the side of the interior of the bend regarding the line direction. (left or right)
+    Return the side of the interior of the bend.
 
     Parameters
     ----------
-    line : shapely LineString
+    line : shapely.LineString
         The line to get the bend side from.
+
+    Returns
+    -------
+    side : str
+        'right' or 'left'
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0)])
+    >>> get_bend_side(line)
+    right
     """
     # Get the list of nodes
     coords = list(line.coords)
@@ -445,14 +460,27 @@ def polygons_3d_to_2d(polygons):
 
 def resample_line(line, step):
     """
-    Densifies a line with vertices every 'step' along the line. Keep the start and end vertex.
+    Densify a line by adding vertices.
+
+    This function densifies a line by adding a vertex every 'step' along the line.
+    Keep the start and end vertex.
     
     Parameters
     ----------
-    line : shapely LineString
+    line : shapely.LineString
         The line to densify.
     step : float
-        The step (in meters) to resample the geometry
+        The step (in meters) to resample the geometry.
+
+    Returns
+    -------
+    shapely.LineString
+
+    Examples
+    --------
+    >>> line = LineString([(1, 1), (5, 1)])
+    >>> resample_line(line, 1)
+    <LINESTRING (1 1, 2 1, 3 1, 4 1, 5 1)>
     """
 
     # Get the length of the line
@@ -647,14 +675,24 @@ def merge_linestrings(line1, line2):
 
 def get_inflexion_points(line, min_dir=120.0):
     """
-    This algorithm extract inflexion points from a LineString object and return a list of index of inflexion points.
+    Detect inflexion points inside a curved line.
+
+    This algorithm extract inflexion points from a line using
+    angles calculation. Micro inflexions are removed.
+
     Parameters
     ----------
     line : shapely LineString
         The line to extract the inflexion points from.
-    min_dir : float
+    min_dir : float, Default=120.0
         The minimum direction change (in degrees) between two consecutive inflexion points.
-        This parameter allows to remove micro inflexions from the results.
+        This parameter allows to remove micro inflexions from the results. If set to 0,
+        every micro-inflexions will be kept.
+
+    Returns
+    -------
+    points : list
+        A list of index of the vertices of the lines considered to be inflexion points
     """
 
     coords = list(line.coords)
@@ -692,7 +730,8 @@ def get_inflexion_points(line, min_dir=120.0):
             if angle != prevangle:
                 # Check that the previous direction has been calculated
                 if prevdir is not None:
-                    # If the absolute difference between the previous direction and the current one is above the direction threshold
+                    # If the absolute difference between the previous direction and
+                    # the current one is above the direction threshold
                     # It means that this is not a micro inflexion
                     if abs(prevdir - direction) > min_dir:
                         # Adding the middle of the part list, i.e. the middle of the micro inflexions

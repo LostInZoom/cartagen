@@ -28,8 +28,8 @@ def max_break(line, offset, exaggeration=1.0):
 
     See Also
     --------
-    detect_pastiness
-    min_break
+    detect_pastiness : To detect self overlapping of a line.
+    min_break : Min break algorithm.
     """
 
     # Get the side of the bend
@@ -42,7 +42,7 @@ def max_break(line, offset, exaggeration=1.0):
     # Dilate the bend
     dilated = offset_curve(line, offset*exaggeration, cap_style='flat', quad_segs=8)
     
-    return shapely.LineString(dilated[0])
+    return dilated[0]
 
 def min_break(line, offset, sigma=30, sample=None):
     """
@@ -71,9 +71,9 @@ def min_break(line, offset, sigma=30, sample=None):
 
     See Also
     --------
-    detect_pastiness
-    max_break
-    gaussian_smoothing
+    detect_pastiness : To detect self overlapping of a line.
+    max_break : Max break algorithm.
+    gaussian_smoothing : Smooth a line.
     """
 
     # Create the offset of the skeleton

@@ -27,7 +27,10 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
 
     See Also
     --------
-    detect_dual_carriageways
+    detect_dual_carriageways : 
+        Flag dual carriageways inside a road network.
+    skeletonization_network :
+        Blends a TIN skeleton inside a road network.
     """
     # Retrieve crs for output
     crs = roads.crs

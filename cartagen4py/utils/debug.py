@@ -16,6 +16,8 @@ def plot_debug(geom, *geoms):
         elif geom.geom_type == 'LineString':
             path = Path(numpy.asarray(geom.coords)[:, :2])
             sub.add_patch(PathPatch(path, facecolor="none", edgecolor=color, linewidth=linewidth))
+        elif geom.geom_type == 'Point':
+            sub.plot(geom.coords[0][0], geom.coords[0][1], linestyle="", marker='o', color=color)
 
     fig = plt.figure(1)
     sub = fig.add_subplot(111)

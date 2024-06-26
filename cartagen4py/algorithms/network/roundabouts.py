@@ -30,9 +30,12 @@ def collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=N
 
     See Also
     --------
-    detect_roundabouts
-    detect_branching_crossroads
-    collapse_branching_crossroads
+    detect_roundabouts : 
+        Detect roundabouts inside the road network.
+    detect_branching_crossroads : 
+        Detect branching crossroads inside the road network.
+    collapse_branching_crossroads :
+        Collapse branching crossroads to a point.
     """
     # Retrieve crs for output
     crs = roads.crs

@@ -18,13 +18,13 @@ def offset_curve(line, offset, cap_style='round', quad_segs=8):
     
     Parameters
     ----------
-    line : shapely LineString
+    line : shapely.LineString
         The line to offset.
     offset : float
         The length of the offset to apply. Negative value for left-side dilation, positive for right-side.
-    cap_style : str optional
+    cap_style : str, Default='round
         The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
-    quad_segs : int optional
+    quad_segs : int, Default=8
         The number of point allowed per circle quadrant when interpolating points using round method.
 
     Returns
@@ -126,7 +126,7 @@ def merge_connected_parts(groups):
                 # Replace the resulting group
                 result[i] = unique_middle
 
-    return result
+    return [shapely.LineString(c) for c in result]
 
 def reconstruct_line(groups, line, offset):
     """
@@ -352,12 +352,12 @@ def offset_points(points, offset, cap_style='round', quad_segs=8):
 
     Parameters
     ----------
-    line : shapely LineString
-        The line to offset.
+    points : list of tuple
+        The coordinates of the points to offset.
     offset : float
         The length of the offset to apply. Negative value for left-side dilation, positive for right-side.
     cap_style : str optional
-        The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
+        The type of caps at the start and end of the provided list of points. Possible values are 'round' or 'flat'.
     quad_segs : int optional
         The number of point allowed per circle quadrant when interpolating points using round method.
 
