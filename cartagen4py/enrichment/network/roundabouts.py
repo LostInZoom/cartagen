@@ -6,28 +6,36 @@ from cartagen4py.utils.network import *
 
 def detect_roundabouts(roads, area_threshold=40000, miller_index=0.95):
     """
-    Detect roundabouts based on geometric properties (Touya, 2010).
+    Detect roundabouts based on geometric properties.
 
-    Detects roundabouts inside a road network.
+    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010` detects
+    roundabouts inside a road network.
 
     Parameters
     ----------
-    network : GeoPandas.GeoDataFrame with LineString geometries
+    network : GeoDataFrame of LineString
         Road network to analyze.
-    area_threshold : int, Default=40000
+    area_threshold : int, optional
         The area (in square meters) above which the object is not considered a roundabout.
-    miller_index : float, Default=0.97
+    miller_index : float, optional
         Index of compactess that determines if the shape is round or not.
 
     Returns
     -------
-    GeoPandas.GeoDataFrame of Polygon geometries
+    GeoDataFrame of Polygon
 
     See Also
     --------
-    detect_branching_crossroads
-    collapse_roundabouts
-    collapse_branching_crossroads
+    detect_branching_crossroads :
+        Detect branching crossroads inside the road network.
+    collapse_branching_crossroads :
+        Collapse branching crossroads to a point.
+    collapse_roundabouts :
+        Collapse roundabouts to a point.
+
+    References
+    ----------
+    .. footbibliography::
     """
     crs = roads.crs
     roads = roads.to_dict('records')

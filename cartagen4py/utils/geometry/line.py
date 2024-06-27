@@ -8,9 +8,9 @@ from cartagen4py.utils.tessellation.hexagonal import *
 
 def douglas_peucker(line, threshold, preserve_topology=True):
     """
-    Distance-based line simplification (Douglas & Peucker, 1973).
+    Distance-based line simplification.
 
-    The Douglas-Peucker algorithm is a line filtering algorithm, which means that it
+    The Ramer-Douglas-Peucker :footcite:p:`douglas:1973` algorithm is a line filtering algorithm, which means that it
     filters the vertices of the line (or polygon) to only retain the most important ones
     to preserve the shape of the line. The algorithm iteratively searches the most
     characteristics vertices of portions of the line and decides to retain
@@ -19,15 +19,15 @@ def douglas_peucker(line, threshold, preserve_topology=True):
     The algorithm tends to unsmooth geographic lines, and is rarely used to simplify geographic features.
     But it can be very useful to quickly filter the vertices of a line inside another algorithm.
 
-    This is a simple wrapper around the shapely.simplify() function.
+    This is a simple wrapper around :func:`shapely.simplify() <shapely.simplify()>`.
 
     Parameters
     ----------
     line : LineString
         The line to simplify.
     threshold : float
-        The distance under which a vertex is removed from the line
-    preserve_topology : bool, Default=True
+        The distance thresholdto remove the vertex from the line.
+    preserve_topology : bool, optional
         If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc).
         The trade-off is computational expensivity.
 
@@ -37,16 +37,28 @@ def douglas_peucker(line, threshold, preserve_topology=True):
 
     See Also
     --------
-    visvalingam_whyatt
-    raposo
+    visvalingam_whyatt :
+        Area-based line simplification.
+    raposo :
+        Hexagon-based line simplification.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> douglas_peucker(line, 1.0)
+    <LINESTRING (0 0, 2 0, 5 3)>
     """
     return shapely.simplify(line, threshold, preserve_topology=preserve_topology)
 
 def visvalingam_whyatt(line, area_tolerance):
     """
-    Area-based line simplification (Visvalingam-Whyatt, 1993).
+    Area-based line simplification.
 
-    This algorithm performs a line simplification that produces less angular results than the filtering algorithm of Douglas and Peucker.
+    The Visvalingam-Whyatt :footcite:p:`visvalingam:1993` algorithm performs a line simplification that produces less angular results than the filtering algorithm of Douglas and Peucker.
     The algorithm was proposed by Visvalingam & Whyatt 1993. The principle of the algorithm is to select
     the vertices to delete (the less characteristic ones) rather than choosing the vertices to
     keep (in the Douglas and Peucker algorithm). To select the vertices to delete, there is an iterative process,
@@ -68,8 +80,20 @@ def visvalingam_whyatt(line, area_tolerance):
 
     See Also
     --------
-    douglas_peucker
-    raposo
+    douglas_peucker :
+        Distance-based line simplification.
+    raposo :
+        Hexagon-based line simplification.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> visvalingam_whyatt(line, 5.0)
+    <LINESTRING (0 0, 2 0, 5 3)>
     """
     def contains_another_point(line, pt, index):
         first = line.coords[index-1]
@@ -116,24 +140,15 @@ def visvalingam_whyatt(line, area_tolerance):
 
 def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
-    Hexagon-based line simplification (Raposo, 2013).
+    Hexagon-based line simplification.
     
-    This algorithm simplifies lines based on a hexagonal tessallation, and is described in (Raposo 2013).
-    The algorithm also works for the simplification of the border of a polygon object.
+    The Raposo :footcite:p:`raposo:2013` algorithm simplifies lines based on a
+    hexagonal tessellation. The algorithm also works for the simplification of the border of a polygon object.
     The idea of the algorithm is to put a hexagonal tessallation on top of the line to simplify,
     the size of the cells depending on the targeted granularity of the line.
     Similarly to the Li-Openshaw algorithm, only one vertex is kept inside each cell.
     This point can be the centroid of the removed vertices, or a projection on the initial line of this centroid.
     The shapes obtained with this algorithm are less sharp than the ones obtained with other algorithms such as Douglas-Peucker.
-
-    Tobler based formula to compute hexagonal cell size:
-    cell_size = 5 x l x s where l is the width of the line in the map in meters
-    e.g. 0.0005 for 0.5 mm, and s is the target scale denominator.
-
-    Raposo’s formula to compute hexagonal cell size:
-    cell_size = l / n x t / d where l is the length of the line,
-    n the number of vertices of the line, t the denominator of the target scale,
-    and d the denominator of the initial scale.
 
     The algorithm is dedicated to the smooth simplification of natural features such as rivers, forests, coastlines, lakes.
 
@@ -145,10 +160,11 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
         Initial scale of the provided line (25000.0 for 1:25000 scale).
     final_scale : float
         Final scale of the simplified line.
-    centroid : bool, Default=True
-        If true, uses the center of the hexagonal cells as new vertex, if false, the center is projected on the nearest point in the initial line.
-    tobler : bool, Default=False
-        If True, compute cell resolution based on Tobler’s formula.
+    centroid : bool, optional
+        If true, uses the center of the hexagonal cells as the new vertex,
+        if false, the center is projected on the nearest point in the initial line.
+    tobler : bool, optional
+        If True, compute cell resolution based on Tobler’s formula, else uses Raposo's formula
 
     Returns
     -------
@@ -156,8 +172,30 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
 
     See Also
     --------
-    douglas_peucker
-    visvalingam_whyatt
+    douglas_peucker :
+        Distance-based line simplification.
+    visvalingam_whyatt :
+        Area-based line simplification.
+
+    Notes
+    -----
+    The Tobler based formula to compute hexagonal cell size is :math:`cellsize=5·l·s`
+    where :math:`l` is the width of the line in the map in meters
+    (*e.g.* 0.0005 for 0.5 mm), and :math:`s` is the target scale denominator.
+
+    Raposo’s formula to compute hexagonal cell size is :math:`cellsize={l/n}·{t/d}`
+    where :math:`l` is the length of the line, :math:`n` the number of vertices of the line,
+    :math:`t` the denominator of the target scale, and :math:`d` the denominator of the initial scale.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> c4.raposo(line, 5000, 10000)
+    <LINESTRING (0 0, 1 0.3333333333333333, 5 3)>
     """
     width = 0
     if tobler:
@@ -225,7 +263,7 @@ def __li_openshaw_simplification(line, cell_size):
     return line
     
 
-def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extremities=False):
+def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
     """
     Smooth a line and attenuate its inflexion points.
 
@@ -233,20 +271,24 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extre
     ----------
     line : LineString
         The line to smooth.
-    sigma : float, Default=30
+    sigma : float, optional
         Gaussian filter strength. Default value to 30, which is a high value.
-    sample : float, Default=None
+    sample : float, optional
         The length in meter between each nodes after resampling the line.
         If not provided, the sample is derived from the line and is the average distance between
         each consecutive vertex.
-    densify : bool, Default=True
+    densify : bool, optional
         Whether the resulting line should keep the new node density. Default to True.
-    preserve_extremities : bool, Default=False
-        Whether the final extremities of the line should be swapt with the extremities of the original line.
 
     Returns
     -------
     LineString
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> c4.gaussian_smoothing(line, 1)
+    <LINESTRING (0 0, 1.666666666666667 0.6051115971014416, 3.333333333333334 1.6051115971014418, 5 3)>
     """
     # Extend the given set of points at its first and last points of k points using central inversion.
     def extend(line, interval):
@@ -350,10 +392,10 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extre
                 done.append(nearest)
             else:
                 final_coords.append(point)
-        
-    if preserve_extremities:
-        final_coords[0] = Point(coords[0])
-        final_coords[-1] = Point(coords[-1])
+    
+    # Replace first and last vertex by the line's original ones
+    final_coords[0] = Point(coords[0])
+    final_coords[-1] = Point(coords[-1])
     
     return LineString(final_coords)
 
@@ -363,7 +405,7 @@ def get_bend_side(line):
 
     Parameters
     ----------
-    line : shapely.LineString
+    line : LineString
         The line to get the bend side from.
 
     Returns
@@ -463,18 +505,18 @@ def resample_line(line, step):
     Densify a line by adding vertices.
 
     This function densifies a line by adding a vertex every 'step' along the line.
-    Keep the start and end vertex.
+    Preserver the first and last vertex of the line.
     
     Parameters
     ----------
-    line : shapely.LineString
+    line : LineString
         The line to densify.
     step : float
         The step (in meters) to resample the geometry.
 
     Returns
     -------
-    shapely.LineString
+    LineString
 
     Examples
     --------
@@ -682,17 +724,23 @@ def get_inflexion_points(line, min_dir=120.0):
 
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to extract the inflexion points from.
-    min_dir : float, Default=120.0
+    min_dir : float, optional
         The minimum direction change (in degrees) between two consecutive inflexion points.
         This parameter allows to remove micro inflexions from the results. If set to 0,
         every micro-inflexions will be kept.
 
     Returns
     -------
-    points : list
-        A list of index of the vertices of the lines considered to be inflexion points
+    list of int
+        A list of index of the line vertices considered to be inflexion points
+    
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3), (8, 5)])
+    >>> c4.get_inflexion_points(line)
+    [2, 3]
     """
 
     coords = list(line.coords)

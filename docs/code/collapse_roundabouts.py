@@ -7,7 +7,7 @@ roundabouts = c4.detect_roundabouts(network)
 branching = c4.detect_branching_crossroads(network)
 
 collapsedr = c4.collapse_roundabouts(network, roundabouts, branching)
-collapsedb = c4.collapse_branching_crossroads(network, branching, roundabouts)
+collapsedb = c4.collapse_branching_crossroads(network, branching)
 
 original = network.plot(edgecolor='gray',linewidth=1)
 collapsedb.plot(ax=original, edgecolor='red', linewidth=1)

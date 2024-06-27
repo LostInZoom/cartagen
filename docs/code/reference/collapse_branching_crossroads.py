@@ -62,7 +62,7 @@ original = gpd.GeoDataFrame(original)
 selection = c4.detect_roundabouts(original)
 selection2 = c4.detect_branching_crossroads(original, selection)
 selection3 = c4.detect_branching_crossroads(original)
-generalized1 = c4.collapse_branching_crossroads(original, selection2, selection)
+generalized1 = c4.collapse_branching_crossroads(original, selection2)
 generalized2 = c4.collapse_branching_crossroads(original, selection3)
 
 for o in original.geometry:

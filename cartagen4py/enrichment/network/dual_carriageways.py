@@ -11,43 +11,52 @@ def detect_dual_carriageways(
         area=60000.0, width=20.0, huber=16
     ):
     """
-    Detect dual carriageways based on geometric properties (Renard, 2009).
+    Detect dual carriageways based on geometric properties.
 
-    This function detects the network faces as road separator (i.e. separation between
+    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010`
+    detects the network faces as road separator (*i.e.* separation between
     dual carriageways) when the polygon meets the geometric requirements.
-    Those values can be tweaked to fine-tune de detection, but complex interchange will
+    Those values can be tweaked to fine-tune the detection, but complex interchange will
     nonetheless cause wrong characterization.
 
     Parameters
     ----------
-    roads : GeoPandas.GeoDataFrame with LineString geometries
+    roads : GeoDataFrame of LineString
         Road network to analyze.
-    importance : str, Default=None
+    importance : str, optional
         The attribute name of the data on which road importance is based.
         Default value is set to None which means every road is taken for the network face calculation.
-    value : int, Default=None
-        Maximum value of the importance attribute. Roads with an importance higher than this value will not be taken.
-    concavity : float, Default=0.85
-        Minimum concavity above which the face is a dual carriageway.
-        It represents the factor between the polygon surface and its convex hull surface.
-    elongation : float, Default=6.0
-        Minimum elongation above which the face is a dual carriageway.
-        It represents the ratio between the length and the
-        width of the minimum rotated rectangle containing the polygon.
-    compactness : float, Default=0.12
-        Maximum compactness below which the face is a dual carriageway.
-        (4*pi*area/perimeter^2)
-    area : float, Default=60000.0
+    value : int, optional
+        Maximum value of the importance attribute.
+        Roads with an importance higher than this value will not be taken.
+    concavity : float, optional
+        Maximum concavity.
+    elongation : float, optional
+        Minimum elongation.
+    compactness : float, optional
+        Maximum compactness.
+    area : float, optional
         Area factor to detect very long motorways.
-    width : float, Default=20.0
-        Minimum width above which the face is a dual carriageway.
-        It represents the width of the minimum rotated rectangle containing the polygon.
-    huber : int, Default=16
+    width : float, optional
+        Maximum width of the the :func:`minimum_rotated_rectangle <shapely.minimum_rotated_rectangle>`.
+    huber : int, optional
         Huber width for long motorways.
 
     See Also
     --------
-    collapse_dual_carriageways
+    collapse_dual_carriageways :
+        Collapse dual carriageways using a TIN skeleton.
+
+    Notes
+    -----
+    - **concavity** is the area of the polygon divided by the area of its convex hull.
+    - **elongation** is the length of the :func:`minimum_rotated_rectangle <shapely.minimum_rotated_rectangle>`
+      divided by its width.
+    - **compactness** is calculated using :math:`(4·pi·area)/(perimeter^2)`
+
+    References
+    ----------
+    .. footbibliography::
     """
     crs = roads.crs
 

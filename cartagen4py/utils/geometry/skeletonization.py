@@ -514,7 +514,7 @@ class SkeletonTIN:
         if sigma is not None:
             for i, n in enumerate(blended):
                 geom = n['geometry']
-                blended[i]['geometry'] = gaussian_smoothing(geom, sigma=sigma, preserve_extremities=True)
+                blended[i]['geometry'] = gaussian_smoothing(geom, sigma=sigma)
 
         self.blended = blended
         return blended

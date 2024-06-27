@@ -26,9 +26,9 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.mathjax',
     # 'numpydoc',
     'sphinx_remove_toctrees',
+    'sphinxcontrib.bibtex'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -65,6 +65,7 @@ intersphinx_mapping = {
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
+napoleon_use_admonition_for_notes = True
 napoleon_use_param = True
 napoleon_preprocess_types = True
 napoleon_use_rtype = False
@@ -72,6 +73,8 @@ napoleon_type_aliases = {
     "GeoDataFrame": ":class:`GeoDataFrame <geopandas.GeoDataFrame>`",
     "GeoSeries": "geopandas.GeoSeries",
 }
+
+bibtex_bibfiles = ['bibliography.bib']
 
 plot_rcparams = {
     'savefig.bbox': "tight"

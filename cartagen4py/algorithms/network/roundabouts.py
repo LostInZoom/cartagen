@@ -6,27 +6,32 @@ from cartagen4py.utils.network import *
 
 def collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=None):
     """
-    Collapse roundabouts to a point (Touya, 2010).
+    Collapse roundabouts to a point.
 
-    The provided roundabouts are collapsed to a point if their diameter is below
-    the given value. Detecting branching crossroads beforehand is important as
-    roundabouts and its incoming branching crossroads are collapsed by this algorithm.
+    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010` collapses roundabouts to a point
+    if their diameter is below the given value.
     
     Parameters
     ----------
-    roads : GeoPandas.GeoDataFrame with LineString geometries
+    roads : GeoDataFrame of LineString
         Road network where roundabouts will be collapsed.
-    roundabouts : GeoPandas.GeoDataFrame with Polygon geometries
+    roundabouts : GeoDataFrame of Polygon
         Polygons representing the faces of the network detected as roundabouts.
-    crossroads : GeoPandas.GeoDataFrame with Polygon geometries, Default=None
+    crossroads : GeoDataFrame of Polygon, optional
         Polygons representing the faces of the network detected as branching crossroads. This
         allows incoming branching crossroads on roundabouts to be collapsed as well. 
-    maximum_diameter : float, Default=None
+    maximum_diameter : float, optional
         Diameter, in meter, below which roundabouts are collapsed. Collpase all roundabouts if left to None.
 
     Returns
     -------
-    GeoPandas.GeoDataFrame of LineString geometries
+    GeoDataFrame of LineString
+
+    Warning
+    -------
+    Detecting branching crossroads beforehand is important as a branching crossroad
+    may be an entrance to a roundabout. This algorithm will collapse the roundabout
+    as well as all its connected branching crossroads.
 
     See Also
     --------
@@ -36,6 +41,10 @@ def collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=N
         Detect branching crossroads inside the road network.
     collapse_branching_crossroads :
         Collapse branching crossroads to a point.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Retrieve crs for output
     crs = roads.crs

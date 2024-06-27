@@ -8,16 +8,10 @@ def square_polygons(
         fixed_weight=5, right_weight=100, flat_weight=50
     ):
     """
-    Least squares based polygon squaring (Lokhat & Touya, 2016).
+    Polygon squaring based on the least squares method.
 
-    This is an implementation of the least squares based squaring algorithm
-    proposed by Lokhat & Touya. [1]_ It is particularly useful to square buildings.
-
-    The method of least squares is a parameter estimation method
-    in regression analysis based on minimizing the sum of the squares
-    of the residuals (a residual being the difference between an
-    observed value and the fitted value provided by a model)
-    made in the results of each individual equation.
+    The least squares based polygon squaring algorithm :footcite:p:`touya:2016`
+    is particularly useful to square buildings.
 
     In practice, this function iteratively tries to resolve matrices
     equations until a threshold norm is reached and the provided
@@ -27,22 +21,22 @@ def square_polygons(
     ----------
     polygons : list of Polygon
         The shapely polygons to square.
-    max_iteration : float, Default=1000
+    max_iteration : float, optional
         This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
         the norm tolerance threshold should be reached before the maximum number of iteration.
-    norm_tolerance : float, Default=0.05
+    norm_tolerance : float, optional
         The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
-    right_tolerance : float, Default=10.0
+    right_tolerance : float, optional
         Tolerance in degrees to consider and angle to be right.
-    flat_tolerance : float, Default=10.0
+    flat_tolerance : float, optional
         Tolerance in degrees to consider and angle to be flat.
-    fixed_weight : int, Default=5
+    fixed_weight : int, optional
         The weight of the angle constraint concerning an angle neither right nor flat.
         A high value means those angles will be more likely to keep their value in the resulting polygon.
-    right_weight : int, Default=100
+    right_weight : int, optional
         The weight of the angle constraint concerning right angles.
         A high value means those angles will be more likely to keep their value in the resulting polygon.
-    flat_weight : int, Default=50
+    flat_weight : int, optional
         The weight of the angle constraint concerning flat angles.
         A high value means those angles will be more likely to keep their value in the resulting polygon.
 
@@ -55,11 +49,17 @@ def square_polygons(
     building_simplification :
         Simplification of building by edge elimination.
 
+    Notes
+    -----
+    The method of least squares is a parameter estimation method
+    in regression analysis based on minimizing the sum of the squares
+    of the residuals (a residual being the difference between an
+    observed value and the fitted value provided by a model)
+    made in the results of each individual equation.
+
     References
     ----------
-    .. [1] Guillaume Touya, Imran Lokhat. Enhancing building footprints with squaring operations.
-       Journal of Spatial Information Science, 2016, 13, ⟨10.5311/JOSIS.2016.13.276⟩. ⟨hal-02147792⟩
-       https://hal.science/hal-02147792
+    .. footbibliography::
 
     Examples
     --------

@@ -11,9 +11,10 @@ from cartagen4py.utils.geometry.segment import get_segment_list
 # 
 def morphological_amalgamation(buildings, buffer, edge_length):
     """
-    Amalgamate buildings using dilation and erosion (Damen et al., 2008)
+    Amalgamate buildings using dilation and erosion.
     
-    The amalgamation is based on morphological dilations and erosions with a square cap.
+    The amalgamation algorithm :footcite:p:`damen:2008` is based on
+    morphological dilations and erosions with a square cap.
     It is particularly useful to keep the overall shape of building blocks.
 
     Parameters
@@ -38,8 +39,7 @@ def morphological_amalgamation(buildings, buffer, edge_length):
 
     References
     ----------
-    .. [1] Damen, J., Kreveld, M.J., & Spaan, B. (2008). High Quality Building Generalization by Extending the Morphological Operators.
-       https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113
+    .. footbibliography::
     
     Examples
     --------

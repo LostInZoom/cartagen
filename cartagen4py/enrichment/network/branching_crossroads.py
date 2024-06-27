@@ -12,44 +12,59 @@ def detect_branching_crossroads(roads, roundabouts=None,
         allow_single_4degree_node=True
     ):
     """
-    Detect branching crossroads based on its triangularity (Renard, 2009)
+    Detect branching crossroads based on geometric properties.
 
-    This function dectects branching crossroads inside a road network based on the proximity between
-    the geometry of the network face and a triangle. 
+    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010` detects
+    branching crossroads inside a road network based on the proximity between
+    the geometry of the network face and a triangle.
 
     Parameters
     ----------
-    roads : GeoPandas.GeoDataFrame with LineString geometries
+    roads : GeoDataFrame of LineString
         Road network to analyze.
-    roundabouts : GeoPandas.GeoDataFrame with Polygon geometries, Default=None
+    roundabouts : GeoDataFrame of Polygon, optional
         The polygons representing the network faces considered as roundabouts.
         If provided, links the branching crossroad to a roundabout for collapsing.
-    area_threshold : int, Default=2500
+    area_threshold : int, optional
         The area (in square meters) above which the object is not considered a branching crossroads.
-    maximum_distance_area : float, Default=0.5
+    maximum_distance_area : float, optional
         The maximum distance area between the actual polygon
         and the triangle formed by the 3 nodes connecting
         the junction to the rest of the network.
-    allow_middle_node : boolean, Default=False
+    allow_middle_node : bool, optional
         If set to True, allow 4 nodes to form the crossroads,
         but each must have a degree of 3 and the 'middle'
         node must have an angle of 180°.
-    middle_angle_tolerance : float, Default=10.0
+    middle_angle_tolerance : float, optional
         If allow_middle_node is set to True,
         indicate an angle tolerance in degree
         for the fourth node of the crossroad to be considered the middle node.
-    allow_single_4degree_node : boolean, Default=False
+    allow_single_4degree_node : bool, optional
         If set to True, allow one and only one node to have a degree of 4.
 
     Returns
     -------
-    GeoPandas.GeoDataFrame of Polygon geometries
+    GeoDataFrame of Polygon
+
+    Warning
+    -------
+    Detecting roundabouts beforehand is important as a branching crossroad
+    may be an entrance to a roundabout. This algorithm will link branching
+    crossroads to a roundabout when applicable, and this will help collapsing
+    both objects.
 
     See Also
     --------
-    detect_roundabouts
-    collapse_roundabouts
-    collapse_branching_crossroads
+    detect_roundabouts : 
+        Detect roundabouts inside the road network.
+    collapse_roundabouts :
+        Collapse roundabouts to a point.
+    collapse_branching_crossroads :
+        Collapse branching crossroads to a point.
+    
+    References
+    ----------
+    .. footbibliography::
     """
 
     crs = roads.crs

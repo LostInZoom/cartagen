@@ -9,28 +9,33 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
     """
     Collapse dual carriageways using a TIN skeleton.
 
-    This function collapses the network faces considered as dual carriageways
+    This algorithm proposed by Stuart Thom :footcite:p:`thom:2005`
+    collapses the network faces considered as dual carriageways
     using a skeleton calculated from a Delaunay triangulation.
 
     Parameters
     ----------
-    roads : GeoPandas.GeoDataFrame with LineString geometries
+    roads : GeoDataFrame of LineString
         The road network.
-    carriageways : GeoPandas.GeoDataFrame with Polygon geometries
+    carriageways : GeoDataFrame of Polygon
         The polygons representing the faces of the network detected as dual carriageways.
-    sigma : float, Default=None.
+    sigma : float, optional
         If not None, apply a gaussian smoothing to the collapsed dual carriageways to
         avoid jagged lines that can be created during the TIN skeleton creation.
-    propagate_attributes : list of str, Default=None.
+    propagate_attributes : list of str, optional
         Propagate the provided list of column name to the resulting network.
         The propagated attribute is the one from the longest line.
 
     See Also
     --------
     detect_dual_carriageways : 
-        Flag dual carriageways inside a road network.
+        Detect dual carriageways inside a road network.
     skeletonization_network :
         Blends a TIN skeleton inside a road network.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Retrieve crs for output
     crs = roads.crs

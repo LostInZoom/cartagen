@@ -1,16 +1,14 @@
 # this file contains building simplification algorithms
 from math import atan2, pi, sqrt
-
 from shapely.geometry import Polygon, Point, LinearRing
-
 from cartagen4py.utils.geometry.segment import get_segment_list_polygon, Segment
 
 
-def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit = 20*pi/180):
+def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180):
     """
-    Simplify buildings by removing edges (Ruas, 1988).
+    Simplify buildings by removing edges.
     
-    The algorithm analyses the edges of the polygon to find the ones that should be removed and how they can be replaced.
+    This algorithm by Anne Ruas :footcite:p:`ruas:1999` analyses the edges of the polygon to find the ones that should be removed and how they can be replaced.
     It was integrated in the AGENT project. Port of the CartAGen implementation of the algorithm.
 
     Parameters
@@ -19,10 +17,12 @@ def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, 
         The shapely building to be simplified.
     edge_threshold : float
         Minimum length of an edge to be considered by the simplification algorithm.
-    parallel_limit : float, Default=20*pi/180
+    parallel_limit : float, optional
         Limit angle to consider an edge into the parallel case of the simplification algorithm.
-    orthogonal_limit : float, Default=20*pi/180
+        The default value is set to :math:`20·pi/180`
+    orthogonal_limit : float, optional
         Limit angle to consider an edge into the orthogonal case of the simplification algorithm.
+        The default value is set to :math:`20·pi/180`
     
     Returns
     -------
@@ -32,6 +32,10 @@ def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, 
     --------
     square_polygons :
         Squares polygons using the least squares method.
+
+    References
+    ----------
+    .. footbibliography::
 
     Examples
     --------
