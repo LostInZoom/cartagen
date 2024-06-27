@@ -15,7 +15,7 @@ def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, 
 
     Parameters
     ----------
-    building : shapely.Polygon
+    building : Polygon
         The shapely building to be simplified.
     edge_threshold : float
         Minimum length of an edge to be considered by the simplification algorithm.
@@ -23,6 +23,10 @@ def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, 
         Limit angle to consider an edge into the parallel case of the simplification algorithm.
     orthogonal_limit : float, Default=20*pi/180
         Limit angle to consider an edge into the orthogonal case of the simplification algorithm.
+    
+    Returns
+    -------
+    Polygon
 
     See Also
     --------

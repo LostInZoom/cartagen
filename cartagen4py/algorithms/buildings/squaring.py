@@ -11,7 +11,7 @@ def square_polygons(
     Least squares based polygon squaring (Lokhat & Touya, 2016).
 
     This is an implementation of the least squares based squaring algorithm
-    proposed by Lokhat & Touya. It is particularly useful to square buildings.
+    proposed by Lokhat & Touya. [1]_ It is particularly useful to square buildings.
 
     The method of least squares is a parameter estimation method
     in regression analysis based on minimizing the sum of the squares
@@ -25,7 +25,7 @@ def square_polygons(
 
     Parameters
     ----------
-    polygons : list of shapely.Polygon
+    polygons : list of Polygon
         The shapely polygons to square.
     max_iteration : float, Default=1000
         This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
@@ -48,7 +48,7 @@ def square_polygons(
 
     Returns
     -------
-    list of shapely.Polygon
+    list of Polygon
 
     See Also
     --------

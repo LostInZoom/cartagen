@@ -15,19 +15,18 @@ def random_displacement(
 
     Parameters
     ----------
-    buildings : geopandas GeoDataFrame of Polygons.
+    buildings : GeoDataFrame
         The buildings to displace.
-    width : float.
+    width : float
         The width of the provided networks. A buffer is applied of the given width to the network
         and then is used to displace the buildings when overlapping.
-    networks : geopandas GeoDataFrame of LineStrings, optional.
-        The networks which will be used to displace the buildings.
-        If no networks is provided, the building will only be moved if they intersects each other.
+    networks : GeoDataFrame, optional
+        The networks which will be used to displace the buildings. (the default is None,
+        which implies buildings will only be moved if they intersects each other).
 
     Returns
     -------
-    geopandas GeoDataFrame of Polygons
-        The displaced buildings.
+    GeoDataFrame
     """
 
     POLYGONS = polygons.to_dict('records')

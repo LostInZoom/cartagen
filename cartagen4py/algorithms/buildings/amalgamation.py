@@ -18,7 +18,7 @@ def morphological_amalgamation(buildings, buffer, edge_length):
 
     Parameters
     ----------
-    buildings : list of shapely.Polygon
+    buildings : list of Polygon
         Buildings to amalgamate.
     buffer : float
         Size of the buffer used for dilation (in meters).
@@ -29,23 +29,23 @@ def morphological_amalgamation(buildings, buffer, edge_length):
 
     Returns
     -------
-    list of shapely.Polygon
+    list of Polygon
 
     See Also
     --------
     boffet_areas :
         Calculate urban areas from buildings. Useful for smaller scale maps.
 
+    References
+    ----------
+    .. [1] Damen, J., Kreveld, M.J., & Spaan, B. (2008). High Quality Building Generalization by Extending the Morphological Operators.
+       https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113
+    
     Examples
     --------
     >>> buildings = [Polygon([(1, 0), (9, 0), (9, 6), (1, 6), (1, 0)]), Polygon([(10, 0), (17, 0), (17, 6), (10, 6), (10, 0)])]
     >>> morphological_amalgamation(buildings, 1.0, 1.0)
     <POLYGON ((1.207 1.983, 2.547 5.885, 16.768 4.282, 15.42 0.148, 1.207 1.983))>
-
-    References
-    ----------
-    .. [1] Damen, J., Kreveld, M.J., & Spaan, B. (2008). High Quality Building Generalization by Extending the Morphological Operators.
-       https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113
     """
     output_collection = []
     clusters = []

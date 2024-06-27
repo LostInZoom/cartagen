@@ -23,17 +23,17 @@ def douglas_peucker(line, threshold, preserve_topology=True):
 
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to simplify.
     threshold : float
         The distance under which a vertex is removed from the line
-    preserve_topology : boolean, Default=True
+    preserve_topology : bool, Default=True
         If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc).
         The trade-off is computational expensivity.
 
     Returns
     -------
-    shapely.LineString
+    LineString
 
     See Also
     --------
@@ -57,14 +57,14 @@ def visvalingam_whyatt(line, area_tolerance):
 
     Parameters
     ----------
-    line : shapely.LineString
+    line : LineString
         The line to simplify.
     area_tolerance : float
         The minimum triangle area to keep a vertex in the line.
 
     Returns
     -------
-    shapely.LineString
+    LineString
 
     See Also
     --------
@@ -139,20 +139,20 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
 
     Parameters
     ----------
-    line : shapely.LineString
+    line : LineString
         The line to simplify.
     initial_scale : float
         Initial scale of the provided line (25000.0 for 1:25000 scale).
     final_scale : float
         Final scale of the simplified line.
-    centroid : boolean, Default=True
+    centroid : bool, Default=True
         If true, uses the center of the hexagonal cells as new vertex, if false, the center is projected on the nearest point in the initial line.
-    tobler : boolean, Default=False
+    tobler : bool, Default=False
         If True, compute cell resolution based on Tobler’s formula.
 
     Returns
     -------
-    shapely.LineString   
+    LineString   
 
     See Also
     --------
@@ -231,7 +231,7 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extre
 
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to smooth.
     sigma : float, Default=30
         Gaussian filter strength. Default value to 30, which is a high value.
@@ -239,14 +239,14 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True, preserve_extre
         The length in meter between each nodes after resampling the line.
         If not provided, the sample is derived from the line and is the average distance between
         each consecutive vertex.
-    densify : boolean, Default=True
+    densify : bool, Default=True
         Whether the resulting line should keep the new node density. Default to True.
-    preserve_extremities : boolean, Default=False
+    preserve_extremities : bool, Default=False
         Whether the final extremities of the line should be swapt with the extremities of the original line.
 
     Returns
     -------
-    shapely.LineString
+    LineString
     """
     # Extend the given set of points at its first and last points of k points using central inversion.
     def extend(line, interval):
