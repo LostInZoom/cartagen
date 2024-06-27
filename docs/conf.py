@@ -73,9 +73,9 @@ napoleon_type_aliases = {
     "GeoSeries": "geopandas.GeoSeries",
 }
 
-# plot_rcparams = {
-#     'savefig.bbox': "tight"
-# }
+plot_rcparams = {
+    'savefig.bbox': "tight"
+}
 
 numpydoc_show_class_members = False
 autosummary_generate = True

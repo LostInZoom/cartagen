@@ -5,6 +5,10 @@ rendered somewhat properly (xref https://github.com/numpy/numpydoc/issues/215) *
     text-decoration: none;
 }
 
+.table tbody {
+ background-color: none;
+}
+
 .table tbody tr:hover {
-    background-color: unset;
+    background-color: none;
 }
