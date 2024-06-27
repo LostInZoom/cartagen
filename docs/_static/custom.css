@@ -6,9 +6,9 @@ rendered somewhat properly (xref https://github.com/numpy/numpydoc/issues/215) *
 }
 
 .table tbody {
- background-color: none;
+ background-color: white;
 }
 
 .table tbody tr:hover {
-    background-color: none;
+    background-color: white;
 }
