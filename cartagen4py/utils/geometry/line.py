@@ -10,7 +10,8 @@ def douglas_peucker(line, threshold, preserve_topology=True):
     """
     Distance-based line simplification.
 
-    The Ramer-Douglas-Peucker :footcite:p:`douglas:1973` algorithm is a line filtering algorithm, which means that it
+    This algorithm was proposed by Ramer :footcite:p:`ramer:1972` and by Douglas and Peucker.
+    :footcite:p:`douglas:1973` It is a line filtering algorithm, which means that it
     filters the vertices of the line (or polygon) to only retain the most important ones
     to preserve the shape of the line. The algorithm iteratively searches the most
     characteristics vertices of portions of the line and decides to retain
@@ -58,10 +59,11 @@ def visvalingam_whyatt(line, area_tolerance):
     """
     Area-based line simplification.
 
-    The Visvalingam-Whyatt :footcite:p:`visvalingam:1993` algorithm performs a line simplification that produces less angular results than the filtering algorithm of Douglas and Peucker.
-    The algorithm was proposed by Visvalingam & Whyatt 1993. The principle of the algorithm is to select
-    the vertices to delete (the less characteristic ones) rather than choosing the vertices to
-    keep (in the Douglas and Peucker algorithm). To select the vertices to delete, there is an iterative process,
+    This algorithm proposed by Visvalingam and Whyatt :footcite:p:`visvalingam:1993` performs a
+    line simplification that produces less angular results than the filtering algorithm of Ramer-Douglas-Peucker.
+    The principle of the algorithm is to select the vertices to delete (the less characteristic ones)
+    rather than choosing the vertices to keep (in the Douglas and Peucker algorithm).
+    To select the vertices to delete, there is an iterative process,
     and at each iteration, the triangles formed by three consecutive vertices are computed. If the area of the smallest
     triangle is smaller than a threshold (“area_tolerance” parameter), the middle vertex is deleted, and another iteration starts.
 
@@ -142,7 +144,7 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
     Hexagon-based line simplification.
     
-    The Raposo :footcite:p:`raposo:2013` algorithm simplifies lines based on a
+    This algorithm proposed by Raposo :footcite:p:`raposo:2013` simplifies lines based on a
     hexagonal tessellation. The algorithm also works for the simplification of the border of a polygon object.
     The idea of the algorithm is to put a hexagonal tessallation on top of the line to simplify,
     the size of the cells depending on the targeted granularity of the line.
@@ -267,6 +269,10 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
     """
     Smooth a line and attenuate its inflexion points.
 
+    The gaussian smoothing has been studied by Babaud *et al.* :footcite:p:`babaud:1986`
+    for image processing, and by Plazanet :footcite:p:`plazanet:1996`
+    for the generalization of cartographic features.
+
     Parameters
     ----------
     line : LineString
@@ -283,6 +289,10 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
     Returns
     -------
     LineString
+
+    References
+    ----------
+    .. footbibliography::
 
     Examples
     --------

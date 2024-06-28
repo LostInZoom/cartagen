@@ -23,7 +23,7 @@ sub1.set_title("a) offset=10 cap_style='round'", pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-offset = c4.offset_points([list(x.coords)[0] for x in points], 10)
+offset = c4.offset_line(shapely.LineString(points), 10)
 
 for p in points:
     sub1.plot(p.coords[0][0], p.coords[0][1], linestyle="", marker='o', color="black")
@@ -41,7 +41,7 @@ sub2.set_title("a) offset=10 cap_style='flat'", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-offset = c4.offset_points([list(x.coords)[0] for x in points], 10, cap_style='flat')
+offset = c4.offset_line(shapely.LineString(points), 10, cap_style='flat')
 
 for p in points:
     sub2.plot(p.coords[0][0], p.coords[0][1], linestyle="", marker='o', color="black")

@@ -9,7 +9,7 @@ def collapse_branching_crossroads(roads, crossroads, maximum_area=None):
     """
     Collapse branching crossroads to a point.
 
-    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010` collapses
+    This algorithm proposed by Touya :footcite:p:`touya:2010` collapses
     detected branching crossroads below the provided area to a point on what
     is detected as the main road.
     

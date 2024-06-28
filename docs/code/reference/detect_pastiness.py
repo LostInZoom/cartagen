@@ -12,6 +12,8 @@ line = loads('LineString (-187600.83164941068389453 5374344.11075404845178127, -
 fig = plt.figure(1, (8, 20))
 width = { 0: 2, 1: 6, 2: 12 }
 
+line = c4.gaussian_smoothing(line, sigma=10, sample=10)
+
 #############################################################
 
 tolerance = 10
@@ -21,15 +23,14 @@ sub1.set_title('a) Tolerance = {0}'.format(tolerance), pad=10, family='sans-seri
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-left, right = None, None
 lines = c4.detect_pastiness(line, tolerance)
-right = shapely.offset_curve(line, tolerance)
-left = shapely.offset_curve(line, -tolerance)
+right = c4.dilate_line(line, tolerance, cap_style='flat')
+left = c4.dilate_line(line, -tolerance, cap_style='flat')
+both = right + left
 
-path1 = Path(numpy.asarray(right.coords)[:, :2])
-path2 = Path(numpy.asarray(left.coords)[:, :2])
-sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
-sub1.add_patch(PathPatch(path2, facecolor="none", edgecolor='gray', linewidth=1))
+for b in both:
+    path1 = Path(numpy.asarray(b.coords)[:, :2])
+    sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 
 for i, l in enumerate(lines):
     path3 = Path(numpy.asarray(l['geometry'].coords)[:, :2])
@@ -46,15 +47,14 @@ sub2.set_title('b) Tolerance = {0}'.format(tolerance), pad=10, family='sans-seri
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-left, right = None, None
 lines = c4.detect_pastiness(line, tolerance)
-right = shapely.offset_curve(line, tolerance)
-left = shapely.offset_curve(line, -tolerance)
+right = c4.dilate_line(line, tolerance, cap_style='flat')
+left = c4.dilate_line(line, -tolerance, cap_style='flat')
+both = right + left
 
-path1 = Path(numpy.asarray(right.coords)[:, :2])
-path2 = Path(numpy.asarray(left.coords)[:, :2])
-sub2.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
-sub2.add_patch(PathPatch(path2, facecolor="none", edgecolor='gray', linewidth=1))
+for b in both:
+    path1 = Path(numpy.asarray(b.coords)[:, :2])
+    sub2.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 
 for i, l in enumerate(lines):
     path3 = Path(numpy.asarray(l['geometry'].coords)[:, :2])
@@ -64,22 +64,21 @@ sub2.autoscale_view()
 
 #############################################################
 
-tolerance = 50
+tolerance = 30
 
 sub3 = fig.add_subplot(313)
 sub3.set_title('c) Tolerance = {0}'.format(tolerance), pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)
 
-left, right = None, None
 lines = c4.detect_pastiness(line, tolerance)
-right = shapely.offset_curve(line, tolerance)
-left = shapely.offset_curve(line, -tolerance)
+right = c4.dilate_line(line, tolerance, cap_style='flat')
+left = c4.dilate_line(line, -tolerance, cap_style='flat')
+both = right + left
 
-path1 = Path(numpy.asarray(right.coords)[:, :2])
-path2 = Path(numpy.asarray(left.coords)[:, :2])
-sub3.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
-sub3.add_patch(PathPatch(path2, facecolor="none", edgecolor='gray', linewidth=1))
+for b in both:
+    path1 = Path(numpy.asarray(b.coords)[:, :2])
+    sub3.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 
 for i, l in enumerate(lines):
     path3 = Path(numpy.asarray(l['geometry'].coords)[:, :2])

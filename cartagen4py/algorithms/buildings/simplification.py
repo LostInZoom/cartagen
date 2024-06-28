@@ -8,7 +8,8 @@ def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, 
     """
     Simplify buildings by removing edges.
     
-    This algorithm by Anne Ruas :footcite:p:`ruas:1999` analyses the edges of the polygon to find the ones that should be removed and how they can be replaced.
+    This algorithm proposed by Ruas :footcite:p:`ruas:1999` analyses
+    the edges of the polygon to find the ones that should be removed and how they can be replaced.
     It was integrated in the AGENT project. Port of the CartAGen implementation of the algorithm.
 
     Parameters

@@ -14,7 +14,7 @@ def detect_branching_crossroads(roads, roundabouts=None,
     """
     Detect branching crossroads based on geometric properties.
 
-    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010` detects
+    This algorithm proposed by Touya :footcite:p:`touya:2010` detects
     branching crossroads inside a road network based on the proximity between
     the geometry of the network face and a triangle.
 

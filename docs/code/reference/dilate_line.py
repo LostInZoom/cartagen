@@ -19,7 +19,7 @@ sub1.set_title("a) offset=50 cap_style='round'", pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-offset = c4.offset_curve(line, 50, cap_style='round')
+offset = c4.dilate_line(line, 50, cap_style='round')
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
 sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
@@ -37,7 +37,7 @@ sub2.set_title("a) offset=-50 cap_style='flat'", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-offset = c4.offset_curve(line, -50, cap_style='flat')
+offset = c4.dilate_line(line, -50, cap_style='flat')
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
 sub2.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))

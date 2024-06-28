@@ -10,7 +10,8 @@ def square_polygons(
     """
     Polygon squaring based on the least squares method.
 
-    The least squares based polygon squaring algorithm :footcite:p:`touya:2016`
+    The least squares based polygon squaring algorithm was proposed by
+    Touya and Lokhat :footcite:p:`touya:2016` and
     is particularly useful to square buildings.
 
     In practice, this function iteratively tries to resolve matrices

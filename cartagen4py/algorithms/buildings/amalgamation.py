@@ -13,8 +13,8 @@ def morphological_amalgamation(buildings, buffer, edge_length):
     """
     Amalgamate buildings using dilation and erosion.
     
-    The amalgamation algorithm :footcite:p:`damen:2008` is based on
-    morphological dilations and erosions with a square cap.
+    The amalgamation algorithm proposed by Damen *et al.*
+    :footcite:p:`damen:2008` is based on morphological dilations and erosions with a square cap.
     It is particularly useful to keep the overall shape of building blocks.
 
     Parameters

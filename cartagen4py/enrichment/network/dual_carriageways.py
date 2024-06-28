@@ -13,7 +13,7 @@ def detect_dual_carriageways(
     """
     Detect dual carriageways based on geometric properties.
 
-    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010`
+    This algorithm proposed by Touya :footcite:p:`touya:2010`
     detects the network faces as road separator (*i.e.* separation between
     dual carriageways) when the polygon meets the geometric requirements.
     Those values can be tweaked to fine-tune the detection, but complex interchange will

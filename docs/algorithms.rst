@@ -74,8 +74,8 @@ Tools
 .. autosummary::
     :toctree: reference/
 
-    offset_curve
-    offset_points
+    dilate_line
+    offset_line
     circle_interpolation
     resample_line
     get_inflexion_points

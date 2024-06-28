@@ -73,13 +73,16 @@ for n in network:
 original = gpd.GeoDataFrame(original)
 selection = c4.detect_dead_ends(original)
 
-for o in original.geometry:
-    path1 = Path(numpy.asarray(o.coords)[:, :2])
-    sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=0.5))
+sdict = selection.to_dict('records')
 
-for d in selection.geometry:
-    path2 = Path(numpy.asarray(d.coords)[:, :2])
-    sub1.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1.5))
+for s in sdict:
+    geom = s['geometry']
+    path1 = Path(numpy.asarray(geom.coords)[:, :2])
+
+    if s['deadend']:
+        sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='red', linewidth=1))
+    else:
+        sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 
 sub1.autoscale_view()
 plt.show()

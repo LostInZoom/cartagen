@@ -9,7 +9,7 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
     """
     Collapse dual carriageways using a TIN skeleton.
 
-    This algorithm proposed by Stuart Thom :footcite:p:`thom:2005`
+    This algorithm proposed by Thom :footcite:p:`thom:2005`
     collapses the network faces considered as dual carriageways
     using a skeleton calculated from a Delaunay triangulation.
 

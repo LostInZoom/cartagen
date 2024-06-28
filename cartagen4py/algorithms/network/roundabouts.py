@@ -8,7 +8,7 @@ def collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=N
     """
     Collapse roundabouts to a point.
 
-    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010` collapses roundabouts to a point
+    This algorithm proposed by Touya :footcite:p:`touya:2010` collapses roundabouts to a point
     if their diameter is below the given value.
     
     Parameters

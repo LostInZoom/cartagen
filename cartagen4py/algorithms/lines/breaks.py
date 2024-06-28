@@ -40,7 +40,7 @@ def max_break(line, offset, exaggeration=1.0):
         offset = -offset
 
     # Dilate the bend
-    dilated = offset_curve(line, offset*exaggeration, cap_style='flat', quad_segs=8)
+    dilated = dilate_line(line, offset*exaggeration, cap_style='flat', quad_segs=8)
     
     return dilated[0]
 
@@ -79,7 +79,7 @@ def min_break(line, offset, sigma=30, sample=None):
     # Create the offset of the skeleton
     def __offset(line, offset):
         # Calculate the offset points along the line
-        groups = offset_points(list(line.coords), offset)
+        groups = offset_line(line, offset)
 
         # Remove the circle projection from the first node
         groups[0]['projected'] = groups[0]['projected'][-1:]

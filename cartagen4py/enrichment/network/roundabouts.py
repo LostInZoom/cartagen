@@ -8,7 +8,7 @@ def detect_roundabouts(roads, area_threshold=40000, miller_index=0.95):
     """
     Detect roundabouts based on geometric properties.
 
-    This algorithm proposed by Guillaume Touya :footcite:p:`touya:2010` detects
+    This algorithm proposed by Touya :footcite:p:`touya:2010` detects
     roundabouts inside a road network.
 
     Parameters

@@ -7,9 +7,9 @@ from cartagen4py.utils.geometry.line import *
 
 def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
     """
-    Detect the pastiness of a series of bends (Mustière, 2001).
+    Detect the pastiness of a series of bends.
 
-    This algorithm subdivide the provided line into multiple chunks, thus modifying the geometry,
+    This algorithm proposed by Mustière :footcite:p:`mustiere:2001` subdivide the provided line into multiple chunks, thus modifying the geometry,
     it is not a data enrichment function stricto sensu.
 
     Parameters
@@ -26,12 +26,21 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
     Returns
     -------
     list
-        A list of dict with the following keys:
+        The line subdivided into chunks depending of the paste.
+        
+        Dict keys are as following:
 
-        - **paste** represents the number of conflicts (0 when no conflicts are detected,
-          1 when a conflict exists on one side only,
-          2 when conflicts are on both side of the line).
-        - **geometry** is the geometry of the line section.
+            - **paste** represents the number of conflicts
+            
+                - **0** when no conflicts are detected
+                - **1** when a conflict exists on one side only
+                - **2** when conflicts are on both side of the line)
+
+            - **geometry** is the geometry of the line section
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Handle individual sides
     def __treat_side(line, tolerance, cap_style, quad_segs):
@@ -100,11 +109,10 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
             
             return e
 
-        # Get the coordinates of the line vertex
         coords = list(line.coords)
 
         # Calculate the offset points along the line
-        groups = offset_points(coords, tolerance, cap_style, quad_segs)
+        groups = offset_line(line, tolerance, cap_style, quad_segs)
 
         # Reconstruct the line into parts
         parts, breaks = reconstruct_line(groups, line, tolerance)

@@ -3,30 +3,37 @@ import geopandas as gpd
 from cartagen4py.utils.partitioning import *
 from cartagen4py.utils.network import *
 
-def detect_dead_ends(roads, outside_faces=True):
+def detect_dead_ends(roads, outside_faces=False):
     """
     Detect dead-ends groups.
 
-    This function detects dead-ends groups inside a road network. Groups of road sections
-    not connected to the rest of the network are considered dead-ends.
+    This function detects dead-ends groups inside a road network.
+    A dead-end group is a connected group of road sections that
+    overlaps the border of only one network face.
+    A connected group of road sections not connected to the rest
+    of the network are considered dead-ends.
 
     Parameters
     ----------
-    roads : GeoPandas.GeoDataFrame with LineString geometries
+    roads : GeoDataFrame of LineString
         The road network.
-    outside_faces : boolean, Default=True
+    outside_faces : bool, optional
         Whether dead-ends should be calculated on the outside faces
-        of the road network.
+        of the road network. This can induce wrong characterization
+        on the border of the provided dataset.
 
     Returns
     -------
-    GeoPandas.GeoDataFrame of LineString geometries
-    Attributes:
-        * **face**: Index of the network face it belongs to.
-        * **deid**: Index of the dead end group inside a given face.
-        * **connected**: Set to true if the dead end group is connected to the network.
-        * **root**: Set to true if the road section is the root of the dead end group, i.e. the section connecting the dead end group to the road network.
-        * **hole**: Set to true if the road section touches a hole inside the dead end group.
+    roads : GeoDataFrame of LineString
+        The input road network with new attributes:
+
+            - **deadend**: boolean indicating whether the road is part of a dead-end group. 
+            - **face**: Index of the network face it belongs to.
+            - **deid**: Index of the dead end group inside a given face.
+            - **connected**: Set to true if the dead end group is connected to the network.
+            - **root**: Set to true if the road section is the root of the dead end group,
+              i.e. the section connecting the dead end group to the road network.
+            - **hole**: Set to true if the road section touches a hole inside the dead end group.
     
     See Also
     --------
@@ -80,6 +87,8 @@ def detect_dead_ends(roads, outside_faces=True):
         else:
             iholes.append([])
                 
+    deadindex = []
+
     # Loop through network faces
     for fid, face in enumerate(faces):
         # Make sure the face is not inside the hole of an other face
@@ -120,6 +129,7 @@ def detect_dead_ends(roads, outside_faces=True):
                     ishole = True if cid in holeroads else False
                     # Create the entry
                     deadend = roads[cid]
+                    deadend['deadend'] = True
                     deadend['rid'] = cid
                     deadend['face'] = fid
                     deadend['deid'] = gid
@@ -128,6 +138,13 @@ def detect_dead_ends(roads, outside_faces=True):
                     deadend['hole'] = ishole
                     # Append the entry
                     deadends.append(deadend)
+                    deadindex.append(cid)
+
+    # Add all roads that are not dead-ends back to the result
+    for cid, r in enumerate(roads):
+        if cid not in deadindex:
+            r['deadend'] = False
+            deadends.append(r)
 
     if len(deadends) > 0:
         return gpd.GeoDataFrame(deadends, crs=crs)
