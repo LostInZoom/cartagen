@@ -38,6 +38,7 @@ Evaluate your generalised map
 
    installation_py
    manual
+   bibliography
 
 .. toctree::
    :caption: API Reference

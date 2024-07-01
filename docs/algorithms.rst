@@ -49,6 +49,11 @@ Algorithms specific for the generalisation of networks.
     collapse_dual_carriageways
     detect_dead_ends
     eliminate_dead_ends
+    skeletonize_natural
+    skeletonize_artificial
+    skeletonize_network
+    spinalize_polygon
+    spinalize_polygons
 
 Mountain roads
 --------------
@@ -78,7 +83,4 @@ Tools
     offset_line
     circle_interpolation
     resample_line
-    get_inflexion_points
-    skeletonize_natural
-    skeletonize_artificial
-    skeletonize_network
+    inflexion_points

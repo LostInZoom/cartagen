@@ -510,7 +510,10 @@ def polygons_3d_to_2d(polygons):
        polygons_2d.append(Polygon(coords_2d,interiors))
     return polygons_2d
 
-def resample_line(line, step):
+def densify_line(line):
+    """"""
+
+def resample_line(line, step, keep_vertices=False):
     """
     Densify a line by adding vertices.
 
@@ -523,6 +526,9 @@ def resample_line(line, step):
         The line to densify.
     step : float
         The step (in meters) to resample the geometry.
+    keep_vertices : bool, optional
+        If set to true, original vertices of the line are kept.
+        This is useful to keep the exact same geographical shape.
 
     Returns
     -------
@@ -535,6 +541,13 @@ def resample_line(line, step):
     <LINESTRING (1 1, 2 1, 3 1, 4 1, 5 1)>
     """
 
+    coords = list(line.coords)
+    distances = []
+
+    if keep_vertices:
+        for i in range(1, len(coords) - 1):
+            distances.append(shapely.line_locate_point(line, shapely.Point(coords[i])))
+
     # Get the length of the line
     length = line.length 
     
@@ -542,6 +555,11 @@ def resample_line(line, step):
     xy = [(line.coords[0])]
     
     for distance in np.arange(step, int(length), step):
+        if keep_vertices:
+            for i, d in enumerate(distances):
+                if d < distance:
+                    xy.append(coords[i + 1])
+
         # Interpolate a point every step along the old line
         point = line.interpolate(distance)
         # Add the tuple of coordinates
@@ -550,7 +568,7 @@ def resample_line(line, step):
     # Add the last point of the line if it doesn't already exist
     if xy[-1] != line.coords[-1]:
         xy.append(line.coords[-1])
-    
+        
     # Here, we return a new line with densified points.
     return LineString(xy)
 
@@ -725,7 +743,7 @@ def merge_linestrings(line1, line2):
     else:
         raise Exception("Provided LineStrings are not connected by their start or end vertex.")
 
-def get_inflexion_points(line, min_dir=120.0):
+def inflexion_points(line, min_dir=120.0):
     """
     Detect inflexion points inside a curved line.
 
@@ -749,7 +767,7 @@ def get_inflexion_points(line, min_dir=120.0):
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3), (8, 5)])
-    >>> c4.get_inflexion_points(line)
+    >>> c4.inflexion_points(line)
     [2, 3]
     """
 

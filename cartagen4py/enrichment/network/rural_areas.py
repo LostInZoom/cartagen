@@ -4,7 +4,7 @@ import shapely
 import geopandas as gpd
 import networkx as nx
 
-from cartagen4py.utils.graph.roads import *
+from cartagen4py.utils.network.graph import *
 
 def rural_betweeness_calculation(roads, sample_size=10, threshold=0, cost=None):
     """
@@ -23,18 +23,16 @@ def rural_betweeness_calculation(roads, sample_size=10, threshold=0, cost=None):
     """
     # Retrieve crs for output
     crs = roads.crs
+    network = roads.to_dict('records')
 
     # If cost has been set
     if cost is not None:
         # Raise an exception if attribute does not exists
         if hasattr(roads, cost) == False:
             raise Exception('Selected cost attribute does not exists.')
-    
-    # Convert geodataframe to list of dicts
-    roads = roads.to_dict('records')
 
     # Create the graph from the road network
-    graph = create_graph_from_roads(roads, cost)
+    graph = create_graph(roads, cost)
 
     # Determinate the number of nodes to compute the centrality index
     k = round((len(list(graph.nodes)) * sample_size) / 100)
@@ -43,13 +41,13 @@ def rural_betweeness_calculation(roads, sample_size=10, threshold=0, cost=None):
     centrality = nx.edge_betweenness_centrality(graph, k=k, weight='weight')
 
     # Assign the value of betweenness for each road
-    roads_centrality = [0] * len(roads)
+    roads_centrality = [0] * len(network)
     for edge, value in centrality.items():
         roads_centrality[graph.edges[edge]['rid']] = value
 
     result = []
     # Loop through the roads
-    for rid, road in enumerate(roads):
+    for rid, road in enumerate(network):
         # Get the centrality of the road
         b = roads_centrality[rid]
 
@@ -117,7 +115,7 @@ def rural_traffic_simulation(roads, min_traffic=1,
     roads = roads.to_dict('records')
 
     # Create the graph from the road network
-    graph = create_graph_from_roads(roads, cost)
+    graph = create_graph(roads, cost)
 
     # Create a counter for the number of time a road is used
     count = [0] * len(roads)
@@ -177,7 +175,7 @@ def rural_traffic_simulation(roads, min_traffic=1,
                             src, dst = node, path[inode + 1]
                             # Check this edge exists
                             if graph.has_edge(src, dst):
-                                # Increse the counter of the associated road
+                                # Increase the counter of the associated road
                                 count[graph.edges[src, dst]['rid']] += 1
 
     result = []

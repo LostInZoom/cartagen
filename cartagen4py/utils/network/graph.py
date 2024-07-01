@@ -1,6 +1,6 @@
 import networkx as nx
 
-def create_graph_from_roads(roads, cost=None):
+def create_graph(roads, cost=None):
     """
     Create a networkx graph object from the provided road network.
     The nodes of the returned graph has coordinates as attributes.
@@ -13,10 +13,7 @@ def create_graph_from_roads(roads, cost=None):
         The name of the attribute giving the cost of the road section. Make sure the attribute is a number.
         Default to None, which means the length of the road is used as the cost.
     """
-
-    # If e geodataframe is provided, convert it to a list of entry
-    if isinstance(roads, list) == False:
-        roads.to_dict('records')
+    roads = roads.to_dict('records')
 
     # Create storages for nodes and links of the graph
     nodes = []
@@ -63,3 +60,8 @@ def create_graph_from_roads(roads, cost=None):
         graph.nodes[node]['coords'] = nodes[node]
 
     return graph
+
+def longest_path(graph):
+    """
+    Get the longest path of the graph.
+    """

@@ -165,7 +165,7 @@ class BendSerie:
         smoothed = gaussian_smoothing(line, sigma, sample, densify=False)
 
         # Get inflexion points without first and last
-        inflexion = get_inflexion_points(smoothed)[1:-1]
+        inflexion = inflexion_points(smoothed)[1:-1]
 
         # Get the list of input vertices
         vertices = list(line.coords)

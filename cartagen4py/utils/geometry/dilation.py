@@ -11,7 +11,7 @@ def dilate_line(line, offset, cap_style='round', quad_segs=8):
     Dilate a line on one side.
 
     This algorithm proposed by Mustière :footcite:p:`mustiere:2001` dilates
-    a line on one side by a given value. It is the basis of many
+    a line on one side by a given distance in meters. It is the basis of many
     mountain roads generalization algorithm.
     
     Parameters
@@ -19,7 +19,7 @@ def dilate_line(line, offset, cap_style='round', quad_segs=8):
     line : LineString
         The line to offset.
     offset : float
-        The length of the offset to apply. Negative value for left-side dilation, positive for right-side.
+        The length of the offset to apply in meters. Negative value for left-side dilation, positive for right-side.
     cap_style : str, optional
         The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
     quad_segs : int, optional
@@ -71,7 +71,7 @@ def offset_line(line, offset, cap_style='round', quad_segs=8):
     """
     Offset the vertices of a line on one side.
 
-    Offset the vertex of the line and keeps the relationship
+    Offset the vertex of the line by a given distance and keeps the relationship
     between the line vertices and the result.
 
     Parameters
@@ -79,7 +79,7 @@ def offset_line(line, offset, cap_style='round', quad_segs=8):
     line : LineString
         The line to offset.
     offset : float
-        The length of the offset to apply. Negative value for left-side dilation, positive for right-side.
+        The length of the offset to apply in meters. Negative value for left-side dilation, positive for right-side.
     cap_style : str, optional
         The type of caps at the start and end of the line. Possible values are 'round' or 'flat'.
     quad_segs : int, optional
@@ -262,7 +262,7 @@ def circle_interpolation(a, b, c, rotation='cw', quad_segs=8):
     >>> b = (2, 1)
     >>> c = (1, 2)
     >>> circle_interpolation(a, b, c, quad_segs=2)
-    [(1, 2), (1.5, 1.8660254037844388), (1.8660254037844386, 1.5), (2, 1)]
+    [(2, 1), (1.985, 0.826), (1.94, 0.658), (1.866, 0.5), (1.766, 0.357), (1.643, 0.234), (1.5, 0.134), (1.342, 0.06), (1.174, 0.015), (1, 2)]
     """
 
     # Create vectors

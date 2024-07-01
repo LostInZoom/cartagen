@@ -9,19 +9,22 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
     """
     Detect the pastiness of a series of bends.
 
-    This algorithm proposed by Mustière :footcite:p:`mustiere:2001` subdivide the provided line into multiple chunks, thus modifying the geometry,
+    This algorithm proposed by Mustière :footcite:p:`mustiere:2001`
+    subdivide the provided line into multiple chunks, thus modifying the geometry,
     it is not a data enrichment function stricto sensu.
 
     Parameters
     ----------
-    line : shapely.LineString
+    line : LineString
         The line to detect the pastiness from.
     tolerance : float
         The width of the offset used to detect the pastiness.
-    cap_style : str, Default='flat'
-        The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
-    quad_segs : int, Default=8
-        The number of point allowed per circle quadrant when interpolating points using round method.
+    cap_style : str, optional
+        The type of caps at the start and end of the provided line.
+        Possible values are 'round' or 'flat'.
+    quad_segs : int, optional
+        The number of point allowed per circle quadrant
+        when interpolating points using round method.
 
     Returns
     -------

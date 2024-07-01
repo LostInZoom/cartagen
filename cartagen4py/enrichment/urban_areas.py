@@ -6,7 +6,7 @@ def boffet_areas(buildings, buffer, erosion, simplification_distance=2.0):
     """
     Calculate urban areas from buildings.
 
-    This algorithm by Boffet :footcite:p:`boffet:2003` uses
+    This algorithm proposed by Boffet :footcite:p:`boffet:2003` uses
     buffer around the buildings, then simplify and erode the unioned result
     to characterize urban areas.
 

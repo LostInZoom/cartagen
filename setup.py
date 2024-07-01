@@ -30,7 +30,7 @@ packages = [
     'cartagen4py.utils.attributes',
     'cartagen4py.utils.clustering',
     'cartagen4py.utils.geometry',
-    'cartagen4py.utils.graph',
+    'cartagen4py.utils.network',
     'cartagen4py.utils.math',
     'cartagen4py.utils.network',
     'cartagen4py.utils.partitioning',

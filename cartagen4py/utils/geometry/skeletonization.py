@@ -14,20 +14,21 @@ def skeletonize_natural(polygon, threshold_range=(0.7, 1.4)):
     are naturally calculated during the skeleton creation, it depends
     on the Delaunay triangulation.
 
+    This version is inspired by the enhanced TIN skeleton proposed by Wang :footcite:p:`wang:2010`
+
     Parameters
     ----------
-    polygon : shapely.Polygon
+    polygon : Polygon
         The polygon to compute the skeleton from.
-    threshold_range : tuple, Default=(0.7, 1.4)
+    threshold_range : tuple, optional
         This value is only used for inner triangles calculated by the Delaunay triangulation.
         If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
         the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
-        else it uses the centroid of the triangle (default value used by Wang, 2010).
+        else it uses the centroid of the triangle
 
     Returns
     -------
-    skeleton : list
-        A list of shapely.LineString of the skeleton.
+    list of LineString
 
     See Also
     --------
@@ -35,6 +36,10 @@ def skeletonize_natural(polygon, threshold_range=(0.7, 1.4)):
         Create a TIN skeleton by enforcing entry points.
     skeletonize_network :
         Create a TIN skeleton and blend it with the provided network.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Generate the skeleton
     skeleton = SkeletonTIN(polygon, threshold_range)
@@ -51,27 +56,28 @@ def skeletonize_artificial(polygon, entries, connection='joint', threshold_range
     are manually set and the natural entry points of the skeleton
     calculated during the skeleton creation are removed.
 
+    This version is inspired by the enhanced TIN skeleton proposed by Wang :footcite:p:`wang:2010`
+
     Parameters
     ----------
-    polygon : shapely.Polygon
+    polygon : Polygon
         The polygon to compute the skeleton from.
-    entries : list of shapely.Point
+    entries : list of Point
         The entry points of the skeleton.
-    connection : str, Default='joint'
+    connection : str, optional
         Connection can be 'joint', which forces the entry point to connect to the closest joint,
         or can be 'interior', which first look if there is an interior triangle inside the triangulation
         and connect directly the entry point to its skeleton joint. If no interior triangle is found,
         apply 'joint' connection instead.
-    threshold_range : tuple, Default=(0.7, 1.4)
+    threshold_range : tuple, optional
         This value is only used for inner triangles calculated by the Delaunay triangulation.
         If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
         the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
-        else it uses the centroid of the triangle (default value used by Wang, 2010).
+        else it uses the centroid of the triangle.
 
     Returns
     -------
-    skeleton : list
-        A list of shapely.LineString of the skeleton.
+    list of LineString
 
     See Also
     --------
@@ -79,6 +85,10 @@ def skeletonize_artificial(polygon, entries, connection='joint', threshold_range
         Create the natural TIN skeleton.
     skeletonize_network :
         Create a TIN skeleton and blend it with the provided network.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Generate the skeleton
     skeleton = SkeletonTIN(polygon, threshold_range)
@@ -105,30 +115,31 @@ def skeletonize_network(polygon, network, sigma=None, attributes=None, threshold
     This function first creates an artificial TIN skeleton by enforcing
     entry points derived from the provided network (the entry points are the extremities
     of the provided network touching the polygon ring). Then the network is blended
-    with the skeleton and an optional gaussian smoothing is apply. 
+    with the skeleton and an optional gaussian smoothing is apply.
+
+    This version is inspired by the enhanced TIN skeleton proposed by Wang :footcite:p:`wang:2010`
 
     Parameters
     ----------
-    polygon : shapely.Polygon
+    polygon : Polygon
         The polygon to compute the skeleton from.
-    network : GeoPandas.GeoDataFrame
-        The network (LineString geometries) touching the ring of the polygon.
-    sigma : float, Default=None
+    network : GeoDataFrame of LineString
+        The network touching the ring of the polygon.
+    sigma : float, optional
         Gaussian filter strength. By default, the skeleton is not smoothed.
-    attributes : list of dict, Default=None.
+    attributes : list of dict, optional
         A list of dict where the index matches the provided network. This dict represents the attributes
         of the lines to be propagated to the new network.
         If None is provided, the resulting network will lack the original attributes.
-    threshold_range : tuple, Default=(0.7, 1.4)
+    threshold_range : tuple, optional
         This value is only used for inner triangles calculated by the Delaunay triangulation.
         If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
         the skeleton uses the middle of the line connecting the two center of the longest lines of the triangle,
-        else it uses the centroid of the triangle (default value used by Wang, 2010).
+        else it uses the centroid of the triangle.
 
     Returns
     -------
-    skeleton : GeoPandas.GeoDataFrame
-        A list of shapely.LineString of the skeleton.
+    GeoDataFrame of LineString
 
     See Also
     --------
@@ -136,6 +147,10 @@ def skeletonize_network(polygon, network, sigma=None, attributes=None, threshold
         Create the natural TIN skeleton.
     skeletonize_artificial :
         Create a TIN skeleton by enforcing entry points.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Create the natural skeleton
     skeleton = SkeletonTIN(polygon, threshold_range)
