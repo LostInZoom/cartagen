@@ -3,9 +3,6 @@ numpy
 geopandas
 shapely
 cartagen4py
-ipywidgets 
-os 
-screeninfo 
-tqdm 
-time 
-warnings 
+ipywidgets
+screeninfo
+tqdm
