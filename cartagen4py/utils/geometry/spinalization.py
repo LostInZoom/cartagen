@@ -8,6 +8,8 @@ from cartagen4py.utils.geometry.distances import group_intersecting
 from cartagen4py.utils.geometry.line import get_line_middle_point, merge_linestrings, resample_line, gaussian_smoothing, split_line_at_point
 from cartagen4py.utils.network.graph import *
 
+from cartagen4py.utils.debug import plot_debug
+
 def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structural=None):
     """
     Collapse a single polgygon into one or multiple lines.
@@ -171,7 +173,7 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
             targets = []
             for e in entries:
                 targets.append(__get_closest_node(nodes, e))
-            source = targets.pop()
+            source = targets.pop(0)
 
             paths = []
             # Loop again through each node (target)
@@ -184,14 +186,29 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
             
             # reconstruct the lines
             if len(paths) > 0:
+                # Here there is more than one path
                 if len(paths) > 1:
-                    for path in paths:
-                        print(path)
+                    overlapped = []
+                    for ip, path in enumerate(paths):
+                        vertices = [ entries[0] ]
+                        for n in range(1, len(path) - 1):
+                            vertices.append(shapely.Point(nodes[path[n]]['coords']))
+                        vertices.append(entries[ip + 1])
+                        overlapped.append(shapely.LineString(vertices))
+
+                    union = unary_union(overlapped)
+                    merged = linemerge(union.geoms)
+
+                    if merged.geom_type == 'MultiLineString':
+                        merged = [ x for x in merged.geoms ]
+                    
+                    spines.extend(merged)
+                # Here there is one path between two entries
                 else:
-                    vertices = [ entries[1] ]
+                    vertices = [ entries[0] ]
                     for n in range(1, len(paths[0]) - 1):
                         vertices.append(shapely.Point(nodes[paths[0][n]]['coords']))
-                    vertices.append(entries[0])
+                    vertices.append(entries[1])
 
                     spines.append(shapely.LineString(vertices))
 
@@ -255,6 +272,40 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
     >>> spinalize_polygons(polygons)
     [<LINESTRING (0 5, 10 5, 20 5, 30 5, 40 5)>]
     """
+    def __merging(entries, spines):
+        lines = []
+
+        def __recursive_merging(spine, spines):
+            degree = 0
+            connected = None
+            for i, s in enumerate(spines):
+                if shapely.intersects(spine, s):
+                    add = True
+                    for l in lines:
+                        if shapely.intersects(spine, l):
+                            add = False
+                    if add:
+                        degree += 1
+                        connected = i
+
+            if degree == 1:
+                connected = spines.pop(connected)
+                merged = merge_linestrings(spine, connected)
+                __recursive_merging(merged, spines)
+            else:
+                lines.append(spine)
+
+        for entry in entries:
+            index = None
+            for i, s in enumerate(spines):
+                if shapely.intersects(entry, s):
+                    index = i
+
+            spine = spines.pop(index)
+            __recursive_merging(spine, spines)
+
+        return lines
+
     groups = group_intersecting(polygons)
     result = []
 
@@ -266,7 +317,7 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
 
             if entries is not None:
                 for e in entries:
-                    if shapely.intersects(p1, e):
+                    if shapely.dwithin(p1, e, 0.00001):
                         polyentries.append(e)
 
             for j, ip2 in enumerate(group):
@@ -279,23 +330,8 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
 
             spines += spinalize_polygon(p1, densify, sigma=None, entries=polyentries)
 
-        line = None
         if len(spines) > 1:
-            line = spines.pop(0)
-            trials = 0
-            while len(spines) > 0 and trials < len(spines):
-                done = []
-                for i, spine in enumerate(spines):
-                    if shapely.intersects(spine, line):
-                        line = merge_linestrings(spine, line)
-                        done.append(i)
-                        trials = 0
-                    else:
-                        trials += 1
-                for d in sorted(done, key=int, reverse=True):
-                    spines.pop(d)
-        else:
-            line = spines[0]
+            spines = __merging(entries, spines)
 
         if sigma is not None:
             if structural is not None:
@@ -305,13 +341,13 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
                         if shapely.intersects(polygons[p1], s):
                             intersecting.append(s)
                 if len(intersecting) > 0:
-                    line = __keep_structural(line, intersecting, sigma)
+                    spines = [ __keep_structural(line, intersecting, sigma) for line in spines ]
                 else:
-                    line = gaussian_smoothing(line, sigma)
+                    spines = [ gaussian_smoothing(line, sigma) for line in spines ]
             else:
-                line = gaussian_smoothing(line, sigma)
+                spines = [ gaussian_smoothing(line, sigma) for line in spines ]
         
-        result.append(line)
+        result += spines
 
     return result
 
