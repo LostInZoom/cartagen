@@ -304,6 +304,9 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
             spine = spines.pop(index)
             __recursive_merging(spine, spines)
 
+            if len(spines) == 0:
+                break
+
         return lines
 
     groups = group_intersecting(polygons)

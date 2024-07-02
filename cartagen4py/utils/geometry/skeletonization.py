@@ -56,7 +56,8 @@ def skeletonize_artificial(polygon, entries, connection='joint', threshold_range
     are manually set and the natural entry points of the skeleton
     calculated during the skeleton creation are removed.
 
-    This version is inspired by the enhanced TIN skeleton proposed by Wang :footcite:p:`wang:2010`
+    This version is inspired by the enhanced TIN skeleton
+    proposed by Wang :footcite:p:`wang:2010`
 
     Parameters
     ----------

@@ -44,7 +44,7 @@ def detect_roundabouts(roads, area_threshold=40000, miller_index=0.95):
     for road in roads:
         network.append(road['geometry'])
 
-    faces = calculate_network_faces(network, convex_hull=False)
+    faces = network_faces(network, convex_hull=False)
 
     roundabouts = []
     index = 0

@@ -47,7 +47,7 @@ def detect_dead_ends(roads, outside_faces=False):
     for road in roads:
         network.append(road['geometry'])
 
-    faces = calculate_network_faces(network, convex_hull=outside_faces)
+    faces = network_faces(network, convex_hull=outside_faces)
 
     hull = None
     if outside_faces:

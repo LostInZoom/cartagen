@@ -74,7 +74,7 @@ def detect_branching_crossroads(roads, roundabouts=None,
     for road in roads:
         network.append(road['geometry'])
 
-    faces = calculate_network_faces(network, convex_hull=False)
+    faces = network_faces(network, convex_hull=False)
     tree = shapely.STRtree(network)
 
     crossroads = []

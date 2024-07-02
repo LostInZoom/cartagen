@@ -77,7 +77,7 @@ def detect_dual_carriageways(
         else:
             network.append(road['geometry'])
 
-    faces = calculate_network_faces(network, convex_hull=False)
+    faces = network_faces(network, convex_hull=False)
     tree = shapely.STRtree(network)
 
     separators = []

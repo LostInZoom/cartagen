@@ -34,7 +34,8 @@ Polygons and groups of polygons
 Networks
 --------
 
-Algorithms specific for the generalisation of networks.
+Detection
+^^^^^^^^^
 
 .. currentmodule:: cartagen4py
 
@@ -42,23 +43,41 @@ Algorithms specific for the generalisation of networks.
     :toctree: reference/
 
     detect_roundabouts
-    collapse_roundabouts
     detect_branching_crossroads
-    collapse_branching_crossroads
     detect_dual_carriageways
-    collapse_dual_carriageways
     detect_dead_ends
+
+Collapse
+^^^^^^^^
+
+.. currentmodule:: cartagen4py
+
+.. autosummary::
+    :toctree: reference/
+
+    collapse_roundabouts
+    collapse_branching_crossroads
+    collapse_dual_carriageways
     eliminate_dead_ends
+
+Miscellaneous
+^^^^^^^^^^^^^
+
+.. currentmodule:: cartagen4py
+
+.. autosummary::
+    :toctree: reference/
+
+    network_faces
     skeletonize_natural
     skeletonize_artificial
     skeletonize_network
     spinalize_polygon
     spinalize_polygons
 
-Mountain roads
---------------
 
-Algorithms specific for the generalisation of mountain roads.
+Bend and bend series
+--------------------
 
 .. currentmodule:: cartagen4py
 

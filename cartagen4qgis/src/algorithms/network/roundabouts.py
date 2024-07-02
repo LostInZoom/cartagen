@@ -136,7 +136,7 @@ class DetectRoundaboutsQGIS(QgsProcessingAlgorithm):
         for road in records:
             roads.append(road['geometry'])
 
-        faces = calculate_network_faces(roads, convex_hull=False)
+        faces = network_faces(roads, convex_hull=False)
 
         roundabouts = []
         index = 0
