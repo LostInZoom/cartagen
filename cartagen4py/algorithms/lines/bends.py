@@ -232,12 +232,12 @@ def schematization(line, sigma=30, sample=None):
     .. footbibliography::
     """
     # Treat a part of the schematization
-    def schematize_part(coords, wpoint, summits):
+    def schematize_part(coords, wpoint, summits, length):
         # Get the start vertex and create the translation vector
         start = Point(coords[0])
         vector = Vector2D.from_points(start, wpoint)
 
-        # Get the orientation of the last segment of the part
+        # Get the orientation of the first segment of the part
         main = Segment(coords[0], coords[1]).orientation()
         # Get the perpendicular orientation
         perp = main + np.pi / 2
@@ -263,7 +263,7 @@ def schematization(line, sigma=30, sample=None):
                 break
             # Append the point to the list
             lasthalf.append(point)
-            
+
         schematized = []
         total = 0
         # Loop again starting at the penultimate vertex
@@ -279,7 +279,7 @@ def schematization(line, sigma=30, sample=None):
                 vect = vmain.change_norm(vmain.get_norm() * (1 - total / halflength))
                 projected = vect.translate(projected)
             # Then, for every point, cushion the translation using also the perpendicular vector
-            vect = vperp.change_norm(vperp.get_norm() * (1 - total / length1))
+            vect = vperp.change_norm(vperp.get_norm() * (1 - total / length))
             projected = vect.translate(projected)
             # Add the point to the start of the list
             schematized.append(projected)
@@ -323,8 +323,8 @@ def schematization(line, sigma=30, sample=None):
     # Loop through bends
     nb = len(bends)
     for i, b in enumerate(bends):
-        # Make sure the bend is to be schematized
-        if i in [0, nb - 1]:
+        # Make sure the bend is to be schematized (not the first, not the last)
+        if i in [0, nb - 1] and len(bends) != 5:
             continue
 
         indice = 0
@@ -354,21 +354,16 @@ def schematization(line, sigma=30, sample=None):
     indiceremove = sorted(indiceremove, key=lambda d: d['indice'])
     sizeremove = sorted(sizeremove, key=lambda d: d['size'])
 
-    # print(sizeremove)
-    # print(indiceremove)
     # Handle particular case
-    # if len(bends) > 4:
-    #     i = sizeremove[-1]['index']
-    #     topop = None
-    #     for j, idx in enumerate(indiceremove):
-    #         if idx['index'] == i:
-    #             topop = j
+    if len(bends) > 4:
+        i = sizeremove[-1]['index']
+        topop = None
+        for j, idx in enumerate(indiceremove):
+            if idx['index'] == i:
+                topop = j
         
-    #     if topop is not None:
-    #         indiceremove.pop(topop)
-
-    # print(sizeremove)
-    # print(indiceremove)
+        if topop is not None:
+            indiceremove.pop(topop)
 
     bend1, bend2 = None, None
 
@@ -442,9 +437,11 @@ def schematization(line, sigma=30, sample=None):
     coords1.reverse()
 
     # Schematize the first part
-    part1 = schematize_part(coords1, wpoint, summit1)
-    part2 = schematize_part(coords2, wpoint, summit2)
+    part1 = schematize_part(coords1, wpoint, summit1, length1)
+    part2 = schematize_part(coords2, wpoint, summit2, length2)
     part1.reverse()
+
+    coords = list(line.coords)
     
     # Return the constructed linestring
-    return LineString(part1 + [wpoint] + part2)
+    return LineString([coords[0]] + part1[1:] + [wpoint] + part2[:-1] + [coords[-1]])
