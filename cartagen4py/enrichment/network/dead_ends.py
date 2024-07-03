@@ -27,13 +27,13 @@ def detect_dead_ends(roads, outside_faces=False):
     roads : GeoDataFrame of LineString
         The input road network with new attributes:
 
-            - **deadend**: boolean indicating whether the road is part of a dead-end group. 
-            - **face**: Index of the network face it belongs to.
-            - **deid**: Index of the dead end group inside a given face.
-            - **connected**: Set to true if the dead end group is connected to the network.
-            - **root**: Set to true if the road section is the root of the dead end group,
-              i.e. the section connecting the dead end group to the road network.
-            - **hole**: Set to true if the road section touches a hole inside the dead end group.
+        - *'deadend'*: boolean indicating whether the road is part of a dead-end group. 
+        - *'face'*: Index of the network face it belongs to.
+        - *'deid'*: Index of the dead end group inside a given face.
+        - *'connected'*: Set to true if the dead end group is connected to the network.
+        - *'root'*: Set to true if the road section is the root of the dead end group,
+          *i.e.* the section connecting the dead end group to the road network.
+        - *'hole'*: Set to true if the road section touches a hole inside the dead end group.
     
     See Also
     --------

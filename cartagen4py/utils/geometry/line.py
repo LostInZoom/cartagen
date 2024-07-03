@@ -271,7 +271,7 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
 
     The gaussian smoothing has been studied by Babaud *et al.* :footcite:p:`babaud:1986`
     for image processing, and by Plazanet :footcite:p:`plazanet:1996`
-    for the generalization of cartographic features.
+    for the generalisation of cartographic features.
 
     Parameters
     ----------

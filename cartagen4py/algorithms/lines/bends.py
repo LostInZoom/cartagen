@@ -443,5 +443,5 @@ def schematization(line, sigma=30, sample=None):
 
     coords = list(line.coords)
     
-    # Return the constructed linestring
+    # Return the constructed linestring, keeping the original start and end point
     return LineString([coords[0]] + part1[1:] + [wpoint] + part2[:-1] + [coords[-1]])

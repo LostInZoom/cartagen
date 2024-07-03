@@ -89,16 +89,21 @@ class PointSetQuadTree():
             npoints += len(self.nw)+len(self.ne)+len(self.se)+len(self.sw)
         return npoints
 
-    def draw(self, ax):
+    def draw(self, ax, max_depth=None):
         """Draw a representation of the quadtree on Matplotlib Axes ax."""
+        linewidth, color = 0.5, 'gray'
 
+        if max_depth is not None:
+            if self.depth <= max_depth:
+                linewidth, color = 1, 'blue'
+        
         x1, y1, x2, y2 = self.envelope.bounds
-        ax.plot([x1,x2,x2,x1,x1],[y1,y1,y2,y2,y1], c='k', lw=1)
+        ax.plot([x1,x2,x2,x1,x1],[y1,y1,y2,y2,y1], color=color, linewidth=linewidth)
         if self.divided:
-            self.nw.draw(ax)
-            self.ne.draw(ax)
-            self.se.draw(ax)
-            self.sw.draw(ax)
+            self.nw.draw(ax, max_depth)
+            self.ne.draw(ax, max_depth)
+            self.se.draw(ax, max_depth)
+            self.sw.draw(ax, max_depth)
     
     def populate(self, geodataframe):
         """Populate the quadtree with the points contained in a GeoDataFrame, with a Point geometry"""

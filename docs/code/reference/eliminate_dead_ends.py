@@ -73,7 +73,7 @@ for n in network:
     original.append({"geometry": n})
 original = gpd.GeoDataFrame(original)
 selection = c4.detect_dead_ends(original)
-generalized = c4.eliminate_dead_ends(original, selection, 250)
+generalized = c4.eliminate_dead_ends(selection, 250)
 
 for o in original.geometry:
     path1 = Path(numpy.asarray(o.coords)[:, :2])

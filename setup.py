@@ -49,9 +49,9 @@ install_requires = [
 
 # Meta informations
 keywords = [
-    'Generalization',
+    'Generalisation',
     'Cartography',
-    'cartographic generalization',
+    'cartographic generalisation',
 ]
 platforms = ['Linux', 'Mac OSX', 'Windows', 'Unix']
 classifiers = [

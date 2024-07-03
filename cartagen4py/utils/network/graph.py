@@ -2,9 +2,12 @@ import networkx as nx
 
 def create_graph(roads, cost=None):
     """
+    Create a graph object from a road network.
+
     Create a networkx graph object from the provided road network.
     The nodes of the returned graph has coordinates as attributes.
     The edges of the returned graph has cost and the index of the roads as attributes.
+    
     Parameters
     ----------
     roads : list of dict from geopandas entries or geopandas GeoDataFrame of LineStrings.

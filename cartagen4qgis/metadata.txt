@@ -5,12 +5,12 @@
 [general]
 name=CartAGen4QGIS
 qgisMinimumVersion=3.0
-description=Cartographic generalization
+description=Cartographic generalisation
 version=0.1
 author=Guillaume Touya, Justin Berli
 email=guillaume.touya@ign.fr
 
-about=Provide cartographic generalization algorithms from the cartagen4py python library.
+about=Provide cartographic generalisation algorithms from the cartagen4py python library.
 
 tracker=http://bugs
 repository=http://repo

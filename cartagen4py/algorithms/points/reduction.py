@@ -2,13 +2,38 @@
 # A reduction means that there is still a set of points as output of the algorithm, but fewer points.
 
 from shapely.geometry import MultiPoint, Point, Polygon
-from cartagen4py.algorithms.points.point_set_quadtree import PointSetQuadTree
+from cartagen4py.algorithms.points.quadtree import PointSetQuadTree
 import random
 
-# A point set reduction algorithm based on a K-Means clustering. The reduction is based an a shrink ratio parameter between 0 (all points are removed) and 1 (all points are kept).
-# Two options are possible: either keeping one of the initial points to replace a cluster (default option) or replace the cluster by its centroid.
 # @gtouya
-def kmeans_point_set_reduction(points, shrink_ratio, centroid_option = False):
+def reduce_points_kmeans(points, shrink_ratio, centroid=False):
+    """
+    Reduce a set of points using K-Means clustering.
+
+    For more information about K-Means clustering,
+    here is a link to the related `wikipedia article
+    <https://en.wikipedia.org/wiki/K-means_clustering>`_
+
+    Parameters
+    ----------
+    points : list of Point
+        The points to reduce.
+    shrink_ratio : float
+        A value between 0 (all points are removed) and 1 (all points are kept).
+    centroid : bool, optional
+        If set to True, replace the cluster by its centroid.
+        If False, replace the cluster by one of the initial point.
+
+    Returns
+    -------
+    list of Point
+
+    See Also
+    --------
+    reduce_points_quadtree :
+        Reduce a set of points using a quadtree.
+    """
+
     final_pts = []
 
     # first compute the number of points kept in the generalised point set
@@ -64,7 +89,7 @@ def kmeans_point_set_reduction(points, shrink_ratio, centroid_option = False):
         # get the centroid of the cluster
         multi = MultiPoint(cluster)
         center = multi.centroid
-        if(centroid_option):
+        if(centroid):
             # append center to the list of final points
             final_pts.append(center)
         else:
@@ -80,17 +105,54 @@ def kmeans_point_set_reduction(points, shrink_ratio, centroid_option = False):
 
     return final_pts
 
-def quadtree_point_set_reduction(points, depth, mode='simplification', attribute = ""):
-    """Algorithm to reduce a point set based on a quadtree. The algorithm was proposed by Bereuter & Weibel (2012).
-    
-    The points should be a GeoDataframe from Geopandas with a Point geometry. The 'depth' parameter is the degree of generalisation as it retains one point per cell when the quadtree is sliced at the given depth.
-    
-    There are different modes for this algorithm:
-    - mode = 'selection' means that for one cell, the algorithm retains the point with the largest value in the chosen attribute, weighted by the depth of the point. 
-    - mode = 'simplification' means that the point retained in the cell is the closest to the center of the cell
-    - mode = 'aggregation' means that the points are all aggregated to the centroid of the points.
+def reduce_points_quadtree(points, depth, mode='simplification', attribute=None):
+    """
+    Reduce a set of points using a quadtree.
 
-    The algorithm returns the list of tuples (geometry, index, nb_of_points) where index is the index of the point in the initial Geodataframe (-1 if the point was created), and nb_of_points gives the amount of initial points replaced (which can be used to weight the size of the symbol of this point). 
+    This algorithm was proposed by Bereuter & Weibel. :footcite:p:`bereuter:2012`
+    The quadtree algorithm iteratively divide the point set into four chunks, creating clusters,
+    until the depth parameter is reach or only one point remain per cluster.
+
+    Parameters
+    ----------
+    points : GeoDataFrame of Point
+        The point set to reduce.
+    depth : int
+        The maximum depth of the quadtree. This acts as a
+        selector for the wanted degree of generalisation.
+        The lower the value, the more generalised the point set will be.
+    mode : str, optional
+        There are three available modes:
+
+        - *'selection'* means that for one cell, the algorithm retains
+          the point with the largest value in the chosen attribute,
+          weighted by the depth of the point. This option requires
+          the attribute parameter to be provided.
+        - *'simplification'* means that the point retained in the cell
+          is the closest to the center of the cell.
+        - *'aggregation'* means the points are all aggregated to
+          the centroid of the points.
+    
+    Returns
+    -------
+    reduced : list of tuple
+        The reduced points as tuples composed of three elements:
+
+        #. The geometry of the reduced point
+        #. The index of the point in the initial Geodataframe (-1 if the point was created)
+        #. The amount of initial points replaced (which can be used to weight the size of the symbol of this point).
+    
+    quadtree : QuadTree
+        The quadtree object.
+
+    See Also
+    --------
+    reduce_points_kmeans :
+        Reduce a set of points using K-Means clustering.
+
+    References
+    ----------
+    .. footbibliography::
     """
 
     # First get the extent of the quadtree
@@ -135,6 +197,8 @@ def quadtree_point_set_reduction(points, depth, mode='simplification', attribute
         # then generalise the points based on the chosen mode
         match mode:
             case 'selection':
+                if attribute is None:
+                    raise Exception('Provide an attribute name in selection mode.')
                 # retain the largest value in each cell for the chosen attribute of the point
                 selected = None
                 largest = 0
@@ -143,7 +207,7 @@ def quadtree_point_set_reduction(points, depth, mode='simplification', attribute
                     if value*depth > largest:
                         largest = value*depth
                         selected = point
-                output.append((selected['geometry'],selected.index,len(cell_points)))
+                output.append((selected['geometry'], selected.index, len(cell_points)))
 
             case 'simplification':
                 # the point retained in the cell is the closest to the center of the cell
@@ -164,7 +228,7 @@ def quadtree_point_set_reduction(points, depth, mode='simplification', attribute
                     geoms.append(point[0]['geometry'])
                 multi = MultiPoint(geoms)
                 centroid = multi.centroid
-                output.append((centroid, -1,len(cell_points)))
+                output.append((centroid, -1, len(cell_points)))
     
     return output, qtree
 

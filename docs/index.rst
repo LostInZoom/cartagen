@@ -44,6 +44,7 @@ Evaluate your generalised map
    :caption: API Reference
    :hidden:
 
+   points
    lines
    polygons
    networks

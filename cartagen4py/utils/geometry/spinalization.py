@@ -37,17 +37,17 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
     entries : list of Point, optional
         A list of entry points to the polygon.
 
-            - **If left to None**: the spine is the longest path between all the nodes
-              of the Voronoi diagram (this can be really expensive in terms of resources).
-            - **If one is set**: the spine is the longest path between this point and all the
-              nodes of the Voronoi diagram.
-            - **If two are set**: the spine is the path between those two nodes on the Voronoi
-              diagram.
-            - **If more than two are set**: multiple spines are calculated between each nodes on
-              the Voronoi diagram.
+        - **If left to None**, the spine is the longest path between all the nodes
+          of the Voronoi diagram (this can be really expensive in terms of resources).
+        - **If one is set**, the spine is the longest path between this point and all the
+          nodes of the Voronoi diagram.
+        - **If two are set**, the spine is the path between those two nodes on the Voronoi
+          diagram.
+        - **If more than two are set**, multiple spines are calculated between each nodes on
+          the Voronoi diagram.
 
-            The last two are the most efficient in terms of computation time because it doesn't
-            calculate shortest paths to each node.
+        The last two are the most efficient in terms of computation time because it doesn't
+        calculate shortest paths to each node.
 
     structural : list of Point, optional
         A list of point inside the polygon that will be kept by the algorithm.

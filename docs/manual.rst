@@ -67,7 +67,7 @@ Groups of objects
 
 .. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
 
-    Amalgamates a group of building polygons using morphological operators, with the algorithm presented in `(Damen et al., 2008) <https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113>`_. 
+    Amalgamates a group of building polygons using morphological operators, with the algorithm presented in `(Damen et al., 2008) <https://www.semanticscholar.org/paper/High-Quality-Building-Generalisation-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113>`_. 
     The algorithm chains morphological opening and closing to amalgamate close buildings into a larger building area.
     The 'buffer_size' is parameter used for the opening and closing operations. The 'edge_length' gives the length of edges that are later simplified in the amalgamated polygons.
 
@@ -104,7 +104,7 @@ Figure 6. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
 Figure 7. A block with buildings displaced because of the width of the road symbol, using the Random Displacement algorithm.
 
-.. method:: kmeans_point_set_reduction(points, shrink_ratio, centroid_option = False)
+.. method:: reduce_points_kmeans(points, shrink_ratio, centroid_option = False)
 
     This algorithm reduces a set of points to a smaller set of points that is representative of the initial set. The algorithm uses a K-Means clustering to reduce the set to a number of clusters that corresponds to the shrinking ratio parameter.
     The 'shrink_ratio' parameter can vary between 0 (all points are removed) and 1 (all points are kept).
@@ -114,14 +114,14 @@ Figure 7. A block with buildings displaced because of the width of the road symb
 
   >>> points = [Point(1,1), Point(1,2), Point(0,1), Point(2,1), Point(2,2), Point(5,5), Point(8,10), Point(10,10), Point(10,8), 
               Point(16,10), Point(16,9), Point(14,11)]
-  >>> kmeans_point_set_reduction(points, 0.25)
+  >>> reduce_points_kmeans(points, 0.25)
   [<POINT (2.0 2.0)>, <POINT (10.0 10.0)>, <POINT (16.0 10.0)>]
 
 .. plot:: code/kmeans_reduction.py
 
 Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means reduction algorithm.
 
-.. method:: quadtree_point_set_reduction(points, depth, mode='simplification', attribute = "")
+.. method:: reduce_points_quadtree(points, depth, mode='simplification', attribute = "")
 
     Algorithm to reduce a point set based on a quadtree. The algorithm was proposed by Bereuter & Weibel (2012). The algorithm uses a quadtree that divdes itself until there is only one point feature inside the cell.
     The 'depth' parameter can vary between 0 (all points are removed) and the maximum depth of the quadtree (all points are kept). If depth is 2, the algorithm only retains 1 point for each cell with depth <= 2.
@@ -137,7 +137,7 @@ Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means
               Point(16,10), Point(16,9), Point(14,11)]
   >>> p1 = gpd.GeoSeries(points)
   >>> gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(p1))
-  >>> quadtree_point_set_reduction(points, 0.25)
+  >>> reduce_points_quadtree(points, 0.25)
   [<POINT (1 2)>, <POINT (10 8)>, <POINT (10 10)>, <POINT (14 11)>]
 
 .. plot:: code/quadtree_reduction.py

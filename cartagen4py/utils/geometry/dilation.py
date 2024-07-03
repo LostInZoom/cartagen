@@ -12,7 +12,7 @@ def dilate_line(line, offset, cap_style='round', quad_segs=8):
 
     This algorithm proposed by Mustière :footcite:p:`mustiere:2001` dilates
     a line on one side by a given distance in meters. It is the basis of many
-    mountain roads generalization algorithm.
+    mountain roads generalisation algorithm.
     
     Parameters
     ----------
@@ -88,19 +88,17 @@ def offset_line(line, offset, cap_style='round', quad_segs=8):
     Returns
     -------
     list of dict
-        The index of each dict correpond to the index of the provided points.
+        The index of each dict correpond to the index of the provided points, with the keys:
         
-        Dict keys are as following:
+        - *'type'*: The type of point, this value can be:
 
-            - **type**: The type of point, this value can be:
-
-                - **start**: The start of the list. The number of coordinates depends on ``cap_style`` and ``quad_segs``.
-                - **concave**: The offset vertex is inside a bend.
-                - **convex**: The offset vertex is outside a bend.
-                - **end**: The start of the list. Same as **start**.
-            
-            - **original**: The index of the vertex inside the input line
-            - **projected**: The list of projected coordinates
+          - *'start'*: The start of the list. The number of coordinates depends on ``cap_style`` and ``quad_segs``.
+          - *'concave'*: The offset vertex is inside a bend.
+          - *'convex'*: The offset vertex is outside a bend.
+          - *'end'*: The start of the list. Same as **start**.
+        
+        - *'original'*: The index of the vertex inside the input line
+        - *'projected'*: The list of projected coordinates
 
     See Also
     --------

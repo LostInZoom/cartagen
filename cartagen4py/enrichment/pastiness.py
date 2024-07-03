@@ -33,13 +33,13 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
         
         Dict keys are as following:
 
-            - **paste** represents the number of conflicts
-            
-                - **0** when no conflicts are detected
-                - **1** when a conflict exists on one side only
-                - **2** when conflicts are on both side of the line)
+        - *'paste'* represents the number of conflicts, it can be:
 
-            - **geometry** is the geometry of the line section
+          * *0* when no conflicts are detected.
+          * *1* when a conflict exists on one side only.
+          * *2* when conflicts are on both side of the line).
+
+        - *'geometry'* is the geometry of the line section.
 
     References
     ----------
