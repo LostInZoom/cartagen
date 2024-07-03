@@ -193,7 +193,7 @@ def __get_vector(bend, width):
 
     return check_translation(Point(bend.bend.coords[0]), bend, width, angle, v)
 
-def schematization(line, sigma=None, sample=None):
+def schematization(line, sigma=30, sample=None):
     """
     Remove bends from series of bends to simplify it.
 

@@ -160,7 +160,7 @@ class BendSerie:
     """
     Create a serie of bends from a given linestring object.
     """
-    def __init__(self, line, sigma, sample):
+    def __init__(self, line, sigma=30, sample=None):
         # Smooth the line to avoid unnecessary micro inflexion points
         smoothed = gaussian_smoothing(line, sigma, sample, densify=False)
 
