@@ -24,10 +24,10 @@ def network_faces(*networks, convex_hull=True):
 
     Notes
     -----
-    When the network is not completely planar, the network
-    is fully unioned and merged, *e.g.*, when tunnels
+    When the network is not completely planar (*e.g.* tunnels
     and bridges inside a road network with crossing
-    sections not intersecting.
+    sections not intersecting), the network
+    is fully unioned and merged.
 
     Examples
     --------

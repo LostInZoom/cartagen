@@ -28,7 +28,7 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
 
     Returns
     -------
-    list
+    list of dict
         The line subdivided into chunks depending of the paste.
         
         Dict keys are as following:

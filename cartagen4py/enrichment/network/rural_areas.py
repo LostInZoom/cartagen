@@ -6,20 +6,51 @@ import networkx as nx
 
 from cartagen4py.utils.network.graph import *
 
-def rural_betweeness_calculation(roads, sample_size=10, threshold=0, cost=None):
+def rural_betweeness(roads, sample_size=10, threshold=0, cost=None):
     """
-    A data enrichment tool used to flag roads that are not often used based on the calculation of
-    the edge betweenness.
-    roads : geopandas GeoDataFrame of LineStrings
+    Detect central roads inside a network using betweeness centrality.
+
+    This algorithm is used to detect central road inside the network.
+    It is primarily used to eliminate less used roads in rural areas.
+    The centrality of the road sections are determiined using the 
+    betweeness centrality.
+
+    Parameters
+    ----------
+    roads : GeoDataFrame of LineString
         The road network to analyze.
-    sample_size : int optional.
+    sample_size : int, optional
         The percentage of nodes to keep for the betweenness calculation.
-        Higher values means better results at the cost of exponential computation length.
-    threshold : int optional
+        Higher values means better results at the
+        cost of exponential computation length.
+    threshold : int, optional
         The minimum betweenness value for the road to be kept.
-    cost : str optional
-        The name of the attribute giving the cost of the road section. Make sure the attribute is a number.
+    cost : str, optional
+        The name of the attribute giving the cost of the road section.
+        Make sure the attribute is a number.
         Default to None, which means the length of the road is used as the cost.
+
+    Returns
+    -------
+    GeoDataFrame of LineString
+
+    See Also
+    --------
+    rural_traffic :
+        Detect central roads inside a network using traffic simulation.
+
+    Notes
+    -----
+    This algorithm is based on Touya :footcite:p:`touya:2010` but
+    the traffic simulation is replaced by the calculation of
+    the betweeness centrality, which is less resource-intensive.
+    However, it is harder to find the right betweeness threshold to use,
+    and some road sections might become unconnected to the
+    rest of the network.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Retrieve crs for output
     crs = roads.crs
@@ -60,46 +91,75 @@ def rural_betweeness_calculation(roads, sample_size=10, threshold=0, cost=None):
         
         # Set attributes to the road
         road['rural'] = state
-        road['betweenness'] = b
+        road['betweeness'] = b
 
-        # Add it to the results
         result.append(road)
 
-    if len(result) > 0:
-        return gpd.GeoDataFrame(result, crs=crs)
-    else:
-        return None
+    return gpd.GeoDataFrame(result, crs=crs)
     
 
-def rural_traffic_simulation(roads, min_traffic=1,
+def rural_traffic(roads, min_traffic=1,
         attraction_points=None, max_distance=None,
         sample_size=80, export_samples=False, cost=None
     ):
     """
-    A data enrichment tool used to flag roads that are not often used based on a traffic simulation
-    on the network graph.
+    Detect central roads inside a network using traffic simulation.
+
+    This algorithm proposed by Touya :footcite:p:`touya:2010`
+    detects the most used road inside a network by simulating
+    traffic between attraction points. Thos points can be provided
+    or they can randomly be extracted from the network.
+
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings
+    roads : GeoDataFrame of LineString
         The road network to analyze.
-    min_traffic : int optional.
+    min_traffic : int, optional
         The minimum number of time a road must be used to be kept.
-    attraction_points : geopandas GeoDataFrame of Points optional
+    attraction_points : GeoDataFrame of Point, optional
         The attraction points between which traffic will be calculated.
+        If provided, the points doesn't need to be on the network, they
+        will be snapped to the closest node (*i.e.* intersection) on the network.
         Default to None, meaning a random set a nodes will be taken.
-    max_distance : int optional
-        If attraction points are provided, it is the maximum distance from which the provided attraction points are snapped to the road network nodes.
+    max_distance : int, optional
+        If attraction points are provided, it is the maximum distance
+        from which the provided attraction points are snapped to the road network nodes.
         If further from this distance, the point will not be used.
-        Default to None, meaning the point is snapped no matter its distance from the nodes.
-    sample_size : int optional
-        If no attraction points are provided, it is the number of nodes to take into account when calculating traffic.
-    export_samples : bool optional
+        Default to None, meaning the point is snapped no matter its distance from the network.
+    sample_size : int, optional
+        If no attraction points are provided, it is the number
+        of nodes to take into account when calculating traffic.
+        This means the calculation between all pairs of nodes, this
+        can be really resource-intensive.
+    export_samples : bool, optional
         If set to True, returns a tuple of two GeoDataFrame instead of a single GeoDataFrame. The second
         is a point GeoDataFrame of the samples used for the traffic calculation. If attraction points
         were provided, returns the snapped points on the nodes, else returns the random node sample.
-    cost : str optional
+    cost : str, optional
         The name of the attribute giving the cost of the road section. Make sure the attribute is a number.
         Default to None, which means the length of the road is used as the cost.
+
+    Returns
+    -------
+    roads : GeoDataFrame of LineString
+        The network with simulated traffic information.
+    samples : GeoDataFrame of Point, optional
+        The random sample if wanted, and if no attraction points were provided.
+
+    See Also
+    --------
+    rural_betweeness :
+        Detect central roads inside a network using traffic simulation.
+
+    Warning
+    -------
+    This algorithm can quickly become very intensive, especially
+    when using a large dataset and a high ``sample_size`` parameter,
+    but it preserves the connectivity of the network.
+
+    References
+    ----------
+    .. footbibliography::
     """
 
     # Retrieve crs for output
@@ -111,11 +171,11 @@ def rural_traffic_simulation(roads, min_traffic=1,
         if hasattr(roads, cost) == False:
             raise Exception('Selected cost attribute does not exists.')            
 
-    # Convert geodataframe to list of dicts
-    roads = roads.to_dict('records')
-
     # Create the graph from the road network
     graph = create_graph(roads, cost)
+
+    # Convert geodataframe to list of dicts
+    roads = roads.to_dict('records')
 
     # Create a counter for the number of time a road is used
     count = [0] * len(roads)

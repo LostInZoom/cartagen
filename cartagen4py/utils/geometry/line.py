@@ -518,7 +518,7 @@ def resample_line(line, step, keep_vertices=False):
     Densify a line by adding vertices.
 
     This function densifies a line by adding a vertex every 'step' along the line.
-    Preserver the first and last vertex of the line.
+    It preserves the first and last vertex of the line.
     
     Parameters
     ----------
@@ -542,12 +542,14 @@ def resample_line(line, step, keep_vertices=False):
     """
 
     coords = list(line.coords)
-    distances = []
+    original = []
 
     if keep_vertices:
         for i in range(1, len(coords) - 1):
-            distances.append(shapely.line_locate_point(line, shapely.Point(coords[i])))
-
+            c = coords[i]
+            d = shapely.line_locate_point(line, shapely.Point(c))
+            original.append((c, d))
+    
     # Get the length of the line
     length = line.length 
     
@@ -556,9 +558,13 @@ def resample_line(line, step, keep_vertices=False):
     
     for distance in np.arange(step, int(length), step):
         if keep_vertices:
-            for i, d in enumerate(distances):
-                if d < distance:
-                    xy.append(coords[i + 1])
+            remove = 0
+            for i, o in enumerate(original):
+                if o[1] < distance:
+                    xy.append(o[0])
+                    remove += 1
+            for r in range(0, remove):
+                original.pop(0)
 
         # Interpolate a point every step along the old line
         point = line.interpolate(distance)

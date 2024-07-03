@@ -104,7 +104,7 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
     polygon = shapely.Polygon(polygon.exterior.coords)
 
     if densify is not None:
-        polygon = shapely.Polygon(resample_line(polygon.boundary, densify, False))
+        polygon = shapely.Polygon(resample_line(polygon.boundary, densify, True))
 
     # Calculate Voronoi diagram
     voronoi = list(shapely.voronoi_polygons(polygon, only_edges=True, extend_to=polygon).geoms)

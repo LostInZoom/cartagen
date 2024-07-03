@@ -46,6 +46,8 @@ Detection
     detect_branching_crossroads
     detect_dual_carriageways
     detect_dead_ends
+    rural_betweeness
+    rural_traffic
 
 Collapse
 ^^^^^^^^

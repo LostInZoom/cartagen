@@ -9,16 +9,7 @@ def eliminate_dead_ends(roads, length=0, keep_longest=True):
 
     Eliminates roads section detected as dead-ends inside a road network
     if the length of their main component is below a given threshold.
-    
-    The **main component** of a dead-end is defined as:
-
-        - If the dead-end is simple (*i.e.* just one road), the main component is the road.
-        - If the dead-end contains multiple ramification of roads,
-          the main component represents the path between the entry and the longest ramification.
-        - If the dead-end contains inner network faces (*i.e.* enclosed roads),
-          the main component represents the longest of the shortest paths
-          between the entry and all the vertex of the dead ends.
-    
+        
     Parameters
     ----------
     roads : GeoDataFrame of LineString
@@ -43,6 +34,17 @@ def eliminate_dead_ends(roads, length=0, keep_longest=True):
     --------
     detect_dead_ends :
         Characterize dead-ends groups inside a road network.
+
+    Notes
+    -----
+    The **main component** of a dead-end is defined as:
+    
+    - If the dead-end is simple (*i.e.* just one road), the main component is the road.
+    - If the dead-end contains multiple ramification of roads,
+      the main component represents the path between the entry and the longest ramification.
+    - If the dead-end contains inner network faces (*i.e.* enclosed roads),
+      the main component represents the longest of the shortest paths
+      between the entry and all the vertex of the dead ends.
     """
 
     # Retrieve crs for output
@@ -67,7 +69,6 @@ def eliminate_dead_ends(roads, length=0, keep_longest=True):
     deadendgroups = []
     deadengeom = []
     for fid, facegroup in itertools.groupby(sorted(deadends, key=facefilter), key=facefilter):
-        # if True: # fid == 84:
         group = []
         geomgroup = []
         # Loop through dead end groups
@@ -101,6 +102,7 @@ def eliminate_dead_ends(roads, length=0, keep_longest=True):
                     # Create storages for nodes and links of the graph
                     nodes = []
                     edges = []
+
                     # Loop through roads inside the group
                     for rid, road in enumerate(group):
                         # Retrieve start and end point of the road
@@ -212,15 +214,12 @@ def eliminate_dead_ends(roads, length=0, keep_longest=True):
 
     result = []
     # Loop through roads
-    for rid, r in enumerate(roads):
+    for r in roads:
         # Check if the road is to be kept
-        if rid not in remove:
+        if r['rid'] not in remove:
             result.append(r)
 
-    if len(result) > 0:
-        return gpd.GeoDataFrame(result, crs=crs)
-    else:
-        return None
+    return gpd.GeoDataFrame(result, crs=crs)
 
 # Return true if the group has a hole
 def __has_hole(group):

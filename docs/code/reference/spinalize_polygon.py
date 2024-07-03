@@ -14,29 +14,28 @@ entries = [
     loads('Point (282986.0463732787175104 6246628.96785963512957096)'),
 ]
 
-fig = plt.figure(1, (12, 8))
+f, axs = plt.subplots(2, 1, figsize=(12, 12), gridspec_kw={'height_ratios': [1, 2]})
 
 #############################################################
 
-sub1 = fig.add_subplot(211)
-sub1.set_title('densify=10.0 sigma=5.0', pad=10, family='sans-serif')
-sub1.axes.get_xaxis().set_visible(False)
-sub1.axes.get_yaxis().set_visible(False)
+axs[0].set_title('densify=10.0 sigma=5.0', pad=10, family='sans-serif')
+axs[0].axes.get_xaxis().set_visible(False)
+axs[0].axes.get_yaxis().set_visible(False)
 
 generalized = c4.spinalize_polygon(polygon, 10.0, 5.0, entries)
 
 poly = Path.make_compound_path(Path(numpy.asarray(polygon.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in polygon.interiors])
-sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
+axs[0].add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
 
 for g in generalized:
     path = Path(numpy.asarray(g.coords)[:, :2])
-    sub1.add_patch(PathPatch(path, facecolor="none", edgecolor='red', linewidth=1))
+    axs[0].add_patch(PathPatch(path, facecolor="none", edgecolor='red', linewidth=1))
 
 for e in entries:
     coords = e.coords[0]
-    sub1.plot(coords[0], coords[1], linestyle="", marker='o', color="red")
+    axs[0].plot(coords[0], coords[1], linestyle="", marker='o', color="red")
 
-sub1.autoscale_view()
+axs[0].autoscale_view()
 
 polygon = loads('Polygon ((282724.9445644092047587 6246450.56480667740106583, 282704.39857288071652874 6246463.22027701325714588, 282675.94321050320286304 6246479.93589389137923717, 282661.0308829503483139 6246488.66990009602159262, 282655.09644928277703002 6246492.13325823657214642, 282662.01539257436525077 6246501.90759082045406103, 282683.16633796418318525 6246489.55988507438451052, 282702.34056207479443401 6246478.11313065979629755, 282713.44319861702388152 6246472.55069546867161989, 282721.71548622305272147 6246484.31005388684570789, 282729.23046403838088736 6246495.91290224902331829, 282740.53477766981814057 6246507.84208715613931417, 282756.07100765727227554 6246522.22946271020919085, 282763.9184963388252072 6246528.81524563021957874, 282773.43231260468019173 6246535.71494169533252716, 282781.55684216966619715 6246520.70530943106859922, 282775.06089339515892789 6246516.40881332661956549, 282769.02253053092863411 6246511.65871283784508705, 282765.39986920647788793 6246508.74781729094684124, 282763.13670071098022163 6246506.75741036795079708, 282757.70669044705573469 6246501.70667825825512409, 282752.58262288302648813 6246496.2014596750959754, 282747.76273128011962399 6246490.54592775274068117, 282743.24701529974117875 6246484.74008328560739756, 282739.03635820018826053 6246478.63184136152267456, 282734.82924173708306625 6246471.91525936406105757, 282731.07882701617199928 6246464.8971685990691185, 282727.93498816550709307 6246457.88262739777565002, 282724.9445644092047587 6246450.56480667740106583))')
 entries = [
@@ -47,28 +46,27 @@ structural = [
     loads('Point (282718.53675920091336593 6246463.61226381175220013)'),
 ]
 
-sub2 = fig.add_subplot(212)
-sub2.set_title('densify=10.0 sigma=5.0 with structural point', pad=10, family='sans-serif')
-sub2.axes.get_xaxis().set_visible(False)
-sub2.axes.get_yaxis().set_visible(False)
+axs[1].set_title('densify=10.0 sigma=5.0 with structural point', pad=10, family='sans-serif')
+axs[1].axes.get_xaxis().set_visible(False)
+axs[1].axes.get_yaxis().set_visible(False)
 
 generalized = c4.spinalize_polygon(polygon, 10.0, 5.0, entries, structural)
 
 poly = Path.make_compound_path(Path(numpy.asarray(polygon.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in polygon.interiors])
-sub2.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
+axs[1].add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
 
 for g in generalized:
     path = Path(numpy.asarray(g.coords)[:, :2])
-    sub2.add_patch(PathPatch(path, facecolor="none", edgecolor='red', linewidth=1))
+    axs[1].add_patch(PathPatch(path, facecolor="none", edgecolor='red', linewidth=1))
 
 for e in entries:
     coords = e.coords[0]
-    sub2.plot(coords[0], coords[1], linestyle="", marker='o', color="red")
+    axs[1].plot(coords[0], coords[1], linestyle="", marker='o', color="red")
 
 for s in structural:
     coords = s.coords[0]
-    sub2.plot(coords[0], coords[1], linestyle="", marker='o', color="black")
+    axs[1].plot(coords[0], coords[1], linestyle="", marker='o', color="black")
 
-sub2.autoscale_view()
+axs[1].autoscale_view()
 
 plt.show()

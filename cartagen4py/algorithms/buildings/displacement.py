@@ -65,7 +65,6 @@ def random_displacement(
         # Launching the loop which will displace buildings randomly as
         # long as the rate mean is above 0 and the max trial count is not exceeded
         while rate_mean > 0 and trial <= max_trials:
-            print(rate_mean)
             # Selecting a random building index
             random_index = random.randint(0, len(indexes) - 1)
             random_building = indexes[random_index]
@@ -101,21 +100,22 @@ def random_displacement(
 
     def __get_buildings_overlapping_rate_mean(indexes, network):
         """
-        Calculate the overlapping mean rate
+        Calculate the overlapping mean rate.
         """
         # If no polygons are provided, returns 0
         if len(indexes) == 0:
             return 0
-        mean = 0
+
+        total = 0
         nb = 0
         # For each polygon, calculating the area overlapping other polygons,
         # and the network depending on a distance value
         for i in indexes:
-            mean += __get_building_overlap(i, indexes, network)
+            total += __get_building_overlap(i, indexes, network)
             nb += 1
         # Calculating the mean area
         if nb > 0:
-            mean = mean/nb
+            mean = total/nb
 
         return mean
 
@@ -130,9 +130,9 @@ def random_displacement(
         # For each buildings...
         for i in indexes:
             # Checking if it's not the same building
-            if i != indexes:
+            if i != index:
                 overlap = __get_overlapping_geometries(buffered, POLYGONS[i]['geometry'], overlap)
-
+            
         # For each network section
         for n in network:
             overlap = __get_overlapping_geometries(b, n, overlap)
@@ -196,32 +196,3 @@ def random_displacement(
         __loop(list(range(0, len(POLYGONS))), network)
 
     return gpd.GeoDataFrame(POLYGONS, crs=crs)
-
-
-# class RandomDisplacement:
-#     """
-#     Iteratively displace buildings that overlap with each other and/or a provided network.
-
-#     Parameters
-#     ----------
-#     max_trials : int optional
-#         When a building intersects an other building or the network, a random displacement is apply. If the building still
-#         intersects an other building or the network, this represents a trial.
-#         Default to 25. This means a building will be displaced 25 times and if no solution has been found, the building is not moved.
-#     max_displacement : float optional
-#         The maximal displacement in meters allowed per iteration.
-#         Default to 10.
-#     network_partitioning : list of geopandas GeoDataFrame of LineStrings
-#         A list of GeoDataFrame representing the networks which will be used for the partitioning.
-#         Default value is set to None which doesn't apply any network partitioning.
-    
-#     """
-#     def __init__(self, max_trials=25, max_displacement=10, network_partitioning=None):
-#         self.MAX_TRIALS = max_trials
-#         self.MAX_DISPLACEMENT = max_displacement
-#         self.NETWORK_PARTITIONING = network_partitioning
-
-#     def displace(self, buildings, width, *networks):
-#         """
-        
-#         """  

@@ -43,7 +43,6 @@ structural = [
 
 f, axs = plt.subplots(3, 1, figsize=(12, 16), gridspec_kw={'height_ratios': [1, 1, 3]})
 
-
 #############################################################
 
 # sub1 = fig.add_subplot(311)
