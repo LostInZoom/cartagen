@@ -44,8 +44,11 @@ Evaluate your generalised map
    :caption: API Reference
    :hidden:
 
-   algorithms
-   enrichment
+   lines
+   polygons
+   networks
+   bends
+   tools
 
 .. toctree::
    :caption: Plugin QGIS
