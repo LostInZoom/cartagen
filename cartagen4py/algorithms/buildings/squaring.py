@@ -2,10 +2,72 @@
 import numpy as np
 from shapely.geometry import Polygon
 
-# this function encapsulates the above class methods to square a collection of polygons and return the squared geometries.
-def square_polygon(polygons,max_iteration=1000, norm_tolerance=0.05,
-            right_tolerance=10, flat_tolerance=10,
-            fixed_weight=5, right_weight=100, flat_weight=50):
+def square_polygons(
+        polygons, max_iteration=1000, norm_tolerance=0.05,
+        right_tolerance=10.0, flat_tolerance=10.0,
+        fixed_weight=5, right_weight=100, flat_weight=50
+    ):
+    """
+    Polygon squaring based on the least squares method.
+
+    The least squares based polygon squaring algorithm was proposed by
+    Touya and Lokhat :footcite:p:`touya:2016` and
+    is particularly useful to square buildings.
+
+    In practice, this function iteratively tries to resolve matrices
+    equations until a threshold norm is reached and the provided
+    constraint are satisfied.
+
+    Parameters
+    ----------
+    polygons : list of Polygon
+        The shapely polygons to square.
+    max_iteration : float, optional
+        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
+        the norm tolerance threshold should be reached before the maximum number of iteration.
+    norm_tolerance : float, optional
+        The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
+    right_tolerance : float, optional
+        Tolerance in degrees to consider and angle to be right.
+    flat_tolerance : float, optional
+        Tolerance in degrees to consider and angle to be flat.
+    fixed_weight : int, optional
+        The weight of the angle constraint concerning an angle neither right nor flat.
+        A high value means those angles will be more likely to keep their value in the resulting polygon.
+    right_weight : int, optional
+        The weight of the angle constraint concerning right angles.
+        A high value means those angles will be more likely to keep their value in the resulting polygon.
+    flat_weight : int, optional
+        The weight of the angle constraint concerning flat angles.
+        A high value means those angles will be more likely to keep their value in the resulting polygon.
+
+    Returns
+    -------
+    list of Polygon
+
+    See Also
+    --------
+    building_simplification :
+        Simplification of building by edge elimination.
+
+    Notes
+    -----
+    The method of least squares is a parameter estimation method
+    in regression analysis based on minimizing the sum of the squares
+    of the residuals (a residual being the difference between an
+    observed value and the fitted value provided by a model)
+    made in the results of each individual equation.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> building = Polygon([(0, 0), (0, 1), (1.1, 1), (1, 0)])
+    >>> square_polygons([building])
+    [<POLYGON ((-0.008 0.015, 0.012 1.011, 1.061 0.989, 1.035 -0.015, -0.008 0.015))>]
+    """
     squarer = Squarer(max_iteration, norm_tolerance,
             right_tolerance, flat_tolerance, 7,
             fixed_weight, right_weight, flat_weight, 10)
@@ -14,10 +76,12 @@ def square_polygon(polygons,max_iteration=1000, norm_tolerance=0.05,
     new_geoms = []
     for vertices in list_vertices:
         new_geoms.append(Polygon(vertices))
+
     return new_geoms
 
 class Squarer:
-    """Initialize squaring object, with default weights and tolerance set in the constructor
+    """
+    Initialize squaring object, with default weights and tolerance set in the constructor
     """
     def __init__(
             self, max_iteration=1000, norm_tolerance=0.05,
@@ -152,7 +216,7 @@ class Squarer:
                 #    self.indicesHrAig.append(t)
                 #elif (dot >= -hrTol1 and dot <= -hrTol2):
                 #    self.indicesHrObt.append(t)
-        print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)}')
+        # print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)}')
         #print(f'potential angles -- R: {len(self.indicesRight)} - F: {len(self.indicesFlat)} - HRa: {len(self.indicesHrAig)} - HRo: {len(self.indicesHrObt)}')
 
 
@@ -316,7 +380,7 @@ class Squarer:
         for i in range(self.MAX_ITERATION):
             dx = self.__compute_dx(points)
             points += dx.reshape((nb_points, 2))
-            print(i, np.linalg.norm(dx, ord=np.inf))
+            # print(i, np.linalg.norm(dx, ord=np.inf))
             if np.linalg.norm(dx, ord=np.inf) < self.NORM_TOLERANCE:
                 break
         self.nb_iters = i

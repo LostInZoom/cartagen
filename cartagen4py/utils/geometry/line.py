@@ -6,9 +6,96 @@ from shapely.geometry import LineString, Point, Polygon, MultiPoint
 from cartagen4py.utils.geometry.angle import *
 from cartagen4py.utils.tessellation.hexagonal import *
 
+def douglas_peucker(line, threshold, preserve_topology=True):
+    """
+    Distance-based line simplification.
+
+    This algorithm was proposed by Ramer :footcite:p:`ramer:1972` and by Douglas and Peucker.
+    :footcite:p:`douglas:1973` It is a line filtering algorithm, which means that it
+    filters the vertices of the line (or polygon) to only retain the most important ones
+    to preserve the shape of the line. The algorithm iteratively searches the most
+    characteristics vertices of portions of the line and decides to retain
+    or remove them given a distance threshold.
+
+    The algorithm tends to unsmooth geographic lines, and is rarely used to simplify geographic features.
+    But it can be very useful to quickly filter the vertices of a line inside another algorithm.
+
+    This is a simple wrapper around :func:`shapely.simplify() <shapely.simplify()>`.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to simplify.
+    threshold : float
+        The distance thresholdto remove the vertex from the line.
+    preserve_topology : bool, optional
+        If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc).
+        The trade-off is computational expensivity.
+
+    Returns
+    -------
+    LineString
+
+    See Also
+    --------
+    visvalingam_whyatt :
+        Area-based line simplification.
+    raposo :
+        Hexagon-based line simplification.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> douglas_peucker(line, 1.0)
+    <LINESTRING (0 0, 2 0, 5 3)>
+    """
+    return shapely.simplify(line, threshold, preserve_topology=preserve_topology)
+
 def visvalingam_whyatt(line, area_tolerance):
     """
-    Visvalingam-Whyatt algorithm (1993)
+    Area-based line simplification.
+
+    This algorithm proposed by Visvalingam and Whyatt :footcite:p:`visvalingam:1993` performs a
+    line simplification that produces less angular results than the filtering algorithm of Ramer-Douglas-Peucker.
+    The principle of the algorithm is to select the vertices to delete (the less characteristic ones)
+    rather than choosing the vertices to keep (in the Douglas and Peucker algorithm).
+    To select the vertices to delete, there is an iterative process,
+    and at each iteration, the triangles formed by three consecutive vertices are computed. If the area of the smallest
+    triangle is smaller than a threshold (“area_tolerance” parameter), the middle vertex is deleted, and another iteration starts.
+
+    The algorithm is relevant for the simplification of natural line or polygon features such as rivers, forests, or coastlines.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to simplify.
+    area_tolerance : float
+        The minimum triangle area to keep a vertex in the line.
+
+    Returns
+    -------
+    LineString
+
+    See Also
+    --------
+    douglas_peucker :
+        Distance-based line simplification.
+    raposo :
+        Hexagon-based line simplification.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> visvalingam_whyatt(line, 5.0)
+    <LINESTRING (0 0, 2 0, 5 3)>
     """
     def contains_another_point(line, pt, index):
         first = line.coords[index-1]
@@ -53,12 +140,64 @@ def visvalingam_whyatt(line, area_tolerance):
 
     return LineString(tuple(final_coords))
 
-def raposo_simplification(line, initial_scale, final_scale, centroid=True, tobler=False):
+def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
-    Raposo simplification algorithm (2010): uses an hexagonal tessallation, with a size related to the final scale, 
-    and the algorithm only retains one vertex per hexagonal cell. Be careful, it uses the scale as parameter. If the centroid parameter 
-    is True, the vertices inside an hexagon cell are replaced by the centroid of the cell; if it is False, they are replaced by the nearest
-    vertex to the centroid of the cell.
+    Hexagon-based line simplification.
+    
+    This algorithm proposed by Raposo :footcite:p:`raposo:2013` simplifies lines based on a
+    hexagonal tessellation. The algorithm also works for the simplification of the border of a polygon object.
+    The idea of the algorithm is to put a hexagonal tessallation on top of the line to simplify,
+    the size of the cells depending on the targeted granularity of the line.
+    Similarly to the Li-Openshaw algorithm, only one vertex is kept inside each cell.
+    This point can be the centroid of the removed vertices, or a projection on the initial line of this centroid.
+    The shapes obtained with this algorithm are less sharp than the ones obtained with other algorithms such as Douglas-Peucker.
+
+    The algorithm is dedicated to the smooth simplification of natural features such as rivers, forests, coastlines, lakes.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to simplify.
+    initial_scale : float
+        Initial scale of the provided line (25000.0 for 1:25000 scale).
+    final_scale : float
+        Final scale of the simplified line.
+    centroid : bool, optional
+        If true, uses the center of the hexagonal cells as the new vertex,
+        if false, the center is projected on the nearest point in the initial line.
+    tobler : bool, optional
+        If True, compute cell resolution based on Tobler’s formula, else uses Raposo's formula
+
+    Returns
+    -------
+    LineString   
+
+    See Also
+    --------
+    douglas_peucker :
+        Distance-based line simplification.
+    visvalingam_whyatt :
+        Area-based line simplification.
+
+    Notes
+    -----
+    The Tobler based formula to compute hexagonal cell size is :math:`cellsize=5·l·s`
+    where :math:`l` is the width of the line in the map in meters
+    (*e.g.* 0.0005 for 0.5 mm), and :math:`s` is the target scale denominator.
+
+    Raposo’s formula to compute hexagonal cell size is :math:`cellsize={l/n}·{t/d}`
+    where :math:`l` is the length of the line, :math:`n` the number of vertices of the line,
+    :math:`t` the denominator of the target scale, and :math:`d` the denominator of the initial scale.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> c4.raposo(line, 5000, 10000)
+    <LINESTRING (0 0, 1 0.3333333333333333, 5 3)>
     """
     width = 0
     if tobler:
@@ -126,22 +265,40 @@ def __li_openshaw_simplification(line, cell_size):
     return line
     
 
-def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_extremities=False):
+def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
     """
-    Compute the gaussian smoothing of a set of a LineString.
+    Smooth a line and attenuate its inflexion points.
+
+    The gaussian smoothing has been studied by Babaud *et al.* :footcite:p:`babaud:1986`
+    for image processing, and by Plazanet :footcite:p:`plazanet:1996`
+    for the generalisation of cartographic features.
+
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to smooth.
-    sigma : float optional
-        Gaussian filter strength.
-        Default value to 30, which is a high value.
-    sample : float optional
+    sigma : float, optional
+        Gaussian filter strength. Default value to 30, which is a high value.
+    sample : float, optional
         The length in meter between each nodes after resampling the line.
         If not provided, the sample is derived from the line and is the average distance between
         each consecutive vertex.
-    densify : boolean optional
+    densify : bool, optional
         Whether the resulting line should keep the new node density. Default to True.
+
+    Returns
+    -------
+    LineString
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> c4.gaussian_smoothing(line, 1)
+    <LINESTRING (0 0, 1.666666666666667 0.6051115971014416, 3.333333333333334 1.6051115971014418, 5 3)>
     """
     # Extend the given set of points at its first and last points of k points using central inversion.
     def extend(line, interval):
@@ -171,11 +328,8 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_ext
 
         return LineString(result)
    
-    if sigma is None:
-        sigma = 30
-
+    coords = list(line.coords)
     if sample is None:
-        coords = list(line.coords)
         distances = []
         for i in range(0, len(coords) - 1):
             v1, v2 = coords[i], coords[i + 1]
@@ -248,20 +402,32 @@ def gaussian_smoothing(line, sigma=None, sample=None, densify=True, preserve_ext
                 done.append(nearest)
             else:
                 final_coords.append(point)
-        
-    if preserve_extremities:
-        final_coords[0] = Point(coords[0])
-        final_coords[-1] = Point(coords[-1])
+    
+    # Replace first and last vertex by the line's original ones
+    final_coords[0] = Point(coords[0])
+    final_coords[-1] = Point(coords[-1])
     
     return LineString(final_coords)
 
 def get_bend_side(line):
     """
-    Return the side of the interior of the bend regarding the line direction. (left or right)
+    Return the side of the interior of the bend.
+
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to get the bend side from.
+
+    Returns
+    -------
+    side : str
+        'right' or 'left'
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0)])
+    >>> get_bend_side(line)
+    right
     """
     # Get the list of nodes
     coords = list(line.coords)
@@ -344,17 +510,46 @@ def polygons_3d_to_2d(polygons):
        polygons_2d.append(Polygon(coords_2d,interiors))
     return polygons_2d
 
-def resample_line(line, step):
+def densify_line(line):
+    """"""
+
+def resample_line(line, step, keep_vertices=False):
     """
-    Densifies a line with vertices every 'step' along the line. Keep the start and end vertex.
+    Densify a line by adding vertices.
+
+    This function densifies a line by adding a vertex every 'step' along the line.
+    It preserves the first and last vertex of the line.
+    
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to densify.
     step : float
-        The step (in meters) to resample the geometry
+        The step (in meters) to resample the geometry.
+    keep_vertices : bool, optional
+        If set to true, original vertices of the line are kept.
+        This is useful to keep the exact same geographical shape.
+
+    Returns
+    -------
+    LineString
+
+    Examples
+    --------
+    >>> line = LineString([(1, 1), (5, 1)])
+    >>> resample_line(line, 1)
+    <LINESTRING (1 1, 2 1, 3 1, 4 1, 5 1)>
     """
 
+    coords = list(line.coords)
+    original = []
+
+    if keep_vertices:
+        for i in range(1, len(coords) - 1):
+            c = coords[i]
+            d = shapely.line_locate_point(line, shapely.Point(c))
+            original.append((c, d))
+    
     # Get the length of the line
     length = line.length 
     
@@ -362,6 +557,15 @@ def resample_line(line, step):
     xy = [(line.coords[0])]
     
     for distance in np.arange(step, int(length), step):
+        if keep_vertices:
+            remove = 0
+            for i, o in enumerate(original):
+                if o[1] < distance:
+                    xy.append(o[0])
+                    remove += 1
+            for r in range(0, remove):
+                original.pop(0)
+
         # Interpolate a point every step along the old line
         point = line.interpolate(distance)
         # Add the tuple of coordinates
@@ -370,7 +574,7 @@ def resample_line(line, step):
     # Add the last point of the line if it doesn't already exist
     if xy[-1] != line.coords[-1]:
         xy.append(line.coords[-1])
-    
+        
     # Here, we return a new line with densified points.
     return LineString(xy)
 
@@ -545,16 +749,32 @@ def merge_linestrings(line1, line2):
     else:
         raise Exception("Provided LineStrings are not connected by their start or end vertex.")
 
-def get_inflexion_points(line, min_dir=120.0):
+def inflexion_points(line, min_dir=120.0):
     """
-    This algorithm extract inflexion points from a LineString object and return a list of index of inflexion points.
+    Detect inflexion points inside a curved line.
+
+    This algorithm extract inflexion points from a line using
+    angles calculation. Micro inflexions are removed.
+
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to extract the inflexion points from.
-    min_dir : float
+    min_dir : float, optional
         The minimum direction change (in degrees) between two consecutive inflexion points.
-        This parameter allows to remove micro inflexions from the results.
+        This parameter allows to remove micro inflexions from the results. If set to 0,
+        every micro-inflexions will be kept.
+
+    Returns
+    -------
+    list of int
+        A list of index of the line vertices considered to be inflexion points
+    
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3), (8, 5)])
+    >>> c4.inflexion_points(line)
+    [2, 3]
     """
 
     coords = list(line.coords)
@@ -592,7 +812,8 @@ def get_inflexion_points(line, min_dir=120.0):
             if angle != prevangle:
                 # Check that the previous direction has been calculated
                 if prevdir is not None:
-                    # If the absolute difference between the previous direction and the current one is above the direction threshold
+                    # If the absolute difference between the previous direction and
+                    # the current one is above the direction threshold
                     # It means that this is not a micro inflexion
                     if abs(prevdir - direction) > min_dir:
                         # Adding the middle of the part list, i.e. the middle of the micro inflexions

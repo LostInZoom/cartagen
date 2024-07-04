@@ -8,35 +8,104 @@ from cartagen4py.utils.geometry.skeletonization import *
 
 def max_break(line, offset, exaggeration=1.0):
     """
-    Apply the max break algorithm (Mustière, 2001) to a shapely LineString.
-    It first finds the side of the road bend and dilates the line accordingly.
-    Returns the dilated shapely LineString.
-    The exagerration is a multiplication factor that amplifies the dilatation.
+    Spread a road bend and keep its shape.
+
+    This algorithm was proposed by  Mustière. :footcite:p:`mustiere:2001`
+    It first finds the side of the road bend and
+    dilates the line on its exterior side.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to dilate.
+    offset : float
+        The distance to dilate.
+    exaggeration : float, optional
+        A multiplicator for the offset parameter.
+
+    Returns
+    -------
+    LineString
+
+    See Also
+    --------
+    detect_pastiness :
+        Detect the pastiness of a series of bends.
+    min_break :
+        Spread a road bend and minimize its extent.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (3, 3), (6, 0)])
+    >>> max_break(line, 1.0)
+    <LINESTRING (-0.707 0.707, 2.293 3.707, 2.426 3.819...)>
     """
 
     # Get the side of the bend
     side = get_bend_side(line)
 
     # Change the offset in case of left sided bend
-    if side == 'right':
-        offset = - offset
+    if side == 'left':
+        offset = -offset
 
     # Dilate the bend
-    dilated = offset_curve(line, offset*exaggeration, cap_style='flat', quad_segs=8)
+    dilated = dilate_line(line, offset*exaggeration, cap_style='flat', quad_segs=8)
     
-    return shapely.LineString(dilated[0])
+    return dilated[0]
 
-def min_break(line, offset, sigma, threshold):
+def min_break(line, offset, sigma=30, sample=None):
     """
-    Apply the min break algorithm (Mustière, 2001) to a shapely LineString.
+    Spread a road bend and minimize its extent.
+
+    This algorithm was proposed by  Mustière. :footcite:p:`mustiere:2001`
+    It mimics the cartographic technique of overlapping the internal border of the bend.
+
     It creates a polygon from the linestring by closing it at it extremities,
-    then it calculates the TIN skeleton, dilates it and returns the new line.
+    then it calculates the TIN skeleton, dilates it apply a gaussian smoothing.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to dilate.
+    offset : float
+        The distance to dilate the skeleton.
+    sigma : float, optional
+        Gaussian smoothing strength.
+    sample : int, optional
+        Gaussian smoothing sample size.
+
+    Returns
+    -------
+    LineString
+
+    See Also
+    --------
+    detect_pastiness :
+        Detect the pastiness of a series of bends.
+    max_break :
+        Spread a road bend and keep its shape.
+    gaussian_smoothing :
+        Smooth a line and attenuate its inflexion points.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (3, 3), (6, 0)])
+    >>> min_break(line, 1.0)
+    <LINESTRING (5 0, 5 1, 5 2, 4.97 2.347, 4.879 2.684...)>
     """
 
     # Create the offset of the skeleton
     def __offset(line, offset):
         # Calculate the offset points along the line
-        groups = offset_points(list(line.coords), offset)
+        groups = offset_line(line, offset)
 
         # Remove the circle projection from the first node
         groups[0]['projected'] = groups[0]['projected'][-1:]
@@ -135,32 +204,35 @@ def min_break(line, offset, sigma, threshold):
                     else:
                         skeleton = merge_linestrings(skeleton, l)
 
-    # Get the nodes of the skeleton without the last one
-    coords = list(skeleton.coords)
+        # Get the nodes of the skeleton without the last one
+        coords = list(skeleton.coords)
 
-    # Reverse the skeleton direction if the entry point is a the end of the skeleton
-    if middle == coords[-1]:
-        coords.reverse()
+        # Reverse the skeleton direction if the entry point is a the end of the skeleton
+        if middle == coords[-1]:
+            coords.reverse()
+        else:
+            # Raise an error if the entry point doesn't match the start of the skeleton
+            if middle != coords[0]:
+                raise Exception('There is problem with the generated skeleton.')
+
+        # Remove the last node of the skeleton as it represents the other entry point
+        coords.pop()
+
+        # Reconstruc the line
+        newline = shapely.LineString(coords)
+
+        # Apply a gaussian smoothing to the line before offset
+        newline = gaussian_smoothing(newline, sigma, sample)
+
+        # Calculate the offset points along the skeleton
+        left = list(__offset(newline, -offset)[0].coords)
+        right = list(__offset(newline, offset)[0].coords)
+
+        # Reverse the order on the right side
+        right.reverse()
+
+        # Return the line formed by the merging of left and right dilation
+        return shapely.LineString(left + right)
+
     else:
-        # Raise an error if the entry point doesn't match the start of the skeleton
-        if middle != coords[0]:
-            raise Exception('There is problem with the generated skeleton.')
-
-    # Remove the last node of the skeleton as it represents the other entry point
-    coords.pop()
-
-    # Reconstruc the line
-    newline = shapely.LineString(coords)
-
-    # Apply a gaussian smoothing to the line before offset
-    newline = gaussian_smoothing(newline, sigma, threshold)
-
-    # Calculate the offset points along the skeleton
-    left = __offset(newline, -offset)[0]
-    right = __offset(newline, offset)[0]
-
-    # Reverse the order on the right side
-    right.reverse()
-
-    # Return the line formed by the merging of left and right dilation
-    return shapely.LineString(left + right)
+        return line

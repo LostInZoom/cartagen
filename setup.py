@@ -8,7 +8,7 @@ if sys.version_info[:2] < (3, 8):
 
 # General informations
 name = 'cartagen4py'
-version = '0.3'
+version = '0.3.4'
 description = 'Python package to generalise geographic objects for cartographic purposes'
 url = 'https://github.com/LostInZoom/cartagen4py'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
@@ -22,8 +22,8 @@ packages = [
     'cartagen4py.algorithms.lines',
     'cartagen4py.algorithms.network',
     'cartagen4py.algorithms.points',
-    'cartagen4py.data_enrichment',
-    'cartagen4py.data_enrichment.network',
+    'cartagen4py.enrichment',
+    'cartagen4py.enrichment.network',
     'cartagen4py.evaluation',
     'cartagen4py.processes',
     'cartagen4py.processes.AGENT.actions',
@@ -34,7 +34,7 @@ packages = [
     'cartagen4py.utils.attributes',
     'cartagen4py.utils.clustering',
     'cartagen4py.utils.geometry',
-    'cartagen4py.utils.graph',
+    'cartagen4py.utils.network',
     'cartagen4py.utils.math',
     'cartagen4py.utils.network',
     'cartagen4py.utils.partitioning',
@@ -53,9 +53,9 @@ install_requires = [
 
 # Meta informations
 keywords = [
-    'Generalization',
+    'Generalisation',
     'Cartography',
-    'cartographic generalization',
+    'cartographic generalisation',
 ]
 platforms = ['Linux', 'Mac OSX', 'Windows', 'Unix']
 classifiers = [

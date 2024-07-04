@@ -11,7 +11,8 @@ class ConstraintMethod:
     Parameters
     ----------
     max_iteration : int optional
-        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set, the norm tolerance threshold should be reached before the maximum number of iteration.
+        This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
+        the norm tolerance threshold should be reached before the maximum number of iteration.
         Default value is set to 1000.
     norm_tolerance : float optional
         The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
@@ -43,9 +44,9 @@ class ConstraintMethod:
         self.__DISTANCES = np.ndarray((0, 0))
         self.__CONFLICTS = np.ndarray((0, 0))
         
-        # List of future objects added to the generalization
+        # List of future objects added to the generalisation
         self.__OBJECTS = []
-        # The same list of objects once the generalization has been made
+        # The same list of objects once the generalisation has been made
         self.__RESULTS = []
         # Stores weights as entered by the user with the add() method
         self.__WEIGHTS = []
@@ -68,7 +69,7 @@ class ConstraintMethod:
 
     def add(self, *objects, **weights):
         """
-        Add one or multiple geographic object for preparation before the generalization. If multiple objects are provided, they must have the same geometry type.
+        Add one or multiple geographic object for preparation before the generalisation. If multiple objects are provided, they must have the same geometry type.
         Parameters
         ----------
         object : **Geopandas**, *GeoSerie*.
@@ -110,7 +111,7 @@ class ConstraintMethod:
 
             # Add the object for safe keeping
             self.__OBJECTS.append(o)
-            # Add the object for generalization
+            # Add the object for generalisation
             self.__RESULTS.append(o)
 
     def __reconstruct_weights(self, geomtype, **weights):
@@ -150,7 +151,7 @@ class ConstraintMethod:
         Parameters
         ----------
         distances : **Numpy**, *ndarray*.
-            A numpy ndarray of dimension (x, x) where x is the number of objects added to the constraint method object before generalization.
+            A numpy ndarray of dimension (x, x) where x is the number of objects added to the constraint method object before generalisation.
             Value at index (i, j) must be the same as the value at index (j, i) and represents the distance between geographic objects added
             in the order they were added. 
         spatial_weights : **Numpy**, *ndarray*.
@@ -192,7 +193,7 @@ class ConstraintMethod:
 
     def generalize(self, network_partitioning=False):
         """
-        Launch the constraint generalization on the added objects.
+        Launch the constraint generalisation on the added objects.
         """
         # Checks if objects are present
         if len(self.__OBJECTS) < 1:
@@ -1200,6 +1201,6 @@ class ConstraintMethod:
         
     def get_objects_number(self):
         """
-        Return the number of objects added to the generalization algorithm.
+        Return the number of objects added to the generalisation algorithm.
         """
         return len(self.__OBJECTS)

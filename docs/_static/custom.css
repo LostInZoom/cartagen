@@ -1,12 +1,14 @@
 /*Copied from sphinx' basic.css to ensure the sphinx >2.0 docstrings are
 rendered somewhat properly (xref https://github.com/numpy/numpydoc/issues/215) */
 
-.classifier {
-    font-style: oblique;
+.reference {
+    text-decoration: none;
 }
 
-.classifier:before {
-    font-style: normal;
-    margin: 0.5em;
-    content: ":";
+.table tbody {
+ background-color: white;
+}
+
+.table tbody tr:hover {
+    background-color: white;
 }

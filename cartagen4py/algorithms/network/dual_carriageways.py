@@ -7,19 +7,35 @@ from cartagen4py.utils.network import *
 
 def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None):
     """
-    Collapse dual carriageways using the polygon skeleton made from a Delaunay Triangulation.
+    Collapse dual carriageways using a TIN skeleton.
+
+    This algorithm proposed by Thom :footcite:p:`thom:2005`
+    collapses the network faces considered as dual carriageways
+    using a skeleton calculated from a Delaunay triangulation.
+
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings.
-        The road network where dual carriageways will be collapsed.
-    carriageways : geopandas GeoDataFrame of Polygons.
+    roads : GeoDataFrame of LineString
+        The road network.
+    carriageways : GeoDataFrame of Polygon
         The polygons representing the faces of the network detected as dual carriageways.
-    sigma : float, optional.
-        If not None, apply a gaussian smoothing to the collapsed dual carriageways to avoid jagged lines that can be created during the TIN skeleton creation.
-        Default value is set to None which doesn't apply any smoothing.
-    propagate_attributes : list of str, optional.
-        Propagate the provided list of column name to the resulting network. The propagated attribute is the one from the longest line.
-        Default value is set to None. 
+    sigma : float, optional
+        If not None, apply a gaussian smoothing to the collapsed dual carriageways to
+        avoid jagged lines that can be created during the TIN skeleton creation.
+    propagate_attributes : list of str, optional
+        Propagate the provided list of column name to the resulting network.
+        The propagated attribute is the one from the longest line.
+
+    See Also
+    --------
+    detect_dual_carriageways : 
+        Detect dual carriageways inside a road network.
+    skeletonize_network :
+        Blends a TIN skeleton inside a road network.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Retrieve crs for output
     crs = roads.crs
@@ -171,11 +187,12 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
             skeleton.create_network()
             skeleton.blend(attributes, sigma=sigma)
             skeletons.append(skeleton)
-            
+
             # Storing the original geometries of the crossroad
             originals.extend(crossroad.original)
 
         else:
+            # Add None to keep the order of the indexes
             skeletons.append(None)
 
     # Here, carriageways connected by their short sides are treated
@@ -325,7 +342,8 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
 
             # Here, there is no incoming line, which means both interior lines can be merged along with the junction line
             else:
-                # TODO: handle this situation by updating geometries somewhere... This line is one long line which is both skeletons middle lines merged together.
+                # TODO: handle this situation by updating geometries somewhere...
+                # This line is one long line which is both skeletons middle lines merged together.
                 # This situation should not appear.
                 merged = merge_linestrings(merge_linestrings(line1, linejunction), line2)
 

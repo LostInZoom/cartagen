@@ -1,6 +1,6 @@
-======================
-CartAGen4Py
-======================
+========
+CartAGen
+========
 
 .. Documentation at RTD — https://readthedocs.org
 
@@ -32,17 +32,27 @@ Enrich your cartographic data
 Evaluate your generalised map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 .. toctree::
-   :caption: CartAGen4Py
+   :caption: User Guide
    :hidden:
 
    installation_py
-   user_guide
+   manual
+   bibliography
 
 .. toctree::
-   :caption: CartAGen4QGIS
+   :caption: API Reference
+   :hidden:
+
+   points
+   lines
+   polygons
+   networks
+   bends
+   tools
+
+.. toctree::
+   :caption: Plugin QGIS
    :hidden:
 
    installation_qgis
-   cartagen4qgis

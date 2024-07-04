@@ -15,7 +15,7 @@ p1 = gp.GeoSeries(points)
 gdf = gp.GeoDataFrame(geometry=gp.GeoSeries(p1))
 gdf['value'] = values
 
-output, qtree = c4.quadtree_point_set_reduction(gdf, 2, 'selection', attribute='value')
+output, qtree = c4.reduce_points_quadtree(gdf, 2, 'selection', attribute='value')
 
 xmin, ymin, xmax, ymax = qtree.envelope.bounds
 length = max(xmax - xmin, ymax - ymin)
