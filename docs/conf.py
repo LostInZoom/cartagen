@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'cartagen4py'
 copyright = '2024, IGN, Univ Gustave Eiffel'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
-release = '0.3.4'
+release = '0.3.5'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
