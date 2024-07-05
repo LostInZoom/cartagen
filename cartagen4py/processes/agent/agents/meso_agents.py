@@ -4,27 +4,39 @@ from cartagen4py.enrichment.building_measures import *
 from cartagen4py.enrichment.urban.block_measures import *
 
 class BlockAgent(MesoAgent):
+    """
+    Agent for building blocks generalisation.
 
+    Create an object to generalise building blocks within the AGENT process.
+
+    Parameters
+    ----------
+    feature : GeoSeries of Polygon
+        The building blocks to create the agent from.
+    importance : int, optional
+        Importance of the agent within the process.
+
+    See Also
+    --------
+    run_agents:
+        Execute the AGENT process.
+    """
     triangulation = None
-
     def __init__(self, feature, components, sections, importance=1):
         super().__init__(feature,components)
         self.importance = importance
         self.initial_geom = feature['geometry']
         self.sections = sections
 
+    # Gets the simulated density of the block taking into account the road symbol and the future size 
+    # of the buildings once they are generalised.
+    # ----------
+    # building_min_size : float
+    #     The minimum size in m² of the buildings at the target scale.
+    # road_sizes : list of floats
+    #     a lists of symbol widths for all the sections around the block. 
+    #     The list uses the same order as the sections around the block.
     def get_simulated_density(self, building_min_size, road_sizes):
-        """
-        Gets the simulated density of the block taking into account the road symbol and the future size 
-        of the buildings once they are generalised.
-        ----------
-        building_min_size : float
-            The minimum size in m² of the buildings at the target scale.
-        road_sizes : list of floats
-            a lists of symbol widths for all the sections around the block. 
-            The list uses the same order as the sections around the block.
-        """
-
         if len(self.components) == 0:
             return 0.0
         
@@ -60,15 +72,12 @@ class BlockAgent(MesoAgent):
         self.triangulation = block_triangulation(buildings, roads, 30)
         return self.triangulation
     
+    # Computes the initial density of the block (with the initial size of the building), before generalisation.
+    # ----------
+    # road_sizes : list of floats
+    #     a lists of symbol widths for all the sections around the block. 
+    #     The list uses the same order as the sections around the block. 
     def get_initial_density(self, road_sizes):
-        """
-        Computes the initial density of the block (with the initial size of the building), before generalisation.
-        ----------
-        road_sizes : list of floats
-            a lists of symbol widths for all the sections around the block. 
-            The list uses the same order as the sections around the block.        
-        """
-
         if len(self.components) == 0:
             return 0.0
         

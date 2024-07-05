@@ -5,5 +5,3 @@
 .. autoclass:: {{ objname }}
    :members:
    :inherited-members:
-
-.. plot:: code/reference/{{ objname }}.py

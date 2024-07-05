@@ -70,7 +70,7 @@ napoleon_preprocess_types = True
 napoleon_use_rtype = False
 napoleon_type_aliases = {
     "GeoDataFrame": ":class:`GeoDataFrame <geopandas.GeoDataFrame>`",
-    "GeoSeries": "geopandas.GeoSeries",
+    "GeoSeries": ":class:`GeoSeries <geopandas.GeoSeries>`",
 }
 
 bibtex_bibfiles = ['bibliography.bib']
@@ -81,7 +81,9 @@ plot_rcparams = {
 
 numpydoc_show_class_members = False
 autosummary_generate = True
-remove_from_toctrees = ["reference/*"]
+remove_from_toctrees = [
+    "reference/*"
+]
 
 def rstjinja(app, docname, source):
     """

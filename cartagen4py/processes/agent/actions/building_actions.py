@@ -5,9 +5,8 @@ from shapely import affinity
 from shapely.geometry import Polygon
 
 class EnlargementAction(GeneralisationAction):
-    goal_area = 0.0
-
-    def __init__(self, constraint, agent, weight, goal_area):
+    """Building enlargement action."""
+    def __init__(self, constraint, agent, weight, goal_area=0.0):
         self.weight = weight
         self.agent = agent
         self.constraint = constraint
@@ -21,9 +20,8 @@ class EnlargementAction(GeneralisationAction):
         self.agent.feature['geometry'] = affinity.scale(geom, xfact= factor, origin=geom.centroid)
 
 class EnlargeToRectangleAction(GeneralisationAction):
-    goal_area = 0.0
-
-    def __init__(self, constraint, agent, weight, goal_area):
+    """Building rectangle enlargement action."""
+    def __init__(self, constraint, agent, weight, goal_area=0.0):
         self.weight = weight
         self.agent = agent
         self.constraint = constraint
@@ -38,9 +36,8 @@ class EnlargeToRectangleAction(GeneralisationAction):
         self.agent.feature['geometry'] = affinity.scale(ssr, xfact= factor, origin=ssr.centroid)
 
 class SimplificationAction(GeneralisationAction):
-    edge_threshold = 0.0
-
-    def __init__(self, constraint, agent, weight, edge_threshold):
+    """Building simplification action."""
+    def __init__(self, constraint, agent, weight, edge_threshold=0.0):
         self.weight = weight
         self.agent = agent
         self.constraint = constraint
@@ -54,7 +51,7 @@ class SimplificationAction(GeneralisationAction):
         self.agent.feature['geometry'] = new_geom
 
 class SquaringAction(GeneralisationAction):
-    
+    """Building squaring action."""
     def __init__(self, constraint, agent, weight):
         self.weight = weight
         self.agent = agent

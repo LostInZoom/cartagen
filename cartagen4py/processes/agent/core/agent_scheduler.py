@@ -1,7 +1,30 @@
 from cartagen4py.processes.agent import *
 
 def run_agents(agents, lifecycle='basic', store_states=False, verbose=0):
-    
+    """
+    Execute the generalisation process on the given agents.
+
+    This function executes the AGENT process on the given list of agents.
+
+    Parameters
+    ----------
+    agents : list of Agent
+        The agents to use for generalisation.
+    lifecycle : str, optional
+        Type of life cycle to apply on the agents.
+    store_states : bool, optional
+        If True, the function will output all intermediate states
+        of the agents.
+    verbose : int, optional
+        Verbose level.
+    """
+    accepted_lifecycles = [
+        'basic'
+    ]
+
+    if lifecycle not in accepted_lifecycles:
+        raise Exception('Lifecycle type not handled: {0}'.format(lifecycle))
+
     while (len(agents) != 0):
         agent = agents.pop()
         

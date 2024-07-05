@@ -1,6 +1,7 @@
 from cartagen4py.processes.agent.core.agent_scheduler import *
 
 class GeneralisationAction():
+    """Abstract action class."""
     weight = 0
     constraint = None
     agent = None
@@ -21,7 +22,7 @@ class GeneralisationAction():
         pass
 
 class DeletionAction(GeneralisationAction):
-    
+    """Entity deletion action."""
     def __init__(self, constraint, agent, weight):
         self.weight = weight
         self.agent = agent
@@ -33,7 +34,7 @@ class DeletionAction(GeneralisationAction):
         self.agent.deleted = True
 
 class MesoMicroActivation(GeneralisationAction):
-
+    """Meso and micro agent activation action."""
     def __init__(self, constraint, agent, weight):
         self.weight = weight
         self.agent = agent

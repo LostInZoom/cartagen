@@ -2,10 +2,10 @@ import itertools
 
 class Agent:
     newid = itertools.count()
-    id
+    # id
     lifecycle = None
     satisfaction = 1.0
-    constraints=[]
+    __constraints = []
     actions_to_try = []
     actions_tried = []
     deleted = False
@@ -18,13 +18,30 @@ class Agent:
         self.id = next(Agent.newid)
         self.feature = feature
 
+    @property
+    def constraints(self):
+        """Returns the constraints of the process."""
+        return self.__constraints
+
+    def add_constraints(self, *constraints):
+        """
+        Set one or multiple constraints to the process.
+
+        Parameters
+        ----------
+        *constraints : GeneralisationConstraint
+            Generalisation constraints to apply to this agent.
+        """
+        for c in constraints:
+            self.__constraints.append(c)
+
     def clean(self):
-        self.constraints = []
+        self.__constraints = []
         self.actions_to_try = []
 
     # compute the satisfaction of the agent from the satisfactions of its constraints
     def compute_satisfaction(self):
-        nb = len(self.constraints)
+        nb = len(self.__constraints)
 
         if nb == 0 or self.deleted:
             self.satisfaction = 1.0
@@ -32,7 +49,7 @@ class Agent:
         
         sum = 0.0
         imp_sum = 0.0
-        for constraint in self.constraints:
+        for constraint in self.__constraints:
             constraint.compute_satisfaction()
             if self.verbose:
                 print("satisfaction for constraint {}: {}".format(constraint.type, constraint.satisfaction))
@@ -85,7 +102,7 @@ class Agent:
             return
         
         self.actions_to_try.clear()
-        for constraint in self.constraints:
+        for constraint in self.__constraints:
             if constraint.satisfaction >= 100:
                 continue
 
@@ -113,8 +130,8 @@ class MesoAgent(Agent):
         for micro in components:
             self.components.append(micro)
 
+    # Compute the mean satisfaction of the components of the meso agent
     def get_components_satisfaction(self):
-        """Compute the mean satisfaction of the components of the meso agent"""
         nb = 0
         sum = 0
         for micro in self.components:
@@ -129,18 +146,18 @@ class MesoAgent(Agent):
             return 100
         return sum / nb
     
+    # From a sublist of the components of the meso agent,
+    # returns the best one to activate as a micro agent.
+    # The default implementation returns the first of the list,
+    # whatever the satisfaction of the agent, or any kind of priority.
     def get_best_component_to_activate(self, components):
-        """From a sublist of the components of the meso agent, returns the best one to activate as a micro agent.
-            The default implementation returns the first of the list, whatever the satisfaction of the agent, or any kind of priority.
-        """
         return components[0]
     
+    # manages the side effects inside the meso if necessary
+    # ----------
+    # last_micro : Agent
+    #     The last modified internal micro agent.
     def manage_internal_side_effects(self, last_micro):
-        """manages the side effects inside the meso if necessary
-        ----------
-        last_micro : Agent
-            The last modified internal micro agent.
-        """
         # by default, do nothing
         return
     
