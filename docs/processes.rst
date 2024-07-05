@@ -20,7 +20,6 @@ For a better understanding of the AGENT process, you can refer to
 Barrault *et al.* :footcite:p:`barrault:2001`, Ruas & Duchêne :footcite:p:`ruas:2007`
 and Duchêne *et al.* :footcite:p:`duchene:2018`
 
-
 .. currentmodule:: cartagen4py
 
 .. autosummary::
@@ -59,5 +58,15 @@ Building blocks
     :toctree: reference/
 
     BlockAgent
+
+*****
+GALBE
+*****
+
+GALBE (Généralisation Adaptative du Linéaire Basée sur l'Empâtement - Adaptative Linear Generalisation based on Pastiness)
+is a process proposed by Mustière. :footcite:p:`mustiere:2001`
+It is specialised in sinuous roads generalisation and rely on the detection of the
+pastiness of a line, *i.e.* whether the line symbol overlaps itself.
+If the line symbol overlaps itself on on side or on two side, it applies different generalisation algorithms.
 
 .. footbibliography::

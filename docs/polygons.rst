@@ -31,3 +31,15 @@ Collapsing
     skeletonize_network
     spinalize_polygon
     spinalize_polygons
+
+Measures
+--------
+
+.. currentmodule:: cartagen4py
+
+.. autosummary::
+    :toctree: reference/
+
+    polygon_elongation
+    polygon_compactness
+    polygon_concavity

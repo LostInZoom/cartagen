@@ -16,7 +16,7 @@ line = c4.gaussian_smoothing(line, sigma=10, sample=10)
 
 #############################################################
 
-tolerance = 10
+tolerance = 20
 
 sub1 = fig.add_subplot(311)
 sub1.set_title('a) Tolerance = {0}'.format(tolerance), pad=10, family='sans-serif')
@@ -40,7 +40,7 @@ sub1.autoscale_view()
 
 #############################################################
 
-tolerance = 20
+tolerance = 30
 
 sub2 = fig.add_subplot(312)
 sub2.set_title('b) Tolerance = {0}'.format(tolerance), pad=10, family='sans-serif')
@@ -64,7 +64,7 @@ sub2.autoscale_view()
 
 #############################################################
 
-tolerance = 30
+tolerance = 50
 
 sub3 = fig.add_subplot(313)
 sub3.set_title('c) Tolerance = {0}'.format(tolerance), pad=10, family='sans-serif')

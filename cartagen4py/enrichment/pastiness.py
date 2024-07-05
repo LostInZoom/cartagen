@@ -5,7 +5,7 @@ import pprint
 from cartagen4py.utils.geometry.dilation import *
 from cartagen4py.utils.geometry.line import *
 
-def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
+def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
     """
     Detect the pastiness of a series of bends.
 
