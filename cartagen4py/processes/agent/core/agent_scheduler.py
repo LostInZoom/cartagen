@@ -1,4 +1,4 @@
-from cartagen4py.processes.AGENT import *
+from cartagen4py.processes.agent import *
 
 def run_agents(agents, lifecycle='basic', store_states=False, verbose=0):
     

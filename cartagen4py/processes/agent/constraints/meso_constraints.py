@@ -1,6 +1,6 @@
-from cartagen4py.processes.AGENT.constraints.generalisation_constraint import GeneralisationConstraint
-from cartagen4py.processes.AGENT.actions.generalisation_action import MesoMicroActivation
-from cartagen4py.processes.AGENT.actions.block_actions import PromBlockEliminationAction, RandomBlockDisplacementAction
+from cartagen4py.processes.agent.constraints.generalisation_constraint import GeneralisationConstraint
+from cartagen4py.processes.agent.actions.generalisation_action import MesoMicroActivation
+from cartagen4py.processes.agent.actions.block_actions import PromBlockEliminationAction, RandomBlockDisplacementAction
 
 class ComponentsSatisfactionConstraint(GeneralisationConstraint):
 

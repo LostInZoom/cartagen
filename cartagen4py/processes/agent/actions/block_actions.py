@@ -1,4 +1,4 @@
-from cartagen4py.processes.AGENT.actions.generalisation_action import GeneralisationAction
+from cartagen4py.processes.agent.actions.generalisation_action import GeneralisationAction
 from cartagen4py.algorithms.buildings.displacement import random_displacement
 from cartagen4py.algorithms.blocks.building_elimination import *
 import geopandas as gpd

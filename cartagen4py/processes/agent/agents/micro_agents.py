@@ -1,4 +1,4 @@
-from cartagen4py.processes.AGENT.agents.abstract_agents import Agent
+from cartagen4py.processes.agent.agents.abstract_agents import Agent
 
 class BuildingAgent(Agent):
 

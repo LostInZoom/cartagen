@@ -1,4 +1,4 @@
-from cartagen4py.processes.AGENT.core.agent_scheduler import *
+from cartagen4py.processes.agent.core.agent_scheduler import *
 
 class GeneralisationAction():
     weight = 0

@@ -49,6 +49,7 @@ Evaluate your generalised map
    polygons
    networks
    bends
+   processes
    tools
 
 .. toctree::
