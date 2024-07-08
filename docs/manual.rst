@@ -32,12 +32,14 @@ Visvalingam-Whyatt and Raposo hexagon-based simplification.
 Polygons
 ^^^^^^^^
 
-cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings. Only the algorithms that process one polygon at a time are documented in this section.
+cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings.
+Only the algorithms that process one polygon at a time are documented in this section.
 
-.. method:: building_simplification(building, edge_threshold, parallel_limit = 20 * pi / 180, orthogonal_limit = 20 * pi / 180)
+.. method:: building_simplification(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180)
 
     Returns a simplified version of the building polygon using the algorithm from Anne Ruas (1988). The algorithm was later used to simplify buildings in the AGENT project.
-    The 'edge_threshold' is the minimum length of an edge between two vertices of the building to be removed. The 'parallel_limit' and 'orthogonal_limit' parameters define to what extent two edges are considered parallel or orthogonal.
+    The 'edge_threshold' is the minimum length of an edge between two vertices of the building to be removed.
+    The 'parallel_limit' and 'orthogonal_limit' parameters define to what extent two edges are considered parallel or orthogonal.
 
 .. code-block:: pycon
 
