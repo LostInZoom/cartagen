@@ -47,7 +47,7 @@ def square_polygons(
 
     See Also
     --------
-    building_simplification :
+    simplify_building :
         Simplification of building by edge elimination.
 
     Notes

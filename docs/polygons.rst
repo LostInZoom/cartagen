@@ -12,7 +12,7 @@ Buildings
 .. autosummary::
     :toctree: reference/
 
-    building_simplification
+    simplify_building
     square_polygons
     random_displacement
     morphological_amalgamation

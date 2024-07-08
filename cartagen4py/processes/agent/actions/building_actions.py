@@ -1,5 +1,5 @@
 from cartagen4py.processes.agent.actions.generalisation_action import GeneralisationAction
-from cartagen4py.algorithms.buildings.simplification import building_simplification
+from cartagen4py.algorithms.buildings.simplification import simplify_building
 from cartagen4py.algorithms.buildings.squaring import Squarer
 from shapely import affinity
 from shapely.geometry import Polygon
@@ -47,7 +47,7 @@ class SimplificationAction(GeneralisationAction):
     def compute(self):
         """Compute the action, i.e. triggers the algorithm."""
         geom = self.agent.feature['geometry']
-        new_geom = building_simplification(geom,self.edge_threshold)
+        new_geom = simplify_building(geom,self.edge_threshold)
         self.agent.feature['geometry'] = new_geom
 
 class SquaringAction(GeneralisationAction):

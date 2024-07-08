@@ -4,7 +4,7 @@ from shapely.geometry import Polygon, Point, LinearRing
 from cartagen4py.utils.geometry.segment import get_segment_list_polygon, Segment
 
 
-def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180):
+def simplify_building(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180):
     """
     Simplify buildings by removing edges.
     
@@ -41,7 +41,7 @@ def building_simplification(building, edge_threshold, parallel_limit=20*pi/180, 
     Examples
     --------
     >>> building = Polygon([(0, 0), (0, 10), (2, 10), (2, 9), (10, 9), (10, 0), (0, 0)])
-    >>> building_simplification(building, 2.5)
+    >>> simplify_building(building, 2.5)
     <POLYGON ((0 0, 0 9.5, 10 9.5, 10 0, 0 0))>
     """
 

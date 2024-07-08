@@ -24,46 +24,34 @@ Generalisation operations
 Lines simplification
 ^^^^^^^^^^^^^^^^^^^^
 
-Multiple algorithms for line simplification are available, including Douglas-Peucker(1973),
-Visvalingam-Whyatt and Raposo hexagon-based simplification.
+Multiple algorithms for line simplification are available, including:
 
-.. plot:: code/manual/line_simplification.py
+- :func:`Douglas-Peucker <cartagen4py.douglas_peucker>`
+- :func:`Visvalingam-Whyatt <cartagen4py.visvalingam_whyatt>`
+- :func:`Raposo <cartagen4py.raposo>`
+
+Those line simplification algorithm are used for different purposes and their computational
+time differs. For example, Raposo :footcite:p:`raposo:2013` is mainly used to simplify
+natural lines such as rivers. You can read more about them in the API Reference section.
+
+.. plot:: code/manual/simplification_line.py
+
+Figure 1. Line simplification algorithms.
 
 Polygons
 ^^^^^^^^
 
-cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings.
-Only the algorithms that process one polygon at a time are documented in this section.
+This library also contains algorithms that process any type of polygons,
+and others specific to some types of map polygons, such as buildings.
+This section contains only informations related to algorithms that process
+one polygon at a time, including:
 
-.. method:: building_simplification(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180)
+- :func:`Simplify building <cartagen4py.simplify_building>`
+- :func:`Square polygon  <cartagen4py.square_polygons>`
 
-    Returns a simplified version of the building polygon using the algorithm from Anne Ruas (1988). The algorithm was later used to simplify buildings in the AGENT project.
-    The 'edge_threshold' is the minimum length of an edge between two vertices of the building to be removed.
-    The 'parallel_limit' and 'orthogonal_limit' parameters define to what extent two edges are considered parallel or orthogonal.
+.. plot:: code/manual/simplification_building.py
 
-.. code-block:: pycon
-
-  >>> building = Polygon([(0, 0), (0, 10), (2, 10), (2, 9), (10, 9), (10, 0), (0, 0)])
-  >>> building_simplification(building, 2.5)
-  <POLYGON ((0 0, 0 9.5, 10 9.5, 10 0, 0 0))>
-
-.. plot:: code/building_simplification.py
-
-Figure 4. Four buildings simplified with the Ruas algorithm.
-
-.. method:: square_polygon(polygons, max_iteration=1000, norm_tolerance=0.05, right_tolerance=10, flat_tolerance=10, fixed_weight=5, right_weight=100, flat_weight=50)
-
-    Squares the angles of a polygon using the algorithm from `(Lokhat & Touya, 2016) <https://josis.org/index.php/josis/article/view/72>`_. The algorithm is based on a least squares adjustment, where angles that are almost right or almost flat are adjusted to be exactly right, or exactly flat.
-
-.. code-block:: pycon
-
-  >>> building = Polygon([(0, 0), (0, 10), (9.8, 9.8), (10, 0), (0, 0)])
-  >>> square_polygon([building])
-  [POLYGON((-0.00002213 -0.00002213, 0.00000159  9.90002291, 9.89999763  9.89999763, 9.90002291  0.00000159, -0.00002213 -0.00002213))]
-
-.. plot:: code/building_squaring.py
-
-Figure 5. Two buildings squared with the algorithm from (Lokhat & Touya, 2016).
+Figure 2. Building simplification algorithms.
 
 Groups of objects
 ^^^^^^^^^^^^^^^^^
@@ -405,5 +393,7 @@ Meso agents
 =============
 The implementation of the meso agents is not yet completed. 
 
-Least squares adjustment
-^^^^^^^^^^^^^^^^^^^^^^^^
+Bibliography
+============
+
+.. footbibliography::
