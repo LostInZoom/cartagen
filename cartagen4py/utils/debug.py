@@ -61,7 +61,8 @@ def plot_debug(geom, *geoms):
         else:
             add(sub, geom, color1, color2)
 
-    sub.autoscale_view()
+    sub.autoscale_view(tight=True)
+    fig.tight_layout()
     plt.show()
 
 def geojson_debug(geom, *geoms):
