@@ -20,6 +20,9 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
     entries, it calculates the closest path (using Djikstra) between
     those entries or between all vertexes.
 
+    More information about the usage of this algorithm in
+    Touya & Girres :footcite:p:`touya:2013` :footcite:p:`touya:2014`
+
     Parameters
     ----------
     polygon : Polygon
@@ -73,6 +76,10 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
         Densify a line by adding vertices.
     gaussian_smoothing:
         Smooth a line and attenuate its inflexion points.
+
+    References
+    ----------
+    .. footbibliography::
 
     Examples
     --------
@@ -236,9 +243,12 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
     calculated as the middle of the line where polygon touches to
     avoid high computation time.
 
+    More information about the usage of this algorithm in
+    Touya & Girres :footcite:p:`touya:2013` :footcite:p:`touya:2014`
+
     Parameters
     ----------
-    polygons : list of Polygons
+    polygons : list of Polygon
         The polygons to spinalize.
     densify : float, optional
         The densification step used to resample the polygon ring.
@@ -265,6 +275,10 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
     --------
     spinalize_polygon:
         Collapse multiple polgygons into one or multiple lines.
+
+    References
+    ----------
+    .. footbibliography::
 
     Examples
     --------
