@@ -22,6 +22,11 @@ def network_faces(*networks, convex_hull=True):
     -------
     list of Polygon
 
+    See Also
+    --------
+    partition_networks :
+        Partition objects using one or multiple networks.
+
     Notes
     -----
     When the network is not completely planar (*e.g.* tunnels
@@ -64,7 +69,44 @@ def network_faces(*networks, convex_hull=True):
 
 # Returns a tuple with objects and faces polygons
 # TODO: Manage centroids that happens to be on the edges of the networks faces
-def network_partition(objects, *networks):
+def partition_networks(objects, *networks):
+    """
+    Partition objects using one or multiple networks.
+
+    Create the faces from one or multiple networks and
+    partition the provided objects into groups. Objects are
+    grouped when their centroid intersects the same
+    network face. This algorithm rely on a
+    :class:`STRtree <shapely.STRtree>` indexing solution. 
+
+    Parameters
+    ----------
+    objects : GeoDataFrame of Geometry
+        The objects to partition. Their centroids are used
+        to assign them to a network face.
+    *networks : GeoDataFrame of LineString
+        The networks used to partition the objects.
+
+    Returns
+    -------
+    partition : tuple
+        A tuple containing two elements :
+
+        #. A list of lists of index ordered by the network faces
+        #. A list of the geometry of the network faces
+
+    See Also
+    --------
+    network_faces :
+        Calculates the faces of one or multiple networks.
+
+    Examples
+    --------
+    >>> points = GeoDataFrame(geometry=[ Point(2, 1), Point(4, 1) ])
+    >>> network = GeoDataFrame(geometry=[ LineString([(0, 0), (3, 0), (3, 2), (6, 2)]) ])
+    >>> partition_networks(points, network)
+    ([[1], [0]], [<POLYGON ((3 2, 6 2, 3 0, 3 2))>, <POLYGON ((3 2, 3 0, 0 0, 3 2))>])
+    """
     obj = objects.to_dict('records')
 
     # Create an empty tuple to store future partitions

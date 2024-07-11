@@ -50,6 +50,7 @@ Evaluate your generalised map
    networks
    bends
    processes
+   partitioning
    tools
 
 .. toctree::

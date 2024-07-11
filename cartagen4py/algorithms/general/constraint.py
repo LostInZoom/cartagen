@@ -2,7 +2,7 @@
 from collections import Counter
 import shapely, pprint, geopandas, math
 import numpy as np
-from cartagen4py.utils.partitioning.network import network_partition
+from cartagen4py.utils.partitioning.network import partition_networks
 np.set_printoptions(suppress=True)
 
 class ConstraintMethod:

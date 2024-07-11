@@ -2,7 +2,7 @@
 import random, math, numpy
 import geopandas as gpd
 import shapely
-from cartagen4py.utils.partitioning.network import network_partition
+from cartagen4py.utils.partitioning.network import partition_networks
 
 from cartagen4py.utils.debug import plot_debug
 
@@ -173,7 +173,7 @@ def random_displacement(
 
     if network_partitioning is not None:
         # Create the partitions -> tuple ([polygon index], [partition polygon geometry])
-        partitions = network_partition(polygons, *network_partitioning)
+        partitions = partition_networks(polygons, *network_partitioning)
 
         # Loop through each partition
         for i, partition in enumerate(partitions[0]):
