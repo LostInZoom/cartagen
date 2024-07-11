@@ -109,8 +109,9 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     proposed by Toussaint. :footcite:p:`toussaint:1983`
     The idea is to simulate the rotation of a spring-loaded
     vernier caliper around the outside of a convex polygon.
-    For each side of the convex hull or the provided polygon,
-    a rectangle is calculated.
+    Using this approach, an enclosing rectangle can be calculated
+    for each side of the convex hull of the polygon as
+    described by Bayer. :footcite:p:`bayer:2009`
 
     Parameters
     ----------
