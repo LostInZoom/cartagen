@@ -12,7 +12,7 @@ from cartagen4py.utils.debug import plot_debug
 
 def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structural=None):
     """
-    Collapse a single polgygon into one or multiple lines.
+    Collapse a single polygon into one or multiple lines.
 
     This algorithm creates the spine of a polygon to generate a line.
     It uses a Voronoi diagram from the list

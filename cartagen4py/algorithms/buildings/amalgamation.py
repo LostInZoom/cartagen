@@ -7,8 +7,7 @@ from shapely.geometry import Polygon,MultiPolygon,Point
 from cartagen4py.utils.math.morphology import closing_multi_polygon, opening
 from cartagen4py.utils.math.vector import Vector2D
 from cartagen4py.utils.geometry.segment import get_segment_list
-
-# 
+ 
 def morphological_amalgamation(buildings, buffer, edge_length):
     """
     Amalgamate buildings using dilation and erosion.
