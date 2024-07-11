@@ -99,8 +99,6 @@ def polygon_concavity(polygon):
     hull = shapely.convex_hull(polygon)
     return polygon.area / hull.area
 
-from cartagen4py.utils.debug import plot_debug
-
 def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     """
     Construct an enclosing rectangle from a polygon.

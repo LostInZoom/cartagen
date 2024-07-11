@@ -5,6 +5,8 @@ from cartagen4py.utils.attributes import *
 from cartagen4py.utils.geometry import *
 from cartagen4py.utils.network import *
 
+from cartagen4py.utils.debug import plot_debug
+
 def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None):
     """
     Collapse dual carriageways using a TIN skeleton.
@@ -266,6 +268,9 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
     for shorts in shortside:
         # Retrieve carriageways index and the shortside geometry
         cid1, cid2, shortline = shorts[0], shorts[1], shorts[2]
+
+        if cid1 in longside or cid2 in longside:
+            continue
         
         # Create a list containing entry points intersecting the short side
         shortentries = list(filter(lambda x: shapely.intersects(x, shortline), skeletons[cid1].entries))
@@ -300,13 +305,13 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
                 # Stores for distances and positions
                 distances = []
                 positions = []
+
                 # Loop through incoming lines
                 for i in incoming:
                     # Stores geometry
                     index = i[0]
                     geom = i[1]['geometry']
-                    # Remove the incoming line from the first skeleton
-                    skeletons[cid1].incoming.pop(index)
+
                     # Get start and end point
                     start, end = shapely.Point(geom.coords[0]), shapely.Point(geom.coords[-1])
                     # Calculate distance between start point and the line between junctions
