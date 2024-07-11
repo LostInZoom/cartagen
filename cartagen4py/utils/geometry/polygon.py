@@ -109,7 +109,9 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     vernier caliper around the outside of a convex polygon.
     Using this approach, an enclosing rectangle can be calculated
     for each side of the convex hull of the polygon as
-    described by Bayer. :footcite:p:`bayer:2009`
+    described by Bayer, :footcite:p:`bayer:2009`
+    and the fitting rectangle (usually the minimum area) can
+    be retrieved.
 
     Parameters
     ----------

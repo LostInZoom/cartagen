@@ -3,21 +3,6 @@
 from shapely.geometry import Point, Polygon, MultiPolygon
 from shapely.ops import unary_union
 
-def closing_multi_polygon(multipolygon, buffer_size, cap_style=1):
-    buffered = multipolygon.buffer(buffer_size, cap_style=cap_style)
-    # then filter the buffer a little bit to avoid geometry problems
-    filtered = buffered.simplify(1.0)
-
-    # check if it is still a multi polygon after the buffer and the erosion
-    if (filtered.geom_type == 'MultiPolygon'):
-        return erosion_multipolygon(filtered, buffer_size, cap_style)
-    
-    if (filtered.geom_type == 'Polygon'):
-        return erosion(filtered, buffer_size, cap_style)
-
-    # if we arrive here, something went wrong during the closing, return the initial geometry
-    return multipolygon
-
 # Applies a morphological closing on a polygon (dilation+erosion)
 def closing(polygon, buffer_size, cap_style=1):
     buffered = polygon.buffer(buffer_size, cap_style)
@@ -35,6 +20,21 @@ def opening(polygon, buffer_size, cap_style=1):
         for simple in polygon.geoms:
             polygons.append(opening_simple(simple, buffer_size, cap_style))
     return MultiPolygon(polygons)
+
+def closing_multi_polygon(multipolygon, buffer_size, cap_style=1):
+    buffered = multipolygon.buffer(buffer_size, cap_style=cap_style)
+    # then filter the buffer a little bit to avoid geometry problems
+    filtered = buffered.simplify(1.0)
+
+    # check if it is still a multi polygon after the buffer and the erosion
+    if (filtered.geom_type == 'MultiPolygon'):
+        return erosion_multipolygon(filtered, buffer_size, cap_style)
+    
+    if (filtered.geom_type == 'Polygon'):
+        return erosion(filtered, buffer_size, cap_style)
+
+    # if we arrive here, something went wrong during the closing, return the initial geometry
+    return multipolygon
 
 def opening_simple(polygon, buffer_size, cap_style=1):
     eroded = erosion(polygon, buffer_size, cap_style)
@@ -79,8 +79,6 @@ def erosion(polygon, buffer_size, cap_style=1):
     
     return eroded
 
-
-
 # Applies an erosion to a polygon with no hole (or inner ring)
 def erosion_no_hole(polygon, buffer_size, cap_style=1):
     # get the outer ring of the polygon
@@ -116,8 +114,6 @@ def erosion_no_hole(polygon, buffer_size, cap_style=1):
             rings.append(poly)
     
     return MultiPolygon(rings)
-
-
 
 if __name__ == '__main__':
     from shapely.wkt import loads
