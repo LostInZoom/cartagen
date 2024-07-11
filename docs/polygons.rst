@@ -43,3 +43,13 @@ Measures
     polygon_elongation
     polygon_compactness
     polygon_concavity
+
+Miscellaneous
+-------------
+
+.. currentmodule:: cartagen4py
+
+.. autosummary::
+    :toctree: reference/
+
+    enclosing_rectangle
