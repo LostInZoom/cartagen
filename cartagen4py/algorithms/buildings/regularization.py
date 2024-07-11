@@ -10,14 +10,14 @@ from cartagen4py.utils.geometry.polygon import enclosing_rectangle
 
 from cartagen4py.utils.debug import plot_debug
 
-def rectangle_transformation(polygon, factor):
+def regularize_rectangle(polygon, factor):
     """
     Transform a polygon to a rectangle.
     """
     mbr = polygon.minimum_rotated_rectangle
     return shapely.affinity.scale(mbr, xfact=factor, origin=mbr.centroid)
 
-def recursive_regression(polygon, sigma):
+def regularize_regression(polygon, sigma):
     """
     Regularize a polygon using recursive linear regression.
 
@@ -44,7 +44,7 @@ def recursive_regression(polygon, sigma):
         # squared distances from the regression line
         return np.sqrt(np.mean(square_total))
 
-    # Find the closest vertex from the mbr border
+    # Find the closest vertex from the mbr corner
     def __closest_vertex(corner, vertices):
         distance = None
         closest = None
@@ -61,12 +61,11 @@ def recursive_regression(polygon, sigma):
     if shapely.is_ccw(polygon.boundary):
         polygon.reverse()
 
-    # Calculate the minimum rotated rectangle
+    # Calculate the minimum rotated rectangle touching one side of the building
     mbr = enclosing_rectangle(polygon, mode='input')
 
-    # Retrieve first and last vertex
+    # Retrieve coordinates and calculate angle of the last segment
     mbr_coords = list(mbr.boundary.coords)[:-1]
-
     angle = angle_2_pts(Point(mbr_coords[0]), Point(mbr_coords[-1]))
 
     # Rotate the polygon to reach horizontality
@@ -118,6 +117,19 @@ def recursive_regression(polygon, sigma):
         # Get the angle of the mbr side in degree
         side_angle = round(np.rad2deg(angle_2_pts(Point(mbr_side[0]), Point(mbr_side[1]))))
 
+        if side_angle == 0:
+            rotation = 0
+        elif side_angle == -90:
+            rotation = np.pi / 2
+        elif side_angle == 180:
+            rotation = np.pi
+        elif side_angle == 90:
+            rotation = 3*np.pi / 2
+        else:
+            raise Exception('Angle error: {0}'.format(side_angle))
+
+        plot_debug(rotated_polygon, LineString(mbr_side))
+
         # Store the orientation of the rectangle side
         vertical = False
         if side_angle == 90 or side_angle == -90:
@@ -165,16 +177,26 @@ def recursive_regression(polygon, sigma):
                 subside.append(side[-1])
                 subsides.append(subside)
 
-                plot_debug(
-                    rotated_polygon, regression,
-                    [ Point(reg[0]), Point(reg[1]) ],
-                    [ Point(s) for s in side ]
-                )
+                for index, subside in enumerate(subsides):
+                    if len(subside) > 2:
+                        # Calculate the minimum rotated rectangle
+                        submbr = enclosing_rectangle(Polygon(subside + [subside[0]]), mode='input')
 
-                # for index, subside in enumerate(subsides):
-                #     if len(subside) > 2:
-                #         # Calculate the minimum rotated rectange
-                #         submbr, subangle = __get_mbr(Polygon(subside + [subside[0]]))
+                        # Retrieve first and last vertex
+                        submbr_coords = list(submbr.boundary.coords)[:-1]
+
+                        # # Get the angle to horizontality
+                        # subangle = angle_2_pts(Point(submbr_coords[0]), Point(submbr_coords[-1]))
+
+                        # # Rotate the polygon to reach horizontality
+                        # rotated_submbr = shapely.affinity.rotate(mbr, -angle, origin=mbr_coords[0], use_radians=True)
+                        # rotated_polygon = shapely.affinity.rotate(polygon, -angle, origin=mbr_coords[0], use_radians=True)
+
+                        # plot_debug(
+                        #     rotated_polygon, submbr, regression,
+                        #     # [ Point(x) for x in subside ],
+                        #     Point(submbr_coords[0]),
+                        # )
 
                 #         # Calculate the mean y of the vertex of the subside
                 #         submean = np.mean([ s[1] for s in subside ])
@@ -201,11 +223,11 @@ def recursive_regression(polygon, sigma):
 
                         # plot_debug(new, shapely.LineString(reg), submbr, Point(v1))
                 
-                break
+                # break
 
     return polygon
 
-def feature_edge_reconstruction(polygon):
+def regularize_reconstruction(polygon):
     """
     Regularize a polygon using feature edge reconstruction.
     """
