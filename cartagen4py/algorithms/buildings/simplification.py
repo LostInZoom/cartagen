@@ -151,6 +151,12 @@ def __delete_side_polygon(polygon, segment, ring_index, parallel_limit, orthogon
         if(len(ring.coords) == 5):
             return False, polygon
 
+        if ((b[0] - b_[0]) * (b[0] - b_[0]) + (b[1] - b_[1]) * (b[1] - b_[1])) == 0:
+            return False, polygon
+
+        if ((a[0] - a_[0]) * (a[0] - a_[0]) + (a[1] - a_[1]) * (a[1] - a_[1])) == 0:
+            return False, polygon
+
         # compute the projections
         aux_a = ((b[0] - b_[0]) * (a_[0] - b_[0])
           + (b[1] - b_[1]) * (a_[1] - b_[1]))  / ((b[0] - b_[0]) * (b[0] - b_[0]) + (b[1] - b_[1]) * (b[1] - b_[1]))
