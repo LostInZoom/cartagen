@@ -104,10 +104,16 @@ class Vector2D:
         """
         if direction >= (np.pi * 2):
             direction = direction - np.pi * 2
-        # if direction % (2 * np.pi) >= 0:
-        #     direction = abs(direction % (2 * np.pi))
-        # else:
-        #     direction = direction % (2 * np.pi) + 2 * np.pi
         unit = Vector2D.from_angle(direction, 1)
         norm = self.scalar_product(unit)
         return unit.change_norm(norm)
+
+    def rotate(self, angle):
+        """
+        Returns the rotated vector by the angle value.
+        """
+        cos = np.cos(angle)
+        sin = np.sin(angle)
+        x = self.x * cos - self.y * sin
+        y = self.x * sin - self.y * cos
+        return Vector2D.from_point(Point(x, y))
