@@ -53,3 +53,5 @@ Miscellaneous
     :toctree: reference/
 
     enclosing_rectangle
+    close_polygon
+    open_polygon

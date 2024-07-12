@@ -49,7 +49,7 @@ def boffet_areas(buildings, buffer, erosion, simplification_distance=2.0):
         buflist += [building.buffer(buffer)]
     dilation = unary_union(buflist)
     simplified = dilation.simplify(simplification_distance)
-    closed = morphology.closing_multi_polygon(simplified, erosion)
+    closed = morphology.close_multipolygon(simplified, erosion)
     if(closed is None):
         return []
     simplified = closed.simplify(simplification_distance)

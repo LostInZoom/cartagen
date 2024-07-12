@@ -4,7 +4,7 @@ import math
 
 from shapely.geometry import Polygon,MultiPolygon,Point
 
-from cartagen4py.utils.math.morphology import closing_multi_polygon, opening
+from cartagen4py.utils.math.morphology import close_multipolygon, open_polygon
 from cartagen4py.utils.math.vector import Vector2D
 from cartagen4py.utils.geometry.segment import get_segment_list
  
@@ -51,8 +51,8 @@ def morphological_amalgamation(buildings, buffer, edge_length):
     multipolygon = MultiPolygon(buildings)
 
     # make a morphological closing on the multipolygon
-    closed = closing_multi_polygon(multipolygon, buffer, cap_style=2)
-    merged = opening(closed, buffer, cap_style=2)
+    closed = close_multipolygon(multipolygon, buffer, cap_style=2)
+    merged = open_polygon(closed, buffer, cap_style=2)
 
     if(merged.geom_type == 'Polygon'):
         clusters.append(merged)
