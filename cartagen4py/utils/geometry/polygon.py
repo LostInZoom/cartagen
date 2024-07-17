@@ -267,11 +267,19 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
             p2 = orthogonal_opposite.translate(point)
             # Create the line between those corners
             orthogonal_segment = LineString([p1, p2])
+            # Get the type of intersection
+            intertype = shapely.intersection(orthogonal_segment, hull.boundary).geom_type
+
             # If the intersection is of type Point, it means
             # the line only intersects once the polygon
-            if shapely.intersection(orthogonal_segment, hull.boundary).geom_type == 'Point':
+            if intertype == 'Point':
                 # Add the segment if not already present, which can happen
                 # with orthogonal polygons.
+                if orthogonal_segment not in perpendiculars:
+                    perpendiculars.append(orthogonal_segment)
+            # On rare oocasion, the intersection can be a line if the provided
+            # polygon has square angles
+            elif intertype == 'LineString':
                 if orthogonal_segment not in perpendiculars:
                     perpendiculars.append(orthogonal_segment)
 
@@ -368,3 +376,105 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
         return enclosing_rectangle(polygon, mode='hull', property=property)
     else:
         return bounding_rectangle
+
+from cartagen4py.utils.debug import plot_debug
+
+def orientation(polygon, method='mbr'):
+    """
+    Calculate the orientation of a polygon.
+
+    This function calculates the orientation of a polygon
+    using different methods. By default, it uses the orientation
+    of the long side of the minimum bounding rectangle.
+
+    Parameters
+    ----------
+    polygon : Polygon
+        The polygon to calculate the orientation from.
+    method : str, optional
+        The method to calculate the orientation:
+
+        - **'mbr'** calculate the orientation
+          of the long side of the minimum rotated bounding rectangle.
+        - **'mtr'** calculate the orientation
+          of the long side of the minimum rotated touching rectangle.
+          It is the same as the mbr but the rectangle and the polygon
+          must have at least one side in common.
+        - **'swo'** or statistical weighted orientation described in
+          Duchêne, :footcite:p:`duchene:2003` calculates
+          the orientation of a polygon using the statistical weighted orientation.
+          This method relies on the length and orientation of the longest and
+          second longest segment between two vertexes of the polygon.
+
+    Returns
+    -------
+    float
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> polygon = Polygon([(0, 0), (0, 2), (1, 2), (1, 0), (0, 0)])
+    >>> orientation(polygon)
+    1.5707963267948966
+    """
+
+    # Check the method
+    if method in ['mbr', 'mtr']:
+        # Calculate mbr or mtr
+        if method == 'mbr':
+            mbr = enclosing_rectangle(polygon, mode='hull')
+        elif method == 'mtr':
+            mbr = enclosing_rectangle(polygon, mode='input')
+
+        # list its vertexes
+        coords = list(mbr.boundary.coords)
+
+        length = 0
+        longest = None
+        # Retrieve the longest edge
+        for i, v1 in enumerate(coords):
+            if i < len(coords) - 1:
+                v2 = coords[i + 1]
+                l = shapely.LineString([v1, v2]).length
+                if l > length:
+                    length = l
+                    longest = [v1, v2]
+
+        # Return the orientation of the longest edge
+        return angle_2_pts(Point(longest[0]), Point(longest[1]))
+    
+    else:
+        # Get the list of vertexes
+        coords = list(polygon.boundary.coords)
+
+        first = None
+        second = None
+        # Loop through each vertex
+        for v1 in coords:
+            # Loop again through each vertex
+            for v2 in coords:
+                # Calculate the distance between both
+                distance = shapely.distance(Point(v1), Point(v2))
+                # If first is None, assign it to current
+                if first is None:
+                    first = ((v1, v2), distance)
+                else:
+                    # If the current distance is more than the first
+                    if distance > first[1]:
+                        # Set the first as the second
+                        second = first
+                        # Update the first
+                        first = ((v1, v2), distance)
+
+        # Get the distance of the longest axis and second longest axis
+        la = first[1]
+        sa = second[1]
+        # Get the orientation of those axis
+        lao = angle_2_pts(Point(first[0][0]), Point(first[0][1]))
+        sao = angle_2_pts(Point(second[0][0]), Point(second[0][1]))
+
+        # Return the swo
+        return (la * lao + sa * sao) / (la + sa)
