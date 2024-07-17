@@ -14,6 +14,8 @@ Buildings
 
     simplify_building
     square_polygons
+    regularize_rectangle
+    regularize_regression
     random_displacement
     morphological_amalgamation
     boffet_areas
