@@ -182,8 +182,8 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     hcoords = list(hull.boundary.coords)
 
     segments = []
-    for h in range(0, len(hcoords) - 1):
-        segments.append([hcoords[h], hcoords[h + 1]])
+    for h in range(0, len(bcoords) - 1):
+        segments.append([bcoords[h], bcoords[h + 1]])
 
     # Compute the length of the polygon
     length = polygon.length
