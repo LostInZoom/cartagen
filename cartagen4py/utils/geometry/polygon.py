@@ -99,6 +99,8 @@ def polygon_concavity(polygon):
     hull = shapely.convex_hull(polygon)
     return polygon.area / hull.area
 
+from cartagen4py.utils.debug import plot_debug
+
 def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     """
     Construct an enclosing rectangle from a polygon.
@@ -132,7 +134,13 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     -------
     Polygon :
         The enclosing rectangle. Its vertexes are ordered clockwise
-        and it starts in its southwestern corner. 
+        and it starts in its southwestern corner.
+
+    Notes
+    -----
+    If 'input' mode is chosen and the provided polygon does not have a side
+    that is the same as a side in its convex hull, (e.g. a star-shaped polygon)
+    This algorithm returns the enclosing polygon calculated in 'hull' mode.
 
     References
     ----------
@@ -356,4 +364,7 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
                         if rlength > value:
                             value, bounding_rectangle = rlength, rectangle
     
-    return bounding_rectangle
+    if mode == 'input' and bounding_rectangle is None:
+        return enclosing_rectangle(polygon, mode='hull', property=property)
+    else:
+        return bounding_rectangle
