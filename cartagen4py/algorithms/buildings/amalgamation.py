@@ -52,7 +52,7 @@ def morphological_amalgamation(buildings, buffer, edge_length):
 
     # make a morphological closing on the multipolygon
     closed = close_multipolygon(multipolygon, buffer, cap_style=2)
-    merged = open_polygon(closed, buffer, cap_style=2)
+    merged = open_polygon(closed, buffer, quad_segs=2)
 
     if(merged.geom_type == 'Polygon'):
         clusters.append(merged)
