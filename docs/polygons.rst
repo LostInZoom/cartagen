@@ -14,8 +14,8 @@ Buildings
 
     simplify_building
     square_polygons
-    regularize_rectangle
-    regularize_regression
+    rectangle_transformation
+    recursive_regression
     random_displacement
     morphological_amalgamation
     boffet_areas
@@ -45,6 +45,7 @@ Measures
     polygon_elongation
     polygon_compactness
     polygon_concavity
+    orientation
 
 Miscellaneous
 -------------

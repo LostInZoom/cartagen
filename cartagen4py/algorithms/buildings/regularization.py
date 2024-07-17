@@ -6,13 +6,13 @@ from shapely.geometry.polygon import orient
 import matplotlib.pyplot as plt
 
 from cartagen4py.utils.geometry.angle import angle_2_pts
-from cartagen4py.utils.geometry.polygon import enclosing_rectangle
+from cartagen4py.utils.geometry.polygon import enclosing_rectangle, orientation
 
 from cartagen4py.utils.debug import plot_debug
 
-def regularize_rectangle(polygon, factor=1.0):
+def rectangle_transformation(polygon, factor=1.0):
     """
-    Transform a polygon to a rectangle.
+    Transform a polygon into a rectangle.
 
     This function transforms a polygon to a rectangle using
     the minimum rotated rectangle and scale it up or down.
@@ -30,19 +30,19 @@ def regularize_rectangle(polygon, factor=1.0):
 
     See Also
     --------
-    regularize_regression :
+    recursive_regression :
         Regularize a polygon using recursive linear regression.
 
     Examples
     --------
     >>> polygon = Polygon([(0, 0), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (0, 0)])
-    >>> regularize_rectangle(polygon)
+    >>> rectangle_transformation(polygon)
     <POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))>
     """
     mbr = polygon.minimum_rotated_rectangle
     return shapely.affinity.scale(mbr, xfact=factor, yfact=factor, origin=mbr.centroid)
 
-def regularize_regression(polygon, sigma):
+def recursive_regression(polygon, sigma):
     """
     Regularize a polygon using recursive linear regression.
 
@@ -71,8 +71,8 @@ def regularize_regression(polygon, sigma):
     --------
     enclosing_rectangle :
         Construct an enclosing rectangle from a polygon.
-    regularize_rectangle :
-        Transform a polygon to a rectangle.
+    rectangle_transformation :
+        Transform a polygon into a rectangle.
 
     Notes
     -----
@@ -86,7 +86,7 @@ def regularize_regression(polygon, sigma):
     Examples
     --------
     >>> polygon = Polygon([(0, 0), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (0, 0)])
-    >>> regularize_regression(polygon, 1.0)
+    >>> recursive_regression(polygon, 1.0)
     <POLYGON ((0 0, 0 2, 1.5 2, 1.5 0, 0 0))>
     """
     regressions = []
@@ -394,7 +394,20 @@ def regularize_regression(polygon, sigma):
     # Rotate the polygon back its original position
     return shapely.affinity.rotate(unrotated, original_angle, origin=mbr_coords[0], use_radians=True)
 
-def regularize_reconstruction(polygon):
+def feature_edge_reconstruction(polygon):
     """
     Regularize a polygon using feature edge reconstruction.
     """
+    # Calculate the orientation using SWO
+    swo = orientation(polygon, 'swo')
+
+    # Get a list of the vertex
+    coords = list(polygon.boundary.coords)
+
+    edges = []
+    for i, v1 in enumerate(coords):
+        if i < len(coords) - 1:
+            v2 = coords[i + 1]
+            edges.append(LineString([v1, v2]))
+
+    # plot_debug(edges[0], edges[-1])
