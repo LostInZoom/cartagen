@@ -125,8 +125,8 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
         hull is also the side of the provided polygon
     property : str, optional
         Which geometric property to consider to return the rectangle.
-        'minimum area', 'maximum area', 'minimum length', 'maximum length'
-        Length represents the longest side of the rectangle.
+        This value can be 'minimum area', 'maximum area', 'minimum length', 'maximum length'.
+        The length represents the longest side of the rectangle.
 
     Returns
     -------
@@ -156,6 +156,10 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
 
     # Retrieve the boundary list of coordinates
     boundary = polygon.boundary
+
+    if shapely.is_ccw(boundary):
+        boundary.reverse()
+
     bcoords = list(boundary.coords)
 
     # Flag if the coords contains a value of 0
@@ -172,7 +176,14 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
 
     # Retrieve the convex hull
     hull = polygon.convex_hull
+    if shapely.is_ccw(hull):
+        hull.reverse()
+
     hcoords = list(hull.boundary.coords)
+
+    segments = []
+    for h in range(0, len(hcoords) - 1):
+        segments.append([hcoords[h], hcoords[h + 1]])
 
     # Compute the length of the polygon
     length = polygon.length
@@ -195,7 +206,7 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
         # If the mode is input, make sure the segment is contained
         # within the polygon boundary before continuing
         if mode == 'input':
-            if not shapely.contains(boundary, segment):
+            if [vertex1, vertex2] not in segments:
                 continue
         
         # Create the unit vector from the segment
