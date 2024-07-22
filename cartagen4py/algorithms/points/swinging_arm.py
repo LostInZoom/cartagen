@@ -188,39 +188,6 @@ def valid_point(tmp_pt, pt0, lines):
             return False
     return True
 
-def checkIntersectionPoly(points, pt_next, pt_dep, lines, poly):
-    """
-    Check if a point doesn't form a line that intersects with other polygon.
-    
-    And find another next point if it does.
-
-    Parameters
-    ----------
-    points : GeoDataframe
-        Points in the original GeoDataframe.
-    pt_next : Point
-        Supposed next point.
-    pt_dep : Point
-        Starting point of the line drawn with the next point.
-    lines : LineString List
-        LineString that form the current polygon.
-    poly : Polygon
-        The previous polygon drawn.
-
-    Returns
-    -------
-    pt_next : Point
-        The next point find.
-    """
-    if poly and pt_next:
-        while(line(pt_next, pt_dep).intersects(poly)):
-            ind = points[points.geometry == pt_next].index[0]
-            points.loc[ind, "available"] = False
-            pt_next = next_point(points, r, lines, pt_dep)
-            if not(pt_next):
-                break
-    return pt_next
-
 ############################ Calculate angle ############################
 
 def next_point(points, r, lines, direction, pt0, pt00=None):
@@ -264,7 +231,10 @@ def next_point(points, r, lines, direction, pt0, pt00=None):
             while(not(valid_point(tmp_pt, pt0, lines))):
                 points.loc[ind_ori, "notVisited"] = False
                 ptIn = ptIn.drop(ind)
-                tmp_pt, ind, ind_ori = angle_min(ptIn, pt0, points)
+                if not(ptIn.empty):
+                    tmp_pt, ind, ind_ori = angle_min(ptIn, pt0, points)
+                else:
+                    return tmp_pt
         points.loc[ind_ori, "available"] = False
     return tmp_pt
 
@@ -292,7 +262,6 @@ def swingSimpleLoop(points, r, direction, poly=None):
     pt_dep0 = ymax_point(points)
     lines = []
     pt_next = next_point(points, r, lines, direction, pt_dep0)
-    # pt_next = checkIntersectionPoly(points, pt_next, pt_dep0, lines, poly)
 
     if not(pt_next):
         ind = points[points.geometry == pt_dep0].index[0]
@@ -304,7 +273,6 @@ def swingSimpleLoop(points, r, direction, poly=None):
 
     while(pt_next.coords[0] != pt_dep0.coords[0]):
         pt_next = next_point(points, r, lines, direction, pt_prev, pt_dep)
-        # pt_next = checkIntersectionPoly(points, pt_next, pt_dep, lines, poly)
         if not(pt_next):
             ind = points[points.geometry == pt_dep0].index[0]
             return points.drop(ind), poly

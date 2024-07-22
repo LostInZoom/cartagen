@@ -19,7 +19,7 @@ class LabelGrid():
     Cartography and Geographic Information.
     """
     
-    def __init__(self, points, width, height, typ='square'):
+    def __init__(self, points, width, height, typ='square', mode='selection'):
         """
         Construct all the necessary attributes for the LabelGrid object.
 
@@ -37,6 +37,7 @@ class LabelGrid():
         self.__width = width
         self.__height = height
         self.__typ = typ
+        self.__mode = mode
         self.__points = points
         self.__points_res = None
         self.__grid = None
@@ -137,10 +138,16 @@ class LabelGrid():
                          else pd.concat([lst_in_value[i],lst_inter_value[i]]) 
                          for i in range(len(lst_in_value))]
         
-        ind = [e.nlargest(1).index[0] for e in lst_all_value if not e.empty]
-        p = [self.__points['geometry'].iloc[i] for i in ind]
-        
-        point_results = gpd.GeoDataFrame(geometry=gpd.GeoSeries(p))
+        if self.__mode == 'selection':
+            ind = [e.nlargest(1).index[0] for e in lst_all_value if not e.empty]
+            p = [self.__points['geometry'].iloc[i] for i in ind]
+            point_results = gpd.GeoDataFrame(geometry=gpd.GeoSeries(p))
+            
+        if self.__mode == 'aggregation':
+            aggreg = [(geom, len(cell)) for geom, cell in zip(self.__grid.centroid, lst_all_value) if not cell.empty]
+            df = pd.DataFrame(aggreg, columns=["geometry", "radius"])
+            point_results = gpd.GeoDataFrame(df, geometry="geometry")
+            
         self.__points_res = point_results
 
     def getPointResults(self):
@@ -159,4 +166,9 @@ class LabelGrid():
         
         fig, ax2 = plt.subplots()
         self.__grid.boundary.plot(ax=ax2, color='goldenrod')
-        self.__points_res.plot(ax=ax2, color='chocolate')
+        
+        if self.__mode == 'selection':
+            self.__points_res.plot(ax=ax2, color='chocolate')
+            
+        if self.__mode == 'aggregation':
+            self.__points_res.plot(ax=ax2, color='chocolate', markersize=self.__width*self.__points_res["radius"])
