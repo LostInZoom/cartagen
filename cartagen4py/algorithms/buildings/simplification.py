@@ -1,33 +1,46 @@
 # this file contains building simplification algorithms
 from math import atan2, pi, sqrt
-
 from shapely.geometry import Polygon, Point, LinearRing
-
 from cartagen4py.utils.geometry.segment import get_segment_list_polygon, Segment
 
-
-def building_simplification_ruas(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit = 20*pi/180):
+def simplify_building(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180):
     """
-    Building simplification algorithm from (Ruas, 1988).
+    Simplify buildings by removing edges.
     
-    The algorithm analyses the edges of the polygon to find the ones that should be removed and how they can be replaced.
+    This algorithm proposed by Ruas :footcite:p:`ruas:1999` analyses
+    the edges of the polygon to find the ones that should be removed and how they can be replaced.
     It was integrated in the AGENT project. Port of the CartAGen implementation of the algorithm.
 
     Parameters
     ----------
-    building : shapely.Polygon
+    building : Polygon
         The shapely building to be simplified.
     edge_threshold : float
         Minimum length of an edge to be considered by the simplification algorithm.
-    parallel_limit : float Default=20*pi/180
+    parallel_limit : float, optional
         Limit angle to consider an edge into the parallel case of the simplification algorithm.
-    orthogonal_limit : float Default=20*pi/180
+        The default value is set to :math:`20·pi/180`
+    orthogonal_limit : float, optional
         Limit angle to consider an edge into the orthogonal case of the simplification algorithm.
+        The default value is set to :math:`20·pi/180`
+    
+    Returns
+    -------
+    Polygon
+
+    See Also
+    --------
+    square_polygons :
+        Squares polygons using the least squares method.
+
+    References
+    ----------
+    .. footbibliography::
 
     Examples
     --------
     >>> building = Polygon([(0, 0), (0, 10), (2, 10), (2, 9), (10, 9), (10, 0), (0, 0)])
-    >>> building_simplification_ruas(building, 2.5)
+    >>> simplify_building(building, 2.5)
     <POLYGON ((0 0, 0 9.5, 10 9.5, 10 0, 0 0))>
     """
 
@@ -136,6 +149,12 @@ def __delete_side_polygon(polygon, segment, ring_index, parallel_limit, orthogon
             return False, polygon
         # this case removes two vertices so we need at least 6 in the ring
         if(len(ring.coords) == 5):
+            return False, polygon
+
+        if ((b[0] - b_[0]) * (b[0] - b_[0]) + (b[1] - b_[1]) * (b[1] - b_[1])) == 0:
+            return False, polygon
+
+        if ((a[0] - a_[0]) * (a[0] - a_[0]) + (a[1] - a_[1]) * (a[1] - a_[1])) == 0:
             return False, polygon
 
         # compute the projections

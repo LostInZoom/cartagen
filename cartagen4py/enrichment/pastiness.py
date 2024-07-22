@@ -5,27 +5,45 @@ import pprint
 from cartagen4py.utils.geometry.dilation import *
 from cartagen4py.utils.geometry.line import *
 
-def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
+def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
     """
-    Detect pastiness of a line object.
-    Returns a list of dictionary as { 'paste': paste, 'geometry': geometry } where paste represents the number of conflicts (0 when no
-    conflicts are detected, 1 when a conflict exists on one side only, two when conflicts are on both side of the line) and geometry
-    is the shapely geometry of the line.
-    This algorithm subdivide the provided line into multiple chunks, thus modifying the geometry,
+    Detect the pastiness of a series of bends.
+
+    This algorithm proposed by Mustière :footcite:p:`mustiere:2001`
+    subdivide the provided line into multiple chunks, thus modifying the geometry,
     it is not a data enrichment function stricto sensu.
 
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to detect the pastiness from.
-    width : float
+    tolerance : float
         The width of the offset used to detect the pastiness.
-    cap_style : str optional
-        The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'.
-        Default to 'flat'.
-    quad_segs : int optional
-        The number of point allowed per circle quadrant when interpolating points using round method.
-        Default to 8.
+    cap_style : str, optional
+        The type of caps at the start and end of the provided line.
+        Possible values are 'round' or 'flat'.
+    quad_segs : int, optional
+        The number of point allowed per circle quadrant
+        when interpolating points using round method.
+
+    Returns
+    -------
+    list of dict
+        The line subdivided into chunks depending of the paste.
+        
+        Dict keys are as following:
+
+        - *'paste'* represents the number of conflicts, it can be:
+
+          * *0* when no conflicts are detected.
+          * *1* when a conflict exists on one side only.
+          * *2* when conflicts are on both side of the line).
+
+        - *'geometry'* is the geometry of the line section.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Handle individual sides
     def __treat_side(line, tolerance, cap_style, quad_segs):
@@ -94,11 +112,10 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
             
             return e
 
-        # Get the coordinates of the line vertex
         coords = list(line.coords)
 
         # Calculate the offset points along the line
-        groups = offset_points(coords, tolerance, cap_style, quad_segs)
+        groups = offset_line(line, tolerance, cap_style, quad_segs)
 
         # Reconstruct the line into parts
         parts, breaks = reconstruct_line(groups, line, tolerance)
@@ -191,9 +208,11 @@ def detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8):
         lines = []
         # Loops through groups of nodes
         for group in groups:
+            coords = list(group.coords)
+
             # Create individual lines
             line = []
-            for node in group:
+            for node in coords:
                 line.append(node)
             
             # If the line has at least one node

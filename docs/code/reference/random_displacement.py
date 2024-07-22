@@ -5,6 +5,7 @@ from matplotlib.patches import PathPatch
 import numpy
 import geopandas as gpd
 from shapely.wkt import loads
+from shapely.ops import unary_union
 import cartagen4py as c4
 
 roads = [
@@ -46,34 +47,52 @@ for b in buildings:
 buildings_gdf = gpd.GeoDataFrame(buildings_records, crs='EPSG:3857')
 
 rivers_records = [{'geometry': rivers}]
-rivers_gdf = gpd.GeoDataFrame(buildings_records, crs='EPSG:3857')
+rivers_gdf = gpd.GeoDataFrame(rivers_records, crs='EPSG:3857')
 
 roads_records = []
 for r in roads:
     roads_records.append({'geometry': r})
 roads_gdf = gpd.GeoDataFrame(roads_records, crs='EPSG:3857')
 
-displaced = c4.random_displacement(buildings_gdf, networks=[roads_gdf, rivers_gdf], polygon_distance=polydist, network_width=netwidth)
+displaced = c4.random_displacement(buildings_gdf, networks=[roads_gdf, rivers_gdf], polygon_distance=polydist, network_distance=netwidth)
 
 fig = plt.figure(1, (8, 8))
 sub1 = fig.add_subplot(111)
+text = 'polygon_distance=10 (represented by the dashed line at 5 meters around displaced buildings)\nnetwork_distance=15 (represented by the width of 15m around the network)'
+fig.text(0.05, 0.05, text, fontsize=12, horizontalalignment='left')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
 riverbuffer = rivers.buffer(netwidth)
 river = Path.make_compound_path(Path(numpy.asarray(riverbuffer.exterior.coords)[:, :2]),
         *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in riverbuffer.interiors])
-sub1.add_patch(PathPatch(river, facecolor="blue", edgecolor='none'))
+sub1.add_patch(PathPatch(river, facecolor="royalblue", edgecolor='none'))
 
-for r in roads:
-    rbuffer = r.buffer(netwidth)
-    road = Path.make_compound_path(Path(numpy.asarray(rbuffer.exterior.coords)[:, :2]),
-        *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in rbuffer.interiors])
-    sub1.add_patch(PathPatch(road, facecolor="gray", edgecolor='none'))
+riverbuffer = rivers.buffer(netwidth - 2)
+river = Path.make_compound_path(Path(numpy.asarray(riverbuffer.exterior.coords)[:, :2]),
+        *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in riverbuffer.interiors])
+sub1.add_patch(PathPatch(river, facecolor="lightsteelblue", edgecolor='none'))
+
+buffered = []
+unioned = unary_union([ r.buffer(netwidth) for r in roads ])
+road = Path.make_compound_path(Path(numpy.asarray(unioned.exterior.coords)[:, :2]),
+    *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in unioned.interiors])
+sub1.add_patch(PathPatch(road, facecolor="black", edgecolor='none'))
+
+buffered = []
+unioned = unary_union([ r.buffer(netwidth - 2) for r in roads ])
+road = Path.make_compound_path(Path(numpy.asarray(unioned.exterior.coords)[:, :2]),
+    *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in unioned.interiors])
+sub1.add_patch(PathPatch(road, facecolor="coral", edgecolor='none'))
 
 for b in buildings:
     building = Path.make_compound_path(Path(numpy.asarray(b.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in b.interiors])
     sub1.add_patch(PathPatch(building, facecolor="black", edgecolor='none'))
+
+for b in displaced.to_dict('records'):
+    buffered = b['geometry'].buffer(polydist/2)
+    building = Path.make_compound_path(Path(numpy.asarray(buffered.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in buffered.interiors])
+    sub1.add_patch(PathPatch(building, facecolor="none", edgecolor='black', linestyle='--'))
 
 for d in displaced.to_dict('records'):
     geom = d['geometry']
@@ -81,4 +100,5 @@ for d in displaced.to_dict('records'):
     sub1.add_patch(PathPatch(dbuilding, facecolor="none", edgecolor='red'))
 
 sub1.autoscale_view()
+
 plt.show()

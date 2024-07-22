@@ -5,21 +5,39 @@ from cartagen4py.utils.attributes import *
 from cartagen4py.utils.geometry import *
 from cartagen4py.utils.network import *
 
+from cartagen4py.utils.debug import plot_debug
+
 def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None):
     """
-    Collapse dual carriageways using the polygon skeleton made from a Delaunay Triangulation.
+    Collapse dual carriageways using a TIN skeleton.
+
+    This algorithm proposed by Thom :footcite:p:`thom:2005`
+    collapses the network faces considered as dual carriageways
+    using a skeleton calculated from a Delaunay triangulation.
+
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings.
-        The road network where dual carriageways will be collapsed.
-    carriageways : geopandas GeoDataFrame of Polygons.
+    roads : GeoDataFrame of LineString
+        The road network.
+    carriageways : GeoDataFrame of Polygon
         The polygons representing the faces of the network detected as dual carriageways.
-    sigma : float, optional.
-        If not None, apply a gaussian smoothing to the collapsed dual carriageways to avoid jagged lines that can be created during the TIN skeleton creation.
-        Default value is set to None which doesn't apply any smoothing.
-    propagate_attributes : list of str, optional.
-        Propagate the provided list of column name to the resulting network. The propagated attribute is the one from the longest line.
-        Default value is set to None. 
+    sigma : float, optional
+        If not None, apply a gaussian smoothing to the collapsed dual carriageways to
+        avoid jagged lines that can be created during the TIN skeleton creation.
+    propagate_attributes : list of str, optional
+        Propagate the provided list of column name to the resulting network.
+        The propagated attribute is the one from the longest line.
+
+    See Also
+    --------
+    detect_dual_carriageways : 
+        Detect dual carriageways inside a road network.
+    skeletonize_network :
+        Blends a TIN skeleton inside a road network.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Retrieve crs for output
     crs = roads.crs
@@ -165,14 +183,13 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
                     else:
                         incoming.append({ "geometry": egeom })
 
-            print(cid)
             # Calculate the skeleton
             skeleton = SkeletonTIN(polygon)
             skeleton.add_incoming_lines(incoming)
             skeleton.create_network()
             skeleton.blend(attributes, sigma=sigma)
             skeletons.append(skeleton)
-            
+
             # Storing the original geometries of the crossroad
             originals.extend(crossroad.original)
 
@@ -251,6 +268,9 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
     for shorts in shortside:
         # Retrieve carriageways index and the shortside geometry
         cid1, cid2, shortline = shorts[0], shorts[1], shorts[2]
+
+        if cid1 in longside or cid2 in longside:
+            continue
         
         # Create a list containing entry points intersecting the short side
         shortentries = list(filter(lambda x: shapely.intersects(x, shortline), skeletons[cid1].entries))
@@ -285,13 +305,13 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
                 # Stores for distances and positions
                 distances = []
                 positions = []
+
                 # Loop through incoming lines
                 for i in incoming:
                     # Stores geometry
                     index = i[0]
                     geom = i[1]['geometry']
-                    # Remove the incoming line from the first skeleton
-                    skeletons[cid1].incoming.pop(index)
+
                     # Get start and end point
                     start, end = shapely.Point(geom.coords[0]), shapely.Point(geom.coords[-1])
                     # Calculate distance between start point and the line between junctions

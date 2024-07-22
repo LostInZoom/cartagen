@@ -130,7 +130,8 @@ def triangulation_edges_around_building(building, triangulation):
             edges.append((edge[0], objects[0]))
     return edges
 
-# this function computes the congestion around a building following the principles proposed in Anne Ruas PhD. It returns an array of congested direction around the building, with a zero value when that direction is not congested.
+# this function computes the congestion around a building following the principles proposed in Anne Ruas PhD.
+# It returns an array of congested direction around the building, with a zero value when that direction is not congested.
 def building_congestion(building, triangulation, max_distance, nb_orientations=16):
     congested = []
     nb_edges_2buildings = 0
@@ -172,23 +173,11 @@ def building_congestion(building, triangulation, max_distance, nb_orientations=1
             congested[i] = projected_congestion
 
     return (congested, nb_edges_2buildings)
-
-# computes the compactness of a polygon using the Miller index
-def polygon_compactness(polygon):
-    return 4 * pi * polygon.area / (polygon.length * polygon.length)
-
-# computes the elongation of a polygon
-def polygon_elongation(polygon):
-    mbr = polygon.minimum_rotated_rectangle
-    coords = mbr.exterior.coords
-    length1 = Point(coords[0]).distance(Point(coords[1]))
-    length2 = Point(coords[1]).distance(Point(coords[2]))
-    if(length1 < length2):
-        return length2 / length1
-    else:
-        return length1 / length2
     
-# compute the corner buildings in a block. The list contains the ids of the buildings (i.e. their number in the list of buildings), not the buildings themselves.
+# Compute the corner buildings in a block.
+# The list contains the ids of the buildings
+# (i.e. their number in the list of buildings),
+# not the buildings themselves.
 def corner_buildings(buildings, networks, angle_tolerance=22.5, triangle_edge = 20.0):
     corner = []
     radians_tol = angle_tolerance * pi / 180.0

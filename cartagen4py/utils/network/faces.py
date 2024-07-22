@@ -1,6 +1,8 @@
 import numpy as np
 import shapely, geopandas
 
+from cartagen4py.utils.geometry.polygon import *
+
 class NetworkFace:
     """
     An object representing a network face along with specific geometric properties.

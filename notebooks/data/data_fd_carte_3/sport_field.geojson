@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "sport_field",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2154" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 3455, "cleabs": "TERRSPOR0000000247639481", "nature": "Petit terrain multi-sports", "nature_detaillee": null, "etat_de_l_objet": "En service", "date_creation": "2011-02-02T14:26:37.724", "date_modification": "2022-02-10T11:38:53.763", "date_d_apparition": null, "date_de_confirmation": "2016-01-01", "sources": "MSS_2016", "identifiants_sources": "MSS:253112", "methode_d_acquisition_planimetrique": "Photogrammétrie", "precision_planimetrique": 2.5, "methode_d_acquisition_altimetrique": "Photogrammétrie", "precision_altimetrique": 1.5 }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 668596.699999999953434, 6860619.400000000372529, 93.1 ], [ 668616.5, 6860623.200000000186265, 93.1 ], [ 668623.199999999953434, 6860593.599999999627471, 93.1 ], [ 668603.900000000023283, 6860589.5, 92.9 ], [ 668596.699999999953434, 6860619.400000000372529, 93.1 ] ] ] ] } }
+]
+}

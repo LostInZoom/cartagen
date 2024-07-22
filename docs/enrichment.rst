@@ -1,5 +1,0 @@
-.. _enrichment:
-
-===============
-Data enrichment
-===============

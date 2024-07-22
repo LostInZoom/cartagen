@@ -16,6 +16,11 @@ aggregation = c4.morphological_amalgamation(geoms, 1.0, 1.0)
 
 p1 = gp.GeoSeries(geoms)
 p2 = gp.GeoSeries(aggregation)
-base = p2.plot()
-p1.plot(ax=base, facecolor='none', edgecolor='red')
+
+base = p1.plot(facecolor='gray', edgecolor='none')
+p2.plot(ax=base, facecolor='none', edgecolor='red')
+
+base.set_title('Morphological amalgamation (Damen et al., 2008)', pad=10, family='sans-serif')
+base.axes.get_xaxis().set_visible(False)
+base.axes.get_yaxis().set_visible(False)
 plt.show()

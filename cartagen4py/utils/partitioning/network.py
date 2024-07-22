@@ -2,11 +2,45 @@ import shapely
 from shapely.ops import linemerge, unary_union, polygonize
 from cartagen4py.utils.geometry import extent
 
-def calculate_network_faces(*networks, convex_hull=True):
+def network_faces(*networks, convex_hull=True):
     """
-    Calculates the faces of one or multiple shapely geometry networks and return a shapely geometry sequence of polygons.
+    Calculates the faces of one or multiple networks.
+
+    This function is often called polygonize.
+    It creates polygons in place of a network of lines.
+
+    Parameters
+    ----------
+    *networks : list of LineString
+        The networks to generate the faces from.
+        All the provided lists are merged into one list of geometries.
+    convex_hull : bool, optional
+        If True, add the convex hull of the provided list of lines to the
+        network, thus including the borders.
+
+    Returns
+    -------
+    list of Polygon
+
+    See Also
+    --------
+    partition_networks :
+        Partition objects using one or multiple networks.
+
+    Notes
+    -----
+    When the network is not completely planar (*e.g.* tunnels
+    and bridges inside a road network with crossing
+    sections not intersecting), the network
+    is fully unioned and merged.
+
+    Examples
+    --------
+    >>> lines = [LineString([(0, 0), (1, 1), (2, 0), (3, 1)])]
+    >>> list(network_faces(lines))
+    [<POLYGON ((1 1, 3 1, 2 0, 1 1))>, <POLYGON ((2 0, 0 0, 1 1, 2 0))>]
     """
-    if len(networks) < 1:
+    if len(networks) == 0:
         raise Exception('No networks provided, network partition cannot be created.')
 
     network = []
@@ -35,7 +69,44 @@ def calculate_network_faces(*networks, convex_hull=True):
 
 # Returns a tuple with objects and faces polygons
 # TODO: Manage centroids that happens to be on the edges of the networks faces
-def network_partition(objects, *networks):
+def partition_networks(objects, *networks):
+    """
+    Partition objects using one or multiple networks.
+
+    Create the faces from one or multiple networks and
+    partition the provided objects into groups. Objects are
+    grouped when their centroid intersects the same
+    network face. This algorithm rely on a
+    :class:`STRtree <shapely.STRtree>` indexing solution. 
+
+    Parameters
+    ----------
+    objects : GeoDataFrame of Geometry
+        The objects to partition. Their centroids are used
+        to assign them to a network face.
+    *networks : GeoDataFrame of LineString
+        The networks used to partition the objects.
+
+    Returns
+    -------
+    partition : tuple
+        A tuple containing two elements :
+
+        #. A list of lists of index ordered by the network faces
+        #. A list of the geometry of the network faces
+
+    See Also
+    --------
+    network_faces :
+        Calculates the faces of one or multiple networks.
+
+    Examples
+    --------
+    >>> points = GeoDataFrame(geometry=[ Point(2, 1), Point(4, 1) ])
+    >>> network = GeoDataFrame(geometry=[ LineString([(0, 0), (3, 0), (3, 2), (6, 2)]) ])
+    >>> partition_networks(points, network)
+    ([[1], [0]], [<POLYGON ((3 2, 6 2, 3 0, 3 2))>, <POLYGON ((3 2, 3 0, 0 0, 3 2))>])
+    """
     obj = objects.to_dict('records')
 
     # Create an empty tuple to store future partitions
@@ -46,7 +117,7 @@ def network_partition(objects, *networks):
         shapes.append(network.geometry)
 
     # Calculate the network faces from the networks provided
-    faces = calculate_network_faces(*shapes)
+    faces = network_faces(*shapes)
 
     # Calculate the centroids of each objects and store them in a list
     centroids = []

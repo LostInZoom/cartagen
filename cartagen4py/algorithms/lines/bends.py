@@ -7,38 +7,44 @@ from cartagen4py.utils.geometry.bends import *
 from cartagen4py.utils.geometry.line import *
 from cartagen4py.utils.geometry.segment import *
 
-def accordion(line, width, sigma=None, sample=None):
+def accordion(line, width, sigma=30, sample=None):
     """
-    Stretches a line to enlarge each bend (Plazanet, 1996).
+    Stretch a series of bends to enlarge each bend.
 
-    The Accordion algorithm is dedicated to the caricature of sinuous bend series.
-    Like the musical instrument, the Accordion algorithm stretches the road to enlarge each bend of the series.
-    The algorithm was developed in the 90’s by François Lecordix at IGN France.
+    This algorithm was proposed by Plazanet. :footcite:p:`plazanet:1996`
+    It is dedicated to the caricature of sinuous bend series. Like the musical instrument,
+    the Accordion algorithm stretches the road to enlarge each bend of the series.
 
-    The algorithm is part of the toolbox to generalise mountain roads that contain sinuous bend series.
-    The algorithm is rather used when there is room to enlarge the bend series.
+    The algorithm is part of the toolbox to generalise mountain roads that contain sinuous bend series
+    and is rather used when there is room to enlarge the bend series.
     When the diffusion of the enlargement to the connected roads causes more legibility problems than the
-    ones solved by Accordion, Bend schematization should be preferred.
+    ones solved by accordion, schematization should be preferred.
 
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to apply the accordion algorithm.
     width : float
         The width in meters of the casing of the symbol.
-    sigma : float, Default=None
+    sigma : float, optional
         Gaussian smoothing strength.
-    sample : int, Default=None
+    sample : int, optional
         Gaussian smoothing sample size.
 
     Returns
     -------
-    shapely.LineString
+    LineString
 
     See Also
     --------
-    gaussian_smoothing : Gaussian smoothing for more information about sigma and sample parameters.
-    schematization : Schematization algorithm for bend series.
+    schematization :
+        Remove bends from series of bends to simplify it.
+    gaussian_smoothing :
+        Smooth a line and attenuate its inflexion points.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Detect individual bends inside the smoothed line
     bs = BendSerie(line, sigma, sample)
@@ -187,38 +193,51 @@ def __get_vector(bend, width):
 
     return check_translation(Point(bend.bend.coords[0]), bend, width, angle, v)
 
-def schematization(line, sigma=None, sample=None):
+def schematization(line, sigma=30, sample=None):
     """
-    Remove bends from a line to simplify it (Lecordix et al, 1997).
+    Remove bends from series of bends to simplify it.
 
-    Bend schematization is a caricature algorithm that removes one (or more) bend of a series while preserving the global shape of the bend series.
-    It was proposed in (Lecordix et al., 1997) and initially implemented in the late PlaGe platform.
-    The was implemented in CartAGen directly from the initial Ada PlaGe code.
+    This algorithm proposed by Lecordix *et al.* :footcite:p:`lecordix:1997`
+    is a caricature algorithm that removes one (or more) bend of a
+    series while preserving the global shape of the bend series.
 
-    Bends in the series are identified using inflexion points, and when the middle bends are removed, the inflexion points are displaced along the axis of the series,
+    Bends in the series are identified using inflexion points, and when the middle
+    bends are removed, the inflexion points are displaced along the axis of the series,
     the road is distorted to cushion the displacement of the inflexion points.
 
     Parameters
     ----------
-    line : shapely LineString
+    line : LineString
         The line to apply the accordion algorithm.
-    sigma : float, Default=None
+    sigma : float, optional
         Gaussian smoothing strength.
-    sample : int, Default=None
+    sample : int, optional
         Gaussian smoothing sample size.
+
+    Returns
+    -------
+    LineString
 
     See Also
     --------
-    gaussian_smoothing : Gaussian smoothing for more information about sigma and sample parameters.
-    accordion : Accordion algorithm for bend series.
+    accordion :
+        Stretch a series of bends to enlarge each bend.
+    gaussian_smoothing :
+        Smooth a line and attenuate its inflexion points.
+    inflexion_points :
+        Extract inflexion points from a sinuous line.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # Treat a part of the schematization
-    def schematize_part(coords, wpoint, summits):
+    def schematize_part(coords, wpoint, summits, length):
         # Get the start vertex and create the translation vector
         start = Point(coords[0])
         vector = Vector2D.from_points(start, wpoint)
 
-        # Get the orientation of the last segment of the part
+        # Get the orientation of the first segment of the part
         main = Segment(coords[0], coords[1]).orientation()
         # Get the perpendicular orientation
         perp = main + np.pi / 2
@@ -244,7 +263,7 @@ def schematization(line, sigma=None, sample=None):
                 break
             # Append the point to the list
             lasthalf.append(point)
-            
+
         schematized = []
         total = 0
         # Loop again starting at the penultimate vertex
@@ -260,7 +279,7 @@ def schematization(line, sigma=None, sample=None):
                 vect = vmain.change_norm(vmain.get_norm() * (1 - total / halflength))
                 projected = vect.translate(projected)
             # Then, for every point, cushion the translation using also the perpendicular vector
-            vect = vperp.change_norm(vperp.get_norm() * (1 - total / length1))
+            vect = vperp.change_norm(vperp.get_norm() * (1 - total / length))
             projected = vect.translate(projected)
             # Add the point to the start of the list
             schematized.append(projected)
@@ -304,8 +323,8 @@ def schematization(line, sigma=None, sample=None):
     # Loop through bends
     nb = len(bends)
     for i, b in enumerate(bends):
-        # Make sure the bend is to be schematized
-        if i in [0, nb - 1]:
+        # Make sure the bend is to be schematized (not the first, not the last)
+        if i in [0, nb - 1] and len(bends) != 5:
             continue
 
         indice = 0
@@ -335,21 +354,16 @@ def schematization(line, sigma=None, sample=None):
     indiceremove = sorted(indiceremove, key=lambda d: d['indice'])
     sizeremove = sorted(sizeremove, key=lambda d: d['size'])
 
-    # print(sizeremove)
-    # print(indiceremove)
-    # # Handle particular case
-    # if len(bends) > 4:
-    #     i = sizeremove[-1]['index']
-    #     topop = None
-    #     for j, idx in enumerate(indiceremove):
-    #         if idx['index'] == i:
-    #             topop = j
+    # Handle particular case
+    if len(bends) > 4:
+        i = sizeremove[-1]['index']
+        topop = None
+        for j, idx in enumerate(indiceremove):
+            if idx['index'] == i:
+                topop = j
         
-    #     if topop is not None:
-    #         indiceremove.pop(topop)
-
-    # print(sizeremove)
-    # print(indiceremove)
+        if topop is not None:
+            indiceremove.pop(topop)
 
     bend1, bend2 = None, None
 
@@ -423,9 +437,11 @@ def schematization(line, sigma=None, sample=None):
     coords1.reverse()
 
     # Schematize the first part
-    part1 = schematize_part(coords1, wpoint, summit1)
-    part2 = schematize_part(coords2, wpoint, summit2)
+    part1 = schematize_part(coords1, wpoint, summit1, length1)
+    part2 = schematize_part(coords2, wpoint, summit2, length2)
     part1.reverse()
+
+    coords = list(line.coords)
     
-    # Return the constructed linestring
-    return LineString(part1 + [wpoint] + part2)
+    # Return the constructed linestring, keeping the original start and end point
+    return LineString([coords[0]] + part1[1:] + [wpoint] + part2[:-1] + [coords[-1]])

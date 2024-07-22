@@ -15,8 +15,8 @@ left, right = None, None
 for n in net:
     geom = n['geometry']
     lines = c4.detect_pastiness(geom, tolerance)
-    right = { 'geometry': shapely.offset_curve(geom, tolerance) }
-    left = { 'geometry': shapely.offset_curve(geom, -tolerance) }
+    right = { 'geometry': shapely.dilate_line(geom, tolerance) }
+    left = { 'geometry': shapely.dilate_line(geom, -tolerance) }
 
 lgpd = gpd.GeoDataFrame([left], crs=crs)
 rgpd = gpd.GeoDataFrame([right], crs=crs)

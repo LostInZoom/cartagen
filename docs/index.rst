@@ -38,13 +38,20 @@ Evaluate your generalised map
 
    installation_py
    manual
+   bibliography
 
 .. toctree::
    :caption: API Reference
    :hidden:
 
-   algorithms
-   enrichment
+   points
+   lines
+   polygons
+   networks
+   bends
+   processes
+   partitioning
+   tools
 
 .. toctree::
    :caption: Plugin QGIS

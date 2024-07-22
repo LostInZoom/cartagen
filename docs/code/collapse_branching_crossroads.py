@@ -5,7 +5,7 @@ import geopandas as gpd
 network = gpd.read_file("data/roundabouts.geojson")
 roundabouts = c4.detect_roundabouts(network)
 branching = c4.detect_branching_crossroads(network, roundabouts=roundabouts)
-collapsed = c4.collapse_branching_crossroads(network, branching, roundabouts)
+collapsed = c4.collapse_branching_crossroads(network, branching)
 
 original = network.plot(edgecolor='gray',linewidth=1)
 collapsed.plot(ax=original, edgecolor='red', linewidth=1)

@@ -5,22 +5,50 @@ from shapely.ops import unary_union, linemerge
 from cartagen4py.utils.network import *
 from cartagen4py.utils.geometry.line import *
 
-def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None):
+def collapse_branching_crossroads(roads, crossroads, maximum_area=None):
     """
-    Collapse detected branching crossroads below the provided area to a point and return the new network.
+    Collapse branching crossroads to a point.
+
+    This algorithm proposed by Touya :footcite:p:`touya:2010` collapses
+    detected branching crossroads below the provided area to a point on what
+    is detected as the main road.
+    
     Parameters
     ----------
-    roads : geopandas GeoDataFrame of LineStrings.
+    roads : GeoDataFrame of LineString
         The road network where branching crossroads will be collapsed.
-    crossroads : geopandas GeoDataFrame of Polygons.
-        The polygons representing the faces of the network detected as branching crossroads.
-    roundabouts : geopandas GeoDataFrame of Polygons, optional.
-        The polygons representing the faces of the network detected as roundabouts.
-        Provide a better collapsing when provided.
-        Default value is set to None.
-    maximum_area : float, optional.
+    crossroads : GeoDataFrame of Polygon
+        Polygons representing the faces of the network detected as branching crossroads.
+        Crossroads connected to a roundabout won't be collapsed.
+    maximum_area : float, optional
         The area, in square meter, below which branching crossroads are collapsed.
-        Default value is set to None. 
+        Collpase all crossraods if left to None.
+
+    Returns
+    -------
+    GeoDataFrame of LineString
+
+    Warning
+    -------
+    Detecting roundabouts beforehand is important as a branching crossroad
+    may be an entrance to a roundabout. If roundabouts where provided when
+    using :func:`detect_branching_crossroads` an attribute will link the
+    crossroads to their relative roundabout. Those connected crossroads
+    won't be collapsed by this algorithm but they will be collapsed by
+    :func:`collapse_roundabouts`.
+
+    See Also
+    --------
+    detect_roundabouts :
+        Detect roundabouts inside the road network.
+    detect_branching_crossroads :
+        Detect branching crossroads inside the road network.
+    collapse_roundabouts :
+        Collapse roundabouts to a point.
+
+    References
+    ----------
+    .. footbibliography::
     """
 
     # Retrieve crs for output
@@ -29,8 +57,6 @@ def collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_a
     # Convert geodataframe to list of dicts
     roads = roads.to_dict('records')
     crossroads = crossroads.to_dict('records')
-    if roundabouts is not None:
-        roundabouts = roundabouts.to_dict('records')
     
     # Store road geometries
     network = []

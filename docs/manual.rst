@@ -24,50 +24,41 @@ Generalisation operations
 Lines simplification
 ^^^^^^^^^^^^^^^^^^^^
 
-Several algorithms for line simplification are available, including Douglas-Peucker(1973), Visvalingam-Whyatt and Raposo hexagon-based simplification.
+Multiple algorithms for line simplification are available, including:
 
-.. plot:: code/manual/line_simplification.py
+- :func:`Douglas-Peucker <cartagen4py.douglas_peucker>`
+- :func:`Visvalingam-Whyatt <cartagen4py.visvalingam_whyatt>`
+- :func:`Raposo <cartagen4py.raposo>`
+
+Those line simplification algorithm are used for different purposes and their computational
+time differs. For example, Raposo :footcite:p:`raposo:2013` is mainly used to simplify
+natural lines such as rivers. You can read more about them in the API Reference section.
+
+.. plot:: code/manual/simplification_line.py
+
+Figure 1. Line simplification algorithms.
 
 Polygons
 ^^^^^^^^
 
-cartagen4py contains algorithms that process any type of polygons, and others specific to some types of map polygons, such as buildings. Only the algorithms that process one polygon at a time are documented in this section.
+This library also contains algorithms that process any type of polygons,
+and others specific to some types of map polygons, such as buildings.
+This section contains only informations related to algorithms that process
+one polygon at a time, including:
 
-.. method:: building_simplification_ruas(building, edge_threshold, parallel_limit = 20 * pi / 180, orthogonal_limit = 20 * pi / 180)
+- :func:`Simplify building <cartagen4py.simplify_building>`
+- :func:`Square polygon  <cartagen4py.square_polygons>`
 
-    Returns a simplified version of the building polygon using the algorithm from Anne Ruas (1988). The algorithm was later used to simplify buildings in the AGENT project.
-    The 'edge_threshold' is the minimum length of an edge between two vertices of the building to be removed. The 'parallel_limit' and 'orthogonal_limit' parameters define to what extent two edges are considered parallel or orthogonal.
+.. plot:: code/manual/simplification_building.py
 
-.. code-block:: pycon
-
-  >>> building = Polygon([(0, 0), (0, 10), (2, 10), (2, 9), (10, 9), (10, 0), (0, 0)])
-  >>> building_simplification_ruas(building, 2.5)
-  <POLYGON ((0 0, 0 9.5, 10 9.5, 10 0, 0 0))>
-
-.. plot:: code/building_simplification.py
-
-Figure 4. Four buildings simplified with the Ruas algorithm.
-
-.. method:: square_polygon(polygons, max_iteration=1000, norm_tolerance=0.05, right_tolerance=10, flat_tolerance=10, fixed_weight=5, right_weight=100, flat_weight=50)
-
-    Squares the angles of a polygon using the algorithm from `(Lokhat & Touya, 2016) <https://josis.org/index.php/josis/article/view/72>`_. The algorithm is based on a least squares adjustment, where angles that are almost right or almost flat are adjusted to be exactly right, or exactly flat.
-
-.. code-block:: pycon
-
-  >>> building = Polygon([(0, 0), (0, 10), (9.8, 9.8), (10, 0), (0, 0)])
-  >>> square_polygon([building])
-  [POLYGON((-0.00002213 -0.00002213, 0.00000159  9.90002291, 9.89999763  9.89999763, 9.90002291  0.00000159, -0.00002213 -0.00002213))]
-
-.. plot:: code/building_squaring.py
-
-Figure 5. Two buildings squared with the algorithm from (Lokhat & Touya, 2016).
+Figure 2. Building simplification algorithms.
 
 Groups of objects
 ^^^^^^^^^^^^^^^^^
 
 .. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
 
-    Amalgamates a group of building polygons using morphological operators, with the algorithm presented in `(Damen et al., 2008) <https://www.semanticscholar.org/paper/High-Quality-Building-Generalization-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113>`_. 
+    Amalgamates a group of building polygons using morphological operators, with the algorithm presented in `(Damen et al., 2008) <https://www.semanticscholar.org/paper/High-Quality-Building-Generalisation-by-Extending-Damen-Kreveld/b64618584b3ae3725da7eeb5a545d1580e5f2113>`_. 
     The algorithm chains morphological opening and closing to amalgamate close buildings into a larger building area.
     The 'buffer_size' is parameter used for the opening and closing operations. The 'edge_length' gives the length of edges that are later simplified in the amalgamated polygons.
 
@@ -81,30 +72,7 @@ Groups of objects
 
 Figure 6. Buildings amalgamated using the algorithm from Damen et al. (2008).
 
-
-.. class:: RandomDisplacement(max_trials=25, max_displacement=10, network_partitioning=False, verbose=False)
-
-    This algorithm displaces buildings that overlap with each other and/or other features. The algorithm was never published but was available in CartAGen. It is an iterative process that selects the building with the most overlaps, and then pushes slightly the building in a random direction. If the overlaps are reduced, the displacement is commited and a new iteration starts. If the overlaps are worse, the displacement is backtracked, and another one is tried.
-    The 'max_trials' parameter gives the maximum number of random displacements tried on one building. The 'max_displacement' parameter is the maximum distance a building is allowed to move. For large datasets, the algorithm can work on smaller partitions, using the 'network_partitioning' parameter.
-    The name of the class mentions buildings but other objects can be similarly displaced, as long as GeoDataframe with polygons is provided.
-
-.. method:: displace(self, buildings, roads, rivers, *networks)
-
-    This method displaces the buildings with roads and rivers acting as obstacles for the buildings, i.e. the algorithm minimises the overlaps between buildings and with the geometries contained in those two collections.
-    'buildings', 'roads', and 'rivers' are geopandas GeoDataframes, not arrays of geometries. If you want to avoid overlaps with road and river symbols, you need to provide polygons as the main geometry of these GeoDataframes, i.e. buffer the road and river lines.
-    'networks' contained the lines that are used to partition space in case of a large dataset. The lines may be the same as the ones used as obstacles, or not.;
-    The algorithm returns a geopandas GeoDataframe.
-
-.. code-block:: pycon
-
-  displacement = RandomDisplacement(network_partitioning=False)
-  displaced_gdf = displacement.displace(building_gdf, road_gdf, rivers_gdf)
-
-.. plot:: code/random_displacement.py
-
-Figure 7. A block with buildings displaced because of the width of the road symbol, using the Random Displacement algorithm.
-
-.. method:: kmeans_point_set_reduction(points, shrink_ratio, centroid_option = False)
+.. method:: reduce_points_kmeans(points, shrink_ratio, centroid_option = False)
 
     This algorithm reduces a set of points to a smaller set of points that is representative of the initial set. The algorithm uses a K-Means clustering to reduce the set to a number of clusters that corresponds to the shrinking ratio parameter.
     The 'shrink_ratio' parameter can vary between 0 (all points are removed) and 1 (all points are kept).
@@ -114,14 +82,14 @@ Figure 7. A block with buildings displaced because of the width of the road symb
 
   >>> points = [Point(1,1), Point(1,2), Point(0,1), Point(2,1), Point(2,2), Point(5,5), Point(8,10), Point(10,10), Point(10,8), 
               Point(16,10), Point(16,9), Point(14,11)]
-  >>> kmeans_point_set_reduction(points, 0.25)
+  >>> reduce_points_kmeans(points, 0.25)
   [<POINT (2.0 2.0)>, <POINT (10.0 10.0)>, <POINT (16.0 10.0)>]
 
 .. plot:: code/kmeans_reduction.py
 
 Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means reduction algorithm.
 
-.. method:: quadtree_point_set_reduction(points, depth, mode='simplification', attribute = "")
+.. method:: reduce_points_quadtree(points, depth, mode='simplification', attribute = "")
 
     Algorithm to reduce a point set based on a quadtree. The algorithm was proposed by Bereuter & Weibel (2012). The algorithm uses a quadtree that divdes itself until there is only one point feature inside the cell.
     The 'depth' parameter can vary between 0 (all points are removed) and the maximum depth of the quadtree (all points are kept). If depth is 2, the algorithm only retains 1 point for each cell with depth <= 2.
@@ -137,160 +105,12 @@ Figure 8. A set of points reduced to 25% of its initial amount, with the K-Means
               Point(16,10), Point(16,9), Point(14,11)]
   >>> p1 = gpd.GeoSeries(points)
   >>> gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(p1))
-  >>> quadtree_point_set_reduction(points, 0.25)
+  >>> reduce_points_quadtree(points, 0.25)
   [<POINT (1 2)>, <POINT (10 8)>, <POINT (10 10)>, <POINT (14 11)>]
 
 .. plot:: code/quadtree_reduction.py
 
 Figure 9. A set of points reduced to depth 2 of the quadtree, with the selection mode. The selected points are displayed in red.
-
-
-Road network
-^^^^^^^^^^^^
-
-Those functions are used to generalized specific features inside a road network. Those tools are used in conjonction with the
-data enrichment tools.
-
-.. method:: collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=None)
-
-    This function collapse detected roundabouts inside a road network.
-    **It is recommended to detect both roundabouts and branching crossroads before collapsing them, this approach yields better results.**
-    Returns the new road network as a geopandas GeoDataFrame.
-    
-    :param roads: The road network where roundabouts will be collapsed.
-    :type roads: geopandas GeoDataFrame of LineStrings
-    :param roundabouts: The polygons representing the faces of the network detected as roundabouts.
-    :type roundabouts: geopandas GeoDataFrame of Polygons
-    :param crossroads: The polygons representing the faces of the network detected as branching crossroads. This allows incoming branching crossroads on roundabouts to be collapsed as well. 
-    :type crossroads: geopandas GeoDataFrame of Polygons, optional
-    :param maximum_diameter: The diameter below which roundabouts are not collapsed.
-    :type maximum_diameter: float, optional
-    
-.. code-block:: pycon
-
-    # Detect roundabouts using default parameters
-    roundabouts = detect_roundabouts(roads)
-
-    # Detect branching crossroads using default parameters
-    branching = detect_branching_crossroads(roads)
-
-    # Collapse roundabouts with default parameters
-    collapsed = collapse_roundabouts(roads, roundabouts, crossroads=branching)
-
-.. plot:: code/collapse_roundabouts.py
-
-.. method:: collapse_branching_crossroads(roads, crossroads, roundabouts=None, maximum_area=None)
-
-    This function collapse detected branching crossroads inside a road network.
-    **It is recommended to detect both roundabouts and branching crossroads before collapsing them, this approach yields better results.
-    Then, the collapsing of branching crossroads connected to a roundabout is conducted using the roundabout collapsing algorithm.**
-    Returns the new road network as a geopandas GeoDataFrame.
-    
-    :param roads: The road network where branching crossroads will be collapsed.
-    :type roads: geopandas GeoDataFrame of LineStrings
-    :param crossroads: The polygons representing the faces of the network detected as branching crossroads. 
-    :type crossroads: geopandas GeoDataFrame of Polygons
-    :param roundabouts: The polygons representing the faces of the network detected as roundabouts. This allows roundabouts to be collapsed at the same time.
-    :type roundabouts: geopandas GeoDataFrame of Polygons, optional
-    :param maximum_area: The area, in square meter, below which branching crossroads are collapsed. Default value is set to None. 
-    :type maximum_area: float, optional
-    
-.. code-block:: pycon
-
-    # Detect roundabouts using default parameters
-    roundabouts = detect_roundabouts(roads)
-
-    # Detect branching crossroads using default parameters
-    branching = detect_branching_crossroads(roads)
-
-    # Collapse branching crossroads with default parameters
-    collapsed = collapse_branching_crossroads(roads, branching, roundabouts=roundabouts)
-
-.. plot:: code/collapse_branching_crossroads.py
-
-.. method:: collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None)
-
-    This function collapse detected dual carriageways inside a road network.
-    Returns the new road network as a geopandas GeoDataFrame.
-    
-    :param roads: The road network where dual carriageways will be collapsed.
-    :type roads: geopandas GeoDataFrame of LineStrings
-    :param carriageways: The polygons representing the faces of the network detected as dual carriageways.
-    :type carriageways: geopandas GeoDataFrame of Polygons
-    :param sigma: If not None, apply a gaussian smoothing to the collapsed dual carriageways to avoid jagged lines that can be created during the TIN skeleton creation.
-    :type sigma: float, optional
-    :param propagate_attributes: Propagate the provided list of column name to the resulting network. The propagated attribute is the one from the longest line.
-    :type propagate_attributes: list of str, optional
-    
-.. code-block:: pycon
-
-    # Detect branching crossroads using default parameters
-    carriageways = detect_dual_carriageways(roads)
-
-    # Collapse branching crossroads with default parameters
-    collapsed = collapse_dual_carriageways(roads, carriageways, sigma=2)
-
-.. plot:: code/collapse_dual_carriageways.py
-
-.. method:: eliminate_dead_ends(roads, deadends, length, keep_longest=True)
-
-    This function eliminates dead ends inside a road network if the length of their main component is below a given threshold.
-    If the dead end is simple (i.e. just one road), the main component is the road.
-    If the dead end contains multiple ramification of roads, the main component represents the road between the entry and the longest ramification.
-    If the dead end contains inner network faces (i.e. enclosed roads), the main component represents the longest of the shortest paths between the entry and all the nodes of the dead ends.
-    Returns the roads network without the unwanted dead ends as a GeoDataFrame.
-
-    :param roads: The GeoDataFrame containing the dead ends as LineString geometries.
-    :type roads: geopandas GeoDataFrame
-    :param deadends: The LineString representing the roads of the network detected as dead ends.
-    :type deadends: geopandas GeoDataFrame of Polygons
-    :param length: The length below which dead ends are eliminated.
-    :type length: float
-    :param keep_longest: If set to true, in case of complex dead end, keep the main component (c.f. description) if above the provided length.
-    :type keep_longest: boolean, optional
-
-.. code-block:: pycon
-
-    # Detect dead ends using default parameters
-    deadends = detect_dead_ends(network)
-
-    # Eliminate dead ends using a length threshold of 250
-    eliminated = eliminate_dead_ends(network, deadends, 250)
-
-.. plot:: code/collapse_dead_ends.py
-
-Mountain roads
-^^^^^^^^^^^^^^
-
-Those functions are used to generalized mountain roads with a lot of bends.
-
-.. method:: detect_pastiness(line, tolerance, cap_style='flat', quad_segs=8)
-
-    Detect pastiness of a line object.
-    Returns a list of dictionary as { "paste": **paste**, "geometry": **geometry** } where **paste** represents the number of conflicts (0 when no
-    conflicts are detected, 1 when a conflict exists on one side only, two when conflicts are on both side of the line) and **geometry**
-    is the shapely geometry of the line.
-    This algorithm subdivide the provided line into multiple chunks, thus modifying the geometry,
-    it is not a data enrichment function stricto sensu.
-    
-    :param line: The line to detect the pastiness from.
-    :type line: shapely LineString
-    :param tolerance: The Tolerance of the offset used to detect the pastiness.
-    :type tolerance: float
-    :param cap_style: The type of caps at the start and end of the provided line. Possible values are 'round' or 'flat'. Default to 'flat'.
-    :type cap_style: str, optional
-    :param quad_segs: The number of point allowed per circle quadrant when interpolating points using round method. Default to 8.
-    :type quad_segs: int, optional
-    
-.. code-block:: pycon
-
-    # Detect pastiness using a tolerance of 60 metres and default parameters
-    pastiness = detect_pastiness(line, 60)
-
-.. plot:: code/mountain_pastiness.py
-
-Detection of the pastiness of a line (the width represent the number of conflict as described in the method description)
-
 
 Enrich your data prior to map generalisation
 --------------------------------------------
@@ -300,7 +120,7 @@ Since the beginning of research on the automation of map generalisation, the nec
 Extracting implicit geographic structures
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. method:: compute_boffet_urban_areas(buildings, dilation_size, erosion_size, simplification_distance = 2)
+.. method:: boffet_areas(buildings, dilation_size, erosion_size, simplification_distance = 2)
 
     Computes the urban/built-up areas from a set of buildings, using a method from Boffet (2000). The algorithm computes buffers around each building ('dilation_size') and then merges all buffers.
     The merged areas are then further refined with an erosion ('erosion_size') and a Douglas & Peucker simplification ('simplification_distance').
@@ -308,9 +128,9 @@ Extracting implicit geographic structures
 .. code-block:: pycon
 
   # compute the built-up areas with a 25 m buffer and a 10 m erosion
-  urbanareas = compute_boffet_urban_areas(polygons, 25.0, 10.0)
+  urbanareas = boffet_areas(polygons, 25.0, 10.0)
 
-.. plot:: code/compute_boffet_urban_areas.py
+.. plot:: code/boffet_areas.py
 
 Figure 10. Building polygons converted into built-up areas using the Boffet algorithm.
 
@@ -499,121 +319,11 @@ Figure 13. A river network with color depicting the Horton order : purple =1; ye
     The saved shapefile is made with segment belonging to a unique stroke merged in a geometries  the attributes of each geometries are an id (generated as a serial) and the comma-separated list of IDs of initial sections used to construct the stroke.
 
 
-Road network enrichment
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Those functions characterize different specificities of a road network by interpreting its layout and shape.
-
-.. method:: detect_roundabouts(network, area_threshold=40000, miller_index=0.95)
-
-    This function detects roundabouts inside a road network.
-    Returns the polygons representing the roundabouts extent as a geopandas GeoDataFrame.
-    Returns None if no roundabouts where found.
-    
-    :param network: The GeoDataFrame containing the road network as LineString geometries.
-    :type network: geopandas GeoDataFrame
-    :param area_threshold: The area (in square meters) above which the object is not considered a roundabout. The default value is set to 40000.
-    :type area_threshold: int, optional
-    :param miller_index: Index of compactess that determines if the shape is round or not. The default value is set to 0.97.
-    :type miller_index: float, optional
-    
-.. code-block:: pycon
-
-    # Detect roundabouts using default parameters
-    detect_roundabouts(network)
-
-.. plot:: code/detect_roundabouts.py
-
-.. method:: detect_branching_crossroads(roads, area_threshold=2500, maximum_distance_area=0.5, roundabouts=None, allow_middle_node=True, middle_angle_tolerance=10.0, allow_single_4degree_node=True)
-
-    This function detects branching crossroads inside a road network.
-    **Although the roundabouts parameter is optional, it is recommended to detect roundabouts before branching crossroads to help their characterization.**
-    Returns a GeoDataFrame of polygons representing their extents.
-    
-    :param network: The GeoDataFrame containing the road network as LineString geometries.
-    :type network: geopandas GeoDataFrame
-    :param area_threshold: The area (in square meters) above which the object is not considered a branching crossroads. The default value is set to 2500.
-    :type area_threshold: int, optional
-    :param area_threshold: The maximum distance area between the actual polygon and the triangle formed by the 3 nodes connecting the junction to the rest of the network. The default value is set to 0.5.
-    :type maximum_distance_area: float, optional
-    :param roundabouts: The polygons representing the network faces considered as roundabouts. If provided, it offers a better detection of branching crossroads. The default value is set to None.
-    :type roundabouts: geopandas GeoDataFrame of Polygons, optional
-    :param allow_middle_node: If set to True, allow 4 nodes to form the crossroads, but each must have a degree of 3 and the 'middle' node must have an angle of 180°. Default value set to False.
-    :type allow_middle_node: boolean, optional
-    :param middle_angle_tolerance: If allow_middle_node is set to True, indicate an angle tolerance in degree for the fourth node of the crossroad to be considered the middle node. Default value is set to 10.0.
-    :type middle_angle_tolerance: float, optional
-    :param allow_single_4degree_node: If set to True, allow one and only one node to have a degree of 4. Default value set to False.
-    :type allow_single_4degree_node: float, optional
-    
-.. code-block:: pycon
-
-    # Detect branching crossroads using default parameters
-    detect_branching_crossroads(network)
-
-.. plot:: code/detect_branching_crossroads.py
-
-.. method:: detect_dual_carriageways(roads, importance=None, value=None, concavity=0.85, elongation=6.0, compactness=0.12, area=60000.0, width=20.0, huber=16)
-
-    Detects dual carriageways within a road network. Dual carriageways are derived from the network faces.
-    Return road separators as GeoDataFrame polygons.
-    
-    :param roads: The GeoDataFrame containing the road network as LineString geometries.
-    :type roads: geopandas GeoDataFrame
-    :param importance: The attribute name of the data on which road importance is based. Default value is set to None which means every road is taken for the network face calculation.
-    :type importance: str, optional
-    :param value: Maximum value of the importance attribute. Roads with an importance higher than this value will not be taken. Default value is set to None.
-    :type value: int, optional
-    :param concavity: Minimum concavity above which the face is a dual carriageway. It represents the factor between the polygon surface and its convex hull surface. Default value is set to 0.85.
-    :type concavity: float, optional
-    :param elongation: Minimum elongation above which the face is a dual carriageway. It represents the ratio between the length and the width of the minimum rotated rectangle containing the polygon. Default value is set to 6.0.
-    :type elongation: float, optional
-    :param compactness: Maximum compactness below which the face is a dual carriageway. (4*pi*area/perimeter^2)Default value is set to 0.12.
-    :type compactness: float, optional
-    :param area: Area factor to detect very long motorways. Do not change if you don't know what you are doing. Default value is set to 60000.0.
-    :type area: float, optional
-    :param width: Minimum width above which the face is a dual carriageway. It represents the width of the minimum rotated rectangle containing the polygon. Default value is set to 20.0.
-    :type width: float, optional
-    :param huber: Huber width for long motorways. Do not change. Default value is set to 16.
-    :type huber: int, optional
-
-.. code-block:: pycon
-
-    # Detect dual carriageways using default parameters
-    detect_dual_carriageways(network)
-
-.. plot:: code/detect_dual_carriageways.py
-
-.. method:: detect_dead_ends(roads, outside_faces=True)
-
-    This function detects dead ends inside a road network.
-    Returns the roads detected as dead-ends. Return None if none were found.
-
-    :param roads: The GeoDataFrame containing the road network as LineString geometries.
-    :type roads: geopandas GeoDataFrame
-    :param outside_faces: If set to true, detects dead-ends on the network faces located on the border.
-    :type outside_faces: boolean, optional
-    
-Five attributes are added:
-
-* **face**: the id of the network face it belongs to.
-* **deid**: the id of the dead end group inside a given face.
-* **connected**: set to 'true' if the dead end group is connected to the network.
-* **root**: set to true if the road section is the root of the dead end group, i.e. the section connecting the dead end group to the road network.
-* **hole**: set to true if the road section touches a hole inside the dead end group.
-
-.. code-block:: pycon
-
-    # Detect dead ends using default parameters
-    detect_dead_ends(network)
-
-.. plot:: code/detect_dead_ends.py
-
-
 Apply map generalisation complex processes
 ------------------------------------------
 
 AGENT model
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^
 This user guide is not meant to fully explain the principles of the AGENT model, and how it works. If you are not familiar with the AGENT model, please read the scientific papers describing this model:
 - `<http://icaci.org/files/documents/ICC_proceedings/ICC2001/icc2001/file/f13041.pdf>`_
 - `<http://dx.doi.org/10.1016/b978-008045374-3/50016-8>`_
@@ -622,7 +332,10 @@ Though it is a tutorial for the JAVA CartAGen platform, this `webpage <https://i
 
 Micro agents
 =============
-You may want to use micro agents only, i.e. one cartographic feature such as a building that generalises itself without consideration for the other cartographic features. To generalise micro agents, you have to follow these steps:
+You may want to use micro agents only, i.e. one cartographic feature such as a
+building that generalises itself without consideration for the other cartographic features.
+To generalise micro agents, you have to follow these steps:
+
   1. Create agent objects from your Geopandas features
 
   .. code-block:: pycon
@@ -680,5 +393,7 @@ Meso agents
 =============
 The implementation of the meso agents is not yet completed. 
 
-Least squares adjustment
-^^^^^^^^^^^^^^^^^^^^^^^^
+Bibliography
+============
+
+.. footbibliography::
