@@ -13,7 +13,8 @@ Buildings
     :toctree: reference/
 
     simplify_building
-    square_polygons
+    square_polygon_ls
+    square_polygon_naive
     rectangle_transformation
     recursive_regression
     random_displacement

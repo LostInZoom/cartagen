@@ -377,8 +377,6 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     else:
         return bounding_rectangle
 
-from cartagen4py.utils.debug import plot_debug
-
 def orientation(polygon, method='mbr'):
     """
     Calculate the orientation of a polygon.

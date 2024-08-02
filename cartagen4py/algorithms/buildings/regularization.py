@@ -7,10 +7,11 @@ import matplotlib.pyplot as plt
 
 from cartagen4py.utils.geometry.angle import angle_2_pts
 from cartagen4py.utils.geometry.polygon import enclosing_rectangle, orientation
+from cartagen4py.algorithms.buildings.squaring import square_polygon_naive
 
 from cartagen4py.utils.debug import plot_debug
 
-def rectangle_transformation(polygon, factor=1.0):
+def rectangle_transformation(polygon, factor=1.0, method='mbr'):
     """
     Transform a polygon into a rectangle.
 
@@ -23,6 +24,13 @@ def rectangle_transformation(polygon, factor=1.0):
         The polygon to regularize.
     factor : float, optional
         The scaling factor to apply.
+    method : str, optional
+        The method to calculate the rectangle:
+
+        - **'mbr'** calculate the minimum rotated bounding rectangle.
+        - **'mtr'** calculate minimum rotated touching rectangle.
+          It is the same as the mbr but the rectangle and the polygon
+          must have at least one side in common.
 
     Returns
     -------
@@ -32,6 +40,8 @@ def rectangle_transformation(polygon, factor=1.0):
     --------
     recursive_regression :
         Regularize a polygon using recursive linear regression.
+    feature_edge_reconstruction :
+        Regularize a polygon using feature edge reconstruction.
 
     Examples
     --------
@@ -39,7 +49,13 @@ def rectangle_transformation(polygon, factor=1.0):
     >>> rectangle_transformation(polygon)
     <POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))>
     """
-    mbr = polygon.minimum_rotated_rectangle
+    if method == 'mbr':
+        mbr = enclosing_rectangle(polygon, mode='hull')
+    elif method == 'mtr':
+        mbr = enclosing_rectangle(polygon, mode='input')
+    else:
+        raise Exception('Selected method does not exists: {0}'.format(method))
+
     return shapely.affinity.scale(mbr, xfact=factor, yfact=factor, origin=mbr.centroid)
 
 def recursive_regression(polygon, sigma):
@@ -73,6 +89,8 @@ def recursive_regression(polygon, sigma):
         Construct an enclosing rectangle from a polygon.
     rectangle_transformation :
         Transform a polygon into a rectangle.
+    feature_edge_reconstruction :
+        Regularize a polygon using feature edge reconstruction.
 
     Notes
     -----
@@ -185,9 +203,14 @@ def recursive_regression(polygon, sigma):
                             # start point -> y as current vertex, x as the x of the intersection of the regression line
                             # and the segment formed by the current point and the last point of the previous subside
                             p = temporary[i - 1][0][-1]
-                            slope = (v.y - p.y) / (v.x - p.x)
-                            intercept = p.y - slope * p.x
-                            v1 = Point((mean - intercept) / slope, v.y)
+                            denom = (v.x - p.x)
+                            if denom == 0:
+                                interx = v.x
+                            else:
+                                slope = (v.y - p.y) / (v.x - p.x)
+                                intercept = p.y - slope * p.x
+                                interx = (mean - intercept) / slope
+                            v1 = Point(interx, v.y)
                         # If its the last subside of the side, set the end as the only vertex
                         if i == (len(temporary) - 1):
                             v2 = v
@@ -197,9 +220,14 @@ def recursive_regression(polygon, sigma):
                             # start point -> y as current vertex, x as the x of the intersection of the regression line
                             # and the segment formed by the current point and the first point of the next subside
                             n = temporary[i + 1][0][0]
-                            slope = (n.y - v.y) / (n.x - v.x)
-                            intercept = n.y - slope * n.x
-                            v2 = Point((mean - intercept) / slope, v.y)
+                            denom = (n.x - v.x)
+                            if denom == 0:
+                                interx = v.x
+                            else:
+                                slope = (n.y - v.y) / (n.x - v.x)
+                                intercept = n.y - slope * n.x
+                                interx = (mean - intercept) / slope
+                            v2 = Point(interx, v.y)
 
                         # Increment the subside with the new points
                         if len(subside) > 0:
@@ -379,6 +407,7 @@ def recursive_regression(polygon, sigma):
         d = a1 * b2 - b1 * a2
         dx = c1 * b2 - b1 * c2
         dy = a1 * c2 - c1 * a2
+
         # Calculate the line intersections
         if d != 0:
             x, y = dx / d, dy / d
@@ -397,17 +426,25 @@ def recursive_regression(polygon, sigma):
 def feature_edge_reconstruction(polygon):
     """
     Regularize a polygon using feature edge reconstruction.
+
+    This algorithm was proposed by Yang :footcite:p:`yang:2024`
+
+    References
+    ----------
+    .. footbibliography::
     """
-    # Calculate the orientation using SWO
-    swo = orientation(polygon, 'swo')
+    # # Calculate the orientation using SWO
+    # swo = orientation(polygon, 'swo')
 
-    # Get a list of the vertex
-    coords = list(polygon.boundary.coords)
+    squared = square_polygon_naive(polygon)
 
-    edges = []
-    for i, v1 in enumerate(coords):
-        if i < len(coords) - 1:
-            v2 = coords[i + 1]
-            edges.append(LineString([v1, v2]))
+    # # Get a list of the vertex
+    # coords = list(polygon.boundary.coords)
+
+    # edges = []
+    # for i, v1 in enumerate(coords):
+    #     if i < len(coords) - 1:
+    #         v2 = coords[i + 1]
+    #         edges.append(LineString([v1, v2]))
 
     # plot_debug(edges[0], edges[-1])

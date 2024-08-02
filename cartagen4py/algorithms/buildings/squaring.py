@@ -1,14 +1,110 @@
 # This is an implementation of the least squares based squaring algorithm proposed by Lokhat & Touya (https://hal.science/hal-02147792)
 import numpy as np
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, LineString, Point
 
-def square_polygons(
-        polygons, max_iteration=1000, norm_tolerance=0.05,
+from cartagen4py.utils.geometry.polygon import orientation
+from cartagen4py.utils.math.vector import Vector2D
+from cartagen4py.utils.geometry.angle import angle_2_pts
+
+from cartagen4py.utils.debug import plot_debug
+
+def square_polygon_naive(polygon, method='swo', tolerance=10.0):
+    """
+    Squares a polygon according to its orientation.
+
+    This method, described in Touya, :footcite:p:`touya:2016` first
+    calculates the orientation of the polygon. Sides are then
+    made horizontal or vertical accordingly.
+
+    Parameters
+    ----------
+    polygon : Polygon
+        The polygon to square.
+    method : str, optional
+        The method to calculate the orientation.
+    tolerance : float, optional
+        Tolerance in degrees to consider an angle to be right or flat.
+
+    Returns
+    -------
+    Polygon
+
+    See Also
+    --------
+    square_polygon_ls :
+        Squares a polygon using the method of least squares.
+    orientation :
+        Calculate the orientation of a polygon.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> polygon = Polygon([(0, 0), (0, 1), (1.1, 1), (1, 0)])
+    >>> square_polygon_naive(polygon)
+    """
+    return polygon
+    # # Get the surrounding vectors
+    # def __get_vectors(i, vectors):
+    #     v1 = i if i == 0
+    #     int v1 = i == 0 ? vecs.length - 1 : i - 1;
+    # int v2 = i;
+    # return new int[] { v1, v2 };
+
+    #     return v1, v2
+
+    # Calculate the orientation using SWO
+    swo = orientation(polygon, method=method)
+    # Get the list of coordinates
+    coords = list(polygon.boundary.coords)#[:-1]
+
+    # Create a list of vectors
+    vectors = [ Vector2D.from_points(Point(coords[i]), Point(coords[i + 1])) for i in range(0, len(coords) - 1) ]
+
+    angles = [ np.pi - vectors[-1].angle(vectors[0]) ] + [ np.pi - vectors[i].angle(vectors[i + 1]) for i in range(0, len(coords) - 2) ]
+
+#     angles[i + 1] = Math.PI - vecs[i].angleVecteur(vecs[i + 1]).getValeur();
+
+#     angles = []
+#     aligns = []
+
+    for i in range(0, len(angles) - 1):
+        # p = Point(coords[i][0], coords[i][1])
+        # v1 = vectors[-1] if i == 0 else vectors[i - 1]
+        # v2 = vectors[i]
+        # angle = np.pi - v1.angle(v2)
+        # # align = 
+        # angles.append(angle)
+        
+        # # Get the surrounding vectors
+        # v1, v2 = __get_vectors(i, coords)
+        # # Calculate the angle formed by both vectors
+        # angle = v1.angle(v2)
+        # angles.append(angle)
+
+        difference = 180 - abs(np.rad2deg(angles[i]))
+
+        if difference < tolerance and difference != 0:
+            add = v1.add(v2)
+            add.normalize()
+            norm = v1.get_norm() * np.cos(v1.angle(add))
+            squared = add.const_product(norm)
+            projected = Point(p.x + squared.x, p.y + squared.y)
+
+            plot_debug(polygon, p)
+
+            break
+
+
+def square_polygon_ls(
+        polygon, max_iteration=1000, norm_tolerance=0.05,
         right_tolerance=10.0, flat_tolerance=10.0,
         fixed_weight=5, right_weight=100, flat_weight=50
     ):
     """
-    Polygon squaring based on the least squares method.
+    Squares a polygon using the method of least squares.
 
     The least squares based polygon squaring algorithm was proposed by
     Touya and Lokhat :footcite:p:`touya:2016` and
@@ -20,17 +116,17 @@ def square_polygons(
 
     Parameters
     ----------
-    polygons : list of Polygon
-        The shapely polygons to square.
+    polygon : Polygon
+        The polygon to square.
     max_iteration : float, optional
         This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
         the norm tolerance threshold should be reached before the maximum number of iteration.
     norm_tolerance : float, optional
         The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
     right_tolerance : float, optional
-        Tolerance in degrees to consider and angle to be right.
+        Tolerance in degrees to consider an angle to be right.
     flat_tolerance : float, optional
-        Tolerance in degrees to consider and angle to be flat.
+        Tolerance in degrees to consider an angle to be flat.
     fixed_weight : int, optional
         The weight of the angle constraint concerning an angle neither right nor flat.
         A high value means those angles will be more likely to keep their value in the resulting polygon.
@@ -43,12 +139,12 @@ def square_polygons(
 
     Returns
     -------
-    list of Polygon
+    Polygon
 
     See Also
     --------
-    simplify_building :
-        Simplification of building by edge elimination.
+    square_polygon_naive:
+        Squares a polygon according to the statistical weighted orientation (SWO).
 
     Notes
     -----
@@ -64,20 +160,17 @@ def square_polygons(
 
     Examples
     --------
-    >>> building = Polygon([(0, 0), (0, 1), (1.1, 1), (1, 0)])
-    >>> square_polygons([building])
-    [<POLYGON ((-0.008 0.015, 0.012 1.011, 1.061 0.989, 1.035 -0.015, -0.008 0.015))>]
+    >>> polygon = Polygon([(0, 0), (0, 1), (1.1, 1), (1, 0)])
+    >>> square_polygon_ls(polygon)
+    <POLYGON ((-0.008 0.015, 0.012 1.011, 1.061 0.989, 1.035 -0.015, -0.008 0.015))>
     """
+
     squarer = Squarer(max_iteration, norm_tolerance,
             right_tolerance, flat_tolerance, 7,
             fixed_weight, right_weight, flat_weight, 10)
-    new_points = squarer.square(polygons)
-    list_vertices = squarer.get_shapes_from_new_points(polygons, new_points)
-    new_geoms = []
-    for vertices in list_vertices:
-        new_geoms.append(Polygon(vertices))
-
-    return new_geoms
+    new_points = squarer.square([polygon])
+    list_vertices = squarer.get_shapes_from_new_points([polygon], new_points)
+    return Polygon(list_vertices[0])
 
 class Squarer:
     """

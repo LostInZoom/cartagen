@@ -30,8 +30,8 @@ def simplify_building(building, edge_threshold, parallel_limit=20*pi/180, orthog
 
     See Also
     --------
-    square_polygons :
-        Squares polygons using the least squares method.
+    square_polygon_ls :
+        Squares polygon using the least squares method.
 
     References
     ----------

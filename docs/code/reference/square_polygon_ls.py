@@ -44,14 +44,12 @@ sub1 = fig.add_subplot(111)
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-generalized = c4.square_polygons(buildings)
-
 for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
 
-for g in generalized:
-    poly = Path.make_compound_path(Path(numpy.asarray(g.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in g.interiors])
+    generalized = c4.square_polygon_ls(building)
+    poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
 sub1.autoscale_view()

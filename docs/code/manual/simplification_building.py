@@ -24,8 +24,6 @@ polygons = [
     loads('Polygon ((483134.49167914234567434 6044719.08061139564961195, 483123.53526283032260835 6044711.08918826468288898, 483117.88398461748147383 6044718.7685501417145133, 483125.24604345660191029 6044724.59082455839961767, 483131.69380232668481767 6044728.94176229648292065, 483134.3939773467136547 6044730.82876554876565933, 483140.0452489098533988 6044723.14938258472830057, 483136.44334064348367974 6044720.53428473882377148, 483134.49167914234567434 6044719.08061139564961195))'),
 ]
 
-squared = c4.square_polygons(polygons)
-
 fig = plt.figure(1, (12, 5))
 
 #############################################################
@@ -54,8 +52,8 @@ for building in polygons:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="gray", edgecolor='none'))
 
-for g in squared:
-    poly = Path.make_compound_path(Path(numpy.asarray(g.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in g.interiors])
+    squared = c4.square_polygon_ls(building)
+    poly = Path.make_compound_path(Path(numpy.asarray(squared.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in squared.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
 sub2.autoscale_view()

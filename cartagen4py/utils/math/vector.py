@@ -43,6 +43,7 @@ class Vector2D:
         Copy the vector.
         """
         return Vector2D.from_point(Point(self.x, self.y))
+
     
     def translate(self, point):
         """
@@ -70,6 +71,16 @@ class Vector2D:
         """
         return Vector2D.from_point(Point(-self.x, -self.y))
 
+    def angle(self, vector):
+        """
+        Calculate the angle with the provided vector.
+        """
+        if not (self.get_norm() * vector.get_norm()) == 0:
+            angle = np.arccos(self.scalar_product(vector) / (self.get_norm() * vector.get_norm()))
+            if not np.isnan(angle):
+                return angle
+        return 0
+
     def change_norm(self, norm):
         """
         Return a new vector with a new norm.
@@ -78,6 +89,12 @@ class Vector2D:
         vector.normalize()
         vector.scalar_multiplication(norm)
         return vector
+
+    def const_product(self, constant):
+        """
+        Return a new vector as the product of the current one with a constant.
+        """
+        return Vector2D.from_point(Point(self.x * constant, self.y * constant))
 
     def scalar_product(self, v):
         """
@@ -91,6 +108,12 @@ class Vector2D:
         """
         self.x = self.x * value
         self.y = self.y * value
+
+    def add(self, vector):
+        """
+        Add the vector and return a new one.
+        """
+        return Vector2D.from_point(Point(self.x + vector.x, self.y + vector.y))
 
     def product(self, vector):
         """

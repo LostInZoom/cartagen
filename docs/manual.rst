@@ -47,7 +47,7 @@ This section contains only informations related to algorithms that process
 one polygon at a time, including:
 
 - :func:`Simplify building <cartagen4py.simplify_building>`
-- :func:`Square polygon  <cartagen4py.square_polygons>`
+- :func:`Square polygon  <cartagen4py.square_polygon_ls>`
 
 .. plot:: code/manual/simplification_building.py
 
