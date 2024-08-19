@@ -51,6 +51,7 @@ def collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=N
 
     # Convert geodataframe to list of dicts
     roundabouts = roundabouts.to_dict('records')
+
     roads = roads.to_dict('records')
     if crossroads is not None:
         crossroads = crossroads.to_dict('records')

@@ -42,10 +42,14 @@ def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attrib
     # Retrieve crs for output
     crs = roads.crs
 
-    # Convert geodataframe to list of dicts
-    roads = roads.to_dict('records')
     carriageways = carriageways.to_dict('records')
 
+    if len(carriageways) == 0:
+        return roads
+
+    # Convert geodataframe to list of dicts
+    roads = roads.to_dict('records')
+    
     # Create a list of all the roads geometry of the network
     network = []
     for n in roads:

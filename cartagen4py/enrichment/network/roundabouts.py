@@ -55,10 +55,7 @@ def detect_roundabouts(roads, area_threshold=40000, miller_index=0.95):
             roundabouts.append(infos)
             index += 1
 
-    if len(roundabouts) > 0:
-        return gpd.GeoDataFrame(roundabouts, crs=crs)
-    else:
-        return None
+    return gpd.GeoDataFrame(roundabouts, crs=crs)
 
 def is_roundabout(polygon, area_threshold, miller_index):
     """

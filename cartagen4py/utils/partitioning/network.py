@@ -122,7 +122,10 @@ def partition_networks(objects, *networks):
     # Calculate the centroids of each objects and store them in a list
     centroids = []
     for o in obj:
-        centroids.append(o['geometry'].centroid)
+        if o['geometry'].geom_type == 'Polygon':
+            centroids.append(o['geometry'].point_on_surface())
+        else:
+            centroids.append(o['geometry'].centroid)
 
     # Create the spatial index for the objects centroids
     tree = shapely.STRtree(centroids)

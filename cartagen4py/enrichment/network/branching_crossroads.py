@@ -91,10 +91,7 @@ def detect_branching_crossroads(roads, roundabouts=None,
             crossroads.append(infos)
             index += 1
 
-    if len(crossroads) > 0:
-        return gpd.GeoDataFrame(crossroads, crs=crs)
-    else:
-        return None
+    return gpd.GeoDataFrame(crossroads, crs=crs)
 
 
 def is_branching_crossroad(polygon, roads, tree,

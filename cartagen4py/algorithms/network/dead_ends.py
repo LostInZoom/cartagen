@@ -59,6 +59,9 @@ def eliminate_dead_ends(roads, length=0, keep_longest=True):
         if r['deadend']:
             deadends.append(r)
 
+    if len(deadends) == 0:
+        return gpd.GeoDataFrame(roads, crs=crs)
+
     # Storage for indexes to remove from the results
     remove = []
 

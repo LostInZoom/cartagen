@@ -54,9 +54,13 @@ def collapse_branching_crossroads(roads, crossroads, maximum_area=None):
     # Retrieve crs for output
     crs = roads.crs
 
+    crossroads = crossroads.to_dict('records')
+
+    if len(crossroads) == 0:
+        return roads
+
     # Convert geodataframe to list of dicts
     roads = roads.to_dict('records')
-    crossroads = crossroads.to_dict('records')
     
     # Store road geometries
     network = []
