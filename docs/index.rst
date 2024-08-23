@@ -14,6 +14,9 @@ CartAGen
    :alt: PyPI
    :target: https://pypi.org/project/cartagen4py/
 
+.. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen4py
+   :target: https://github.com/LostInZoom/cartagen4py/graphs/contributors
+
 `cartagen4py <https://github.com/LostInZoom/cartagen4py>`_ is an open Python library dedicated to cartogaphic generalisation. It is originally a port of the CartAGen Java platform, developed at IGN France and Univ. Gustave Eiffel.
 
 
