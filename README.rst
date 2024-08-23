@@ -1,4 +1,4 @@
-.. image:: img/logo.svg
+.. image:: docs/img/logo.svg
    :height: 48px
    :alt: CartAGen logo
    :align: left
