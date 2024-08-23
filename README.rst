@@ -18,12 +18,12 @@
 ==========================================================
 
 .. image:: docs/img/logo.svg
-   :height: 76px
+   :height: 72px
    :alt: CartAGen logo
    :align: left
    :target: https://github.com/LostInZoom/cartagen4py
 
-CartAGen is an open source Python library dedicated to cartogaphic generalisation, published under
+**CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
 the European Union Public `EUPL-1.2. <https://github.com/IGNF/CartAGen>`_ license.
 It is a port of the `Java application, <https://github.com/IGNF/CartAGen>`_
 originally developed at IGN France.
