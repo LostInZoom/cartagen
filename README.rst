@@ -1,10 +1,10 @@
+**CartAGen**
+============
+
 .. image:: docs/img/logo.svg
    :height: 48px
    :alt: CartAGen logo
    :target: https://github.com/LostInZoom/cartagen4py
-
-**CartAGen**
-============
 
 .. image:: https://img.shields.io/readthedocs/cartagen4py?color=green
    :alt: Read the Docs
