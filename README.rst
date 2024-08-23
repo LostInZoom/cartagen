@@ -1,5 +1,5 @@
 .. image:: docs/img/logo.svg
-   :height: 25px
+   :height: 48px
    :alt: CartAGen logo
    :target: https://github.com/LostInZoom/cartagen4py
 
