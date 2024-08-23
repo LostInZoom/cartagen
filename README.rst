@@ -1,12 +1,3 @@
-.. image:: docs/img/logo.svg
-   :height: 50px
-   :alt: CartAGen logo
-   :align: left
-   :target: https://github.com/LostInZoom/cartagen4py
-
-**CartAGen**
-============
-
 .. image:: https://img.shields.io/readthedocs/cartagen4py?color=green
    :alt: Read the Docs
    :target: https://cartagen4py.readthedocs.io/en/latest/
@@ -22,6 +13,15 @@
 .. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen4py?color=blue
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen4py/graphs/contributors
+
+**CartAGen**: A cartographic generalisation Python library
+==========================================================
+
+.. image:: docs/img/logo.svg
+   :height: 120px
+   :alt: CartAGen logo
+   :align: left
+   :target: https://github.com/LostInZoom/cartagen4py
 
 CartAGen is an open source Python library dedicated to cartogaphic generalisation, published under
 the European Union Public `EUPL-1.2. <https://github.com/IGNF/CartAGen>`_ license.
