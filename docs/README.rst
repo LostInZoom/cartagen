@@ -66,11 +66,6 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
    :alt: PyPI - Version
    :target: https://pypi.org/project/cartagen4py/
 
-.. image:: img/github.svg
-   :alt: Repo GitHub
-   :target: https://github.com/LostInZoom/cartagen4py
-   :height: 40px
-
 .. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen4py?color=ffd43b&style=flat-square
    :alt: GitHub last commit
    :target: https://github.com/LostInZoom/cartagen4py/commits/main/
@@ -81,20 +76,24 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
 .. raw:: html
 
+    <br>
+    <br>
+
+.. image:: img/github.svg
+   :alt: Repo GitHub
+   :target: https://github.com/LostInZoom/cartagen4py
+   :height: 40px
+
+.. raw:: html
+
    </div>
 
 |
-
-About CartAGen
-##############
 
 **CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
 the `EUPL-1.2. <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
 It is a port of the `Java application, <https://github.com/IGNF/CartAGen>`_
 originally developed at IGN France.
-
-Orchestrate your generalisation process
-=======================================
 
 It aims at providing a set of tools to generalise spatial data.
 Those tools constitutes the foundation on which you have to construct your own
