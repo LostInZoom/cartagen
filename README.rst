@@ -12,7 +12,7 @@
 
     <div align="center">
 
-.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/2fb3a3d126561e2eb6e5a21d4ad1fe0d9f7ceba8/docs/img/logo.svg
+.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/85c4880fd88a08420080a45ee586f3bfac5705f4/docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: center
    :width: 150px

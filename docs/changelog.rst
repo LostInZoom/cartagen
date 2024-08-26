@@ -3,10 +3,7 @@
 Changelog
 #########
 
-Version 1.x
-===========
+1.0.0: Initial release
+======================
 
-1.0.0 (unreleased)
-------------------
-
-Coming soon.
+The first official beta release of CartAGen.
