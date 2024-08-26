@@ -28,7 +28,20 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx_remove_toctrees',
     'sphinxcontrib.bibtex',
+    'sphinx_readme',
 ]
+
+html_context = {
+    "display_github": True,
+    "github_user": "LostInZoom",
+    "github_repo": "cartagen4py",
+}
+
+html_baseurl = "https://cartagen4py.readthedocs.io/en/latest/"
+
+# sphinx-readme configuration
+readme_docs_url_type = 'code'
+readme_src_files = "README.rst"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -78,6 +91,8 @@ bibtex_bibfiles = ['bibliography.bib']
 plot_rcparams = {
     'savefig.bbox': "tight"
 }
+
+html_favicon = 'img/logo.svg'
 
 numpydoc_show_class_members = False
 autosummary_generate = True
