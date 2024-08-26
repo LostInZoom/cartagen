@@ -6,6 +6,12 @@ if sys.version_info[:2] < (3, 8):
     sys.stderr.write(error + "\n")
     sys.exit(1)
 
+LONG_DESCRIPTION_SRC = 'README.rst'
+
+def read(file):
+    with open(os.path.abspath(file), 'r', encoding='utf-8') as f:
+        return f.read()
+
 # General informations
 name = 'cartagen4py'
 version = '0.3.6'
@@ -32,7 +38,6 @@ packages = [
     'cartagen4py.processes.agent.constraints',
     'cartagen4py.utils',
     'cartagen4py.utils.attributes',
-    'cartagen4py.utils.clustering',
     'cartagen4py.utils.geometry',
     'cartagen4py.utils.network',
     'cartagen4py.utils.math',
@@ -83,4 +88,6 @@ if __name__ == '__main__':
         keywords = keywords,
         platforms = platforms,
         classifiers=classifiers,
+        long_description=read(LONG_DESCRIPTION_SRC),
+        long_description_content_type="text/x-rst; charset=UTF-8",
     )
