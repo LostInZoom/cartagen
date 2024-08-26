@@ -3,3 +3,4 @@ cartagen4py
 sphinx-book-theme
 sphinx-remove-toctrees
 sphinxcontrib-bibtex
+sphinx-readme
