@@ -14,8 +14,8 @@
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen4py/graphs/contributors
 
-**CartAGen**: A cartographic generalisation Python library
-==========================================================
+**CartAGen**: Cartographic generalisation for Python
+====================================================
 
 .. image:: docs/img/logo.svg
    :height: 72px
@@ -24,11 +24,14 @@
    :target: https://github.com/LostInZoom/cartagen4py
 
 **CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
-the European Union Public `EUPL-1.2. <https://github.com/IGNF/CartAGen>`_ license.
+the `EUPL-1.2. <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
 It is a port of the `Java application, <https://github.com/IGNF/CartAGen>`_
 originally developed at IGN France.
 
-It aims at providing you with a set of tools to generalise your spatial data.
+Orchestrate your generalisation process
+---------------------------------------
+
+It aims at providing a set of tools to generalise spatial data.
 Those tools constitutes the foundation on which you have to construct your own
 generalisation process. That being said, if you want to learn more about
 cartographic generalisation or simply want to familiarize yourself with
