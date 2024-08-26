@@ -1,16 +1,16 @@
-.. image:: https://img.shields.io/readthedocs/cartagen4py?color=green
+.. image:: https://img.shields.io/readthedocs/cartagen4py?color=green&style=flat-square
    :alt: Read the Docs
    :target: https://cartagen4py.readthedocs.io/en/latest/
 
-.. image:: https://img.shields.io/pypi/v/cartagen4py?color=green
+.. image:: https://img.shields.io/pypi/v/cartagen4py?color=green&style=flat-square
    :alt: PyPI - Version
    :target: https://pypi.org/project/cartagen4py/
 
-.. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen4py?color=blue
+.. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen4py?color=blue&style=flat-square
    :alt: GitHub last commit
    :target: https://github.com/LostInZoom/cartagen4py
 
-.. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen4py?color=blue
+.. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen4py?color=blue&style=flat-square
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen4py/graphs/contributors
 
