@@ -1,7 +1,7 @@
-﻿cartagen4py.orientation
+﻿cartagen.orientation
 =======================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: orientation
 

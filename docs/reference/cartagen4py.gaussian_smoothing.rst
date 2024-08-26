@@ -1,7 +1,7 @@
-﻿cartagen4py.gaussian_smoothing
+﻿cartagen.gaussian_smoothing
 ==============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: gaussian_smoothing
 

@@ -1,7 +1,7 @@
-﻿cartagen4py.detect_dead_ends
+﻿cartagen.detect_dead_ends
 ============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: detect_dead_ends
 

@@ -1,7 +1,7 @@
-﻿cartagen4py.detect_dual_carriageways
+﻿cartagen.detect_dual_carriageways
 ====================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: detect_dual_carriageways
 

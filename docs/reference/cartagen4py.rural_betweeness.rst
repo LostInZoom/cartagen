@@ -1,7 +1,7 @@
-﻿cartagen4py.rural_betweeness
+﻿cartagen.rural_betweeness
 ============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: rural_betweeness
 

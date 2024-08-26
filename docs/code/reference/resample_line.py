@@ -6,9 +6,9 @@ import numpy
 import geopandas as gpd
 import shapely
 from shapely.wkt import loads
-import cartagen4py as c4
+import cartagen as c4
 from shapely import LineString, Polygon, Point
-from cartagen4py.utils.debug import plot_debug, geojson_debug, geojson_to_variable
+from cartagen.utils.debug import plot_debug, geojson_debug, geojson_to_variable
 
 line = loads('LineString (-187714.88334235321963206 5374960.62342192325741053, -187618.28458588907960802 5375091.72173426765948534, -187494.08618472088710405 5374864.02466545905917883, -187354.01798784791026264 5375088.96176979690790176, -187229.12959556211717427 5374852.98480757791548967, -187120.80099009876721539 5374972.35327092278748751)')
 

@@ -1,7 +1,7 @@
-﻿cartagen4py.detect_branching_crossroads
+﻿cartagen.detect_branching_crossroads
 =======================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: detect_branching_crossroads
 

@@ -1,7 +1,7 @@
-﻿cartagen4py.polygon_elongation
+﻿cartagen.polygon_elongation
 ==============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: polygon_elongation
 

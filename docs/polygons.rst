@@ -7,7 +7,7 @@ Polygons
 Buildings
 ---------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -25,7 +25,7 @@ Buildings
 Collapsing
 ----------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -40,7 +40,7 @@ Collapsing
 Measures
 --------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -54,7 +54,7 @@ Measures
 Miscellaneous
 -------------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:

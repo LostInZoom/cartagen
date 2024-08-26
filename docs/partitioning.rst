@@ -4,7 +4,7 @@
 Partitioning
 ============
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:

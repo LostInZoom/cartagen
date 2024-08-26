@@ -1,7 +1,7 @@
-﻿cartagen4py.reduce_points_quadtree
+﻿cartagen.reduce_points_quadtree
 ==================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: reduce_points_quadtree
 

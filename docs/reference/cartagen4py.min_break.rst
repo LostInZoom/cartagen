@@ -1,7 +1,7 @@
-﻿cartagen4py.min_break
+﻿cartagen.min_break
 =====================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: min_break
 

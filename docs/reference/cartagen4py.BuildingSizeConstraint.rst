@@ -1,7 +1,7 @@
-﻿cartagen4py.BuildingSizeConstraint
+﻿cartagen.BuildingSizeConstraint
 ==================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autoclass:: BuildingSizeConstraint
    :members:

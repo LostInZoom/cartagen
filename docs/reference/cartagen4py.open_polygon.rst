@@ -1,7 +1,7 @@
-﻿cartagen4py.open_polygon
+﻿cartagen.open_polygon
 ========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: open_polygon
 

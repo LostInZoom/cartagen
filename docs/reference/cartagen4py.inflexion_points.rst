@@ -1,7 +1,7 @@
-﻿cartagen4py.inflexion_points
+﻿cartagen.inflexion_points
 ============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: inflexion_points
 

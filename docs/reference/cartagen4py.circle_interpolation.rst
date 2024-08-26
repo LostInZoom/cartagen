@@ -1,7 +1,7 @@
-﻿cartagen4py.circle_interpolation
+﻿cartagen.circle_interpolation
 ================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: circle_interpolation
 

@@ -1,7 +1,7 @@
-﻿cartagen4py.enclosing_rectangle
+﻿cartagen.enclosing_rectangle
 ===============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: enclosing_rectangle
 

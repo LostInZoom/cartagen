@@ -1,7 +1,7 @@
-﻿cartagen4py.BuildingGranularityConstraint
+﻿cartagen.BuildingGranularityConstraint
 =========================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autoclass:: BuildingGranularityConstraint
    :members:

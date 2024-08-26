@@ -1,7 +1,7 @@
-﻿cartagen4py.collapse_dual_carriageways
+﻿cartagen.collapse_dual_carriageways
 ======================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: collapse_dual_carriageways
 

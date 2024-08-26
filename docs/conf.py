@@ -10,7 +10,7 @@ import os, sys
 
 sys.path.insert(0, os.path.abspath('..'))
 
-project = 'cartagen4py'
+project = 'cartagen'
 copyright = '2024, IGN, Univ Gustave Eiffel'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
 release = '0.3.6'
@@ -34,10 +34,10 @@ extensions = [
 html_context = {
     "display_github": True,
     "github_user": "LostInZoom",
-    "github_repo": "cartagen4py",
+    "github_repo": "cartagen",
 }
 
-html_baseurl = "https://cartagen4py.readthedocs.io/en/latest/"
+html_baseurl = "https://cartagen.readthedocs.io/en/latest/"
 
 # sphinx-readme configuration
 readme_docs_url_type = 'code'
@@ -54,7 +54,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'sphinx_book_theme'
 
 html_theme_options = {
-    "repository_url": "https://github.com/LostInZoom/cartagen4py",
+    "repository_url": "https://github.com/LostInZoom/cartagen",
     "path_to_docs": "docs",
     "collapse_navbar": True,
     "logo": {

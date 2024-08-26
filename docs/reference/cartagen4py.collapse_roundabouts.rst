@@ -1,7 +1,7 @@
-﻿cartagen4py.collapse_roundabouts
+﻿cartagen.collapse_roundabouts
 ================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: collapse_roundabouts
 

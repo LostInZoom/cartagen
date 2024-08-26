@@ -1,7 +1,7 @@
-﻿cartagen4py.max_break
+﻿cartagen.max_break
 =====================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: max_break
 

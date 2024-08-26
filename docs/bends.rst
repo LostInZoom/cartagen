@@ -4,7 +4,7 @@
 Bends and bend series
 =====================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:

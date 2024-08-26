@@ -5,7 +5,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cartagen4py"
+name = "cartagen"
 dynamic = ["version"]
 authors = [
     { name = "Guillaume Touya" },
@@ -42,22 +42,22 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://cartagen4py.readthedocs.io/"
-Repository = "https://github.com/LostInZoom/cartagen4py"
+Documentation = "https://cartagen.readthedocs.io/"
+Repository = "https://github.com/LostInZoom/cartagen"
 
 [tool.setuptools]
 include-package-data = false
 
 [tool.setuptools.packages.find]
-include = ["cartagen4py", "cartagen4py.*"]
+include = ["cartagen", "cartagen.*"]
 exclude = ["build*", "docs*", "issues*", "test*"]
 
 [tool.coverage.run]
-source = ["cartagen4py"]
+source = ["cartagen"]
 
 [tool.versioneer]
 VCS = "git"
 style = "pep440"
-versionfile_source = "cartagen4py/_version.py"
-versionfile_build = "cartagen4py/_version.py"
-parentdir_prefix = "cartagen4py-"
+versionfile_source = "cartagen/_version.py"
+versionfile_build = "cartagen/_version.py"
+parentdir_prefix = "cartagen-"

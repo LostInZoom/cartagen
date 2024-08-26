@@ -6,9 +6,9 @@ import numpy
 import geopandas as gpd
 import shapely
 from shapely.wkt import loads
-import cartagen4py as c4
+import cartagen as c4
 from shapely import LineString, Polygon, Point
-from cartagen4py.utils.debug import plot_debug, geojson_debug, geojson_to_variable
+from cartagen.utils.debug import plot_debug, geojson_debug, geojson_to_variable
 
 depth1 = 2
 depth2 = 3

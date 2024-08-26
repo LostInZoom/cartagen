@@ -1,7 +1,7 @@
-﻿cartagen4py.skeletonize_network
+﻿cartagen.skeletonize_network
 ===============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: skeletonize_network
 

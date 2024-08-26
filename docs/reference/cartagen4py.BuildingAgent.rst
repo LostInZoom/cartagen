@@ -1,7 +1,7 @@
-﻿cartagen4py.BuildingAgent
+﻿cartagen.BuildingAgent
 =========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autoclass:: BuildingAgent
    :members:

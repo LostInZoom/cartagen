@@ -1,7 +1,7 @@
-﻿cartagen4py.dilate_line
+﻿cartagen.dilate_line
 =======================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: dilate_line
 

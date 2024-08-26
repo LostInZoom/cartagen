@@ -1,7 +1,7 @@
-﻿cartagen4py.skeletonize_artificial
+﻿cartagen.skeletonize_artificial
 ==================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: skeletonize_artificial
 

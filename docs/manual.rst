@@ -26,9 +26,9 @@ Lines simplification
 
 Multiple algorithms for line simplification are available, including:
 
-- :func:`Douglas-Peucker <cartagen4py.douglas_peucker>`
-- :func:`Visvalingam-Whyatt <cartagen4py.visvalingam_whyatt>`
-- :func:`Raposo <cartagen4py.raposo>`
+- :func:`Douglas-Peucker <cartagen.douglas_peucker>`
+- :func:`Visvalingam-Whyatt <cartagen.visvalingam_whyatt>`
+- :func:`Raposo <cartagen.raposo>`
 
 Those line simplification algorithm are used for different purposes and their computational
 time differs. For example, Raposo :footcite:p:`raposo:2013` is mainly used to simplify
@@ -46,8 +46,8 @@ and others specific to some types of map polygons, such as buildings.
 This section contains only informations related to algorithms that process
 one polygon at a time, including:
 
-- :func:`Simplify building <cartagen4py.simplify_building>`
-- :func:`Square polygon  <cartagen4py.square_polygon_ls>`
+- :func:`Simplify building <cartagen.simplify_building>`
+- :func:`Square polygon  <cartagen.square_polygon_ls>`
 
 .. plot:: code/manual/simplification_building.py
 
@@ -204,7 +204,7 @@ Strokes are network segments that follow the perceptual grouping principle of Go
 
 	from shapely.geometry import LineString, Point
 	import geopandas as gpd
-	from cartagen4py.enrichment import StrokeNetwork
+	from cartagen.enrichment import StrokeNetwork
 	import matplotlib.pyplot as plt
 
 	data={'geometry':
@@ -274,7 +274,7 @@ Stroke computation (for river networks)
 .. code-block:: pycon
     from shapely.geometry import LineString, Point
     import geopandas as gpd
-    from cartagen4py.enrichment import RiverStrokeNetwork
+    from cartagen.enrichment import RiverStrokeNetwork
     import matplotlib.pyplot as plt
 
     data={'geometry':

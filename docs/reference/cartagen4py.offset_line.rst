@@ -1,7 +1,7 @@
-﻿cartagen4py.offset_line
+﻿cartagen.offset_line
 =======================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: offset_line
 

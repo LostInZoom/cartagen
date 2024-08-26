@@ -1,7 +1,7 @@
-﻿cartagen4py.square_polygon_naive
+﻿cartagen.square_polygon_naive
 ================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: square_polygon_naive
 

@@ -1,7 +1,7 @@
-﻿cartagen4py.recursive_regression
+﻿cartagen.recursive_regression
 ================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: recursive_regression
 

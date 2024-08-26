@@ -1,7 +1,7 @@
-﻿cartagen4py.accordion
+﻿cartagen.accordion
 =====================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: accordion
 

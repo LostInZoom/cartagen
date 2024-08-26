@@ -1,7 +1,7 @@
-﻿cartagen4py.close_polygon
+﻿cartagen.close_polygon
 =========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: close_polygon
 

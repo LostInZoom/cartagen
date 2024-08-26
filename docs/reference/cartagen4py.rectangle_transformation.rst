@@ -1,7 +1,7 @@
-﻿cartagen4py.rectangle_transformation
+﻿cartagen.rectangle_transformation
 ====================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: rectangle_transformation
 

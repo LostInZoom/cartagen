@@ -5,7 +5,7 @@ from matplotlib.patches import PathPatch
 import numpy
 import geopandas as gpd
 from shapely.wkt import loads
-import cartagen4py as c4
+import cartagen as c4
 
 a = (1, 1)
 b = (1, 2)

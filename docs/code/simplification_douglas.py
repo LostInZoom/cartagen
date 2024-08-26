@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-import cartagen4py as c4
+import cartagen as c4
 import geopandas as gp
 
 # Loading the lines as a GeoDataFrame

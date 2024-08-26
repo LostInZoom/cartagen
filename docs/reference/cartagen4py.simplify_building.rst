@@ -1,7 +1,7 @@
-﻿cartagen4py.simplify_building
+﻿cartagen.simplify_building
 =============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: simplify_building
 

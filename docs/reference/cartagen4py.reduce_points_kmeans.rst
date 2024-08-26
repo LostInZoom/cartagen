@@ -1,7 +1,7 @@
-﻿cartagen4py.reduce_points_kmeans
+﻿cartagen.reduce_points_kmeans
 ================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: reduce_points_kmeans
 

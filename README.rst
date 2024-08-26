@@ -12,7 +12,7 @@
 
     <div align="center">
 
-.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/85c4880fd88a08420080a45ee586f3bfac5705f4/docs/img/logo.svg
+.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen/85c4880fd88a08420080a45ee586f3bfac5705f4/docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: center
    :width: 150px
@@ -29,27 +29,27 @@
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
 .. |RTD| replace:: **Documentation**
-.. _RTD: https://cartagen4py.readthedocs.io/en/latest/
+.. _RTD: https://cartagen.readthedocs.io/en/latest/
 
 |RTD|_
 
 
 
-.. image:: https://img.shields.io/readthedocs/cartagen4py?color=306998&style=flat-square
+.. image:: https://img.shields.io/readthedocs/cartagen?color=306998&style=flat-square
    :alt: Read the Docs
-   :target: https://cartagen4py.readthedocs.io/en/latest/
+   :target: https://cartagen.readthedocs.io/en/latest/
 
-.. image:: https://img.shields.io/pypi/v/cartagen4py?color=306998&style=flat-square
+.. image:: https://img.shields.io/pypi/v/cartagen?color=306998&style=flat-square
    :alt: PyPI - Version
-   :target: https://pypi.org/project/cartagen4py/
+   :target: https://pypi.org/project/cartagen/
 
-.. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen4py?color=ffd43b&style=flat-square
+.. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub last commit
-   :target: https://github.com/LostInZoom/cartagen4py/commits/main/
+   :target: https://github.com/LostInZoom/cartagen/commits/main/
 
-.. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen4py?color=ffd43b&style=flat-square
+.. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub contributors
-   :target: https://github.com/LostInZoom/cartagen4py/graphs/contributors
+   :target: https://github.com/LostInZoom/cartagen/graphs/contributors
 
 
 

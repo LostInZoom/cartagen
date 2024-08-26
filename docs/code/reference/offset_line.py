@@ -6,7 +6,7 @@ import numpy
 import geopandas as gpd
 import shapely
 from shapely.wkt import loads
-import cartagen4py as c4
+import cartagen as c4
 
 points = [
     loads('POINT (-187538.24561624724 5374649.667424928)'), 

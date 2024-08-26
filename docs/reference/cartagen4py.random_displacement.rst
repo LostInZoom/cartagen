@@ -1,7 +1,7 @@
-﻿cartagen4py.random_displacement
+﻿cartagen.random_displacement
 ===============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: random_displacement
 

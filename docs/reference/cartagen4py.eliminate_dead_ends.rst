@@ -1,7 +1,7 @@
-﻿cartagen4py.eliminate_dead_ends
+﻿cartagen.eliminate_dead_ends
 ===============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: eliminate_dead_ends
 

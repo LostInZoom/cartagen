@@ -1,7 +1,7 @@
-﻿cartagen4py.spinalize_polygon
+﻿cartagen.spinalize_polygon
 =============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: spinalize_polygon
 

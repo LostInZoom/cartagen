@@ -1,7 +1,7 @@
-﻿cartagen4py.detect_pastiness
+﻿cartagen.detect_pastiness
 ============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: detect_pastiness
 

@@ -7,7 +7,7 @@ Networks
 Detection
 ---------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -23,7 +23,7 @@ Detection
 Collapsing
 ----------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -37,7 +37,7 @@ Collapsing
 Tools
 -----
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:

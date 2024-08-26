@@ -1,7 +1,7 @@
-﻿cartagen4py.polygon_compactness
+﻿cartagen.polygon_compactness
 ===============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: polygon_compactness
 

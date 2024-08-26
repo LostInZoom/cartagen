@@ -1,7 +1,7 @@
-﻿cartagen4py.schematization
+﻿cartagen.schematization
 ==========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: schematization
 

@@ -1,7 +1,7 @@
-﻿cartagen4py.rural_traffic
+﻿cartagen.rural_traffic
 =========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: rural_traffic
 

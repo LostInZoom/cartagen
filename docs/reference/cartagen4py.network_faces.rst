@@ -1,7 +1,7 @@
-﻿cartagen4py.network_faces
+﻿cartagen.network_faces
 =========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: network_faces
 

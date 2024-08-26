@@ -1,7 +1,7 @@
-﻿cartagen4py.BlockAgent
+﻿cartagen.BlockAgent
 ======================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autoclass:: BlockAgent
    :members:

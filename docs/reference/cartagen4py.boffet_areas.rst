@@ -1,7 +1,7 @@
-﻿cartagen4py.boffet_areas
+﻿cartagen.boffet_areas
 ========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: boffet_areas
 

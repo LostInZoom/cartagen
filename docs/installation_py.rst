@@ -4,8 +4,8 @@
 Installation
 ============
 
-CartAGen4Py is available on `PyPI <https://pypi.org/>`_ under the name ``cartagen4py``.
+CartAGen is available on `PyPI <https://pypi.org/>`_ under the name ``cartagen``.
 
 Simply run::
 
-    $ pip install cartagen4py
+    $ pip install cartagen

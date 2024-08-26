@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-import cartagen4py as c4
+import cartagen as c4
 import geopandas as gpd
 
 network = gpd.read_file("data/detect_dual_carriageways.geojson")

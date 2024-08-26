@@ -5,19 +5,19 @@
 # from matplotlib.path import Path
 # from matplotlib.patches import PathPatch
 
-# from cartagen4py.algorithms.network.dual_carriageways import collapse_dual_carriageways
-# from cartagen4py.enrichment.network.dual_carriageways import detect_dual_carriageways
+# from cartagen.algorithms.network.dual_carriageways import collapse_dual_carriageways
+# from cartagen.enrichment.network.dual_carriageways import detect_dual_carriageways
 
-# roads = gpd.read_file("cartagen4py/data/routes_noz.geojson")
+# roads = gpd.read_file("cartagen/data/routes_noz.geojson")
 # crs = roads.crs
 # ro = roads.to_dict('records')
 
 # duals = detect_dual_carriageways(roads)
-# duals.to_file("cartagen4py/data/duals.geojson", driver="GeoJSON")
+# duals.to_file("cartagen/data/duals.geojson", driver="GeoJSON")
 
 # collapsed = collapse_dual_carriageways(roads, duals)
 
-# from cartagen4py.utils.debug import *
+# from cartagen.utils.debug import *
 # geojson_to_variable("docs/code/data/test1.geojson")
 
 from matplotlib import pyplot as plt
@@ -28,7 +28,7 @@ import numpy
 import geopandas as gpd
 import shapely
 from shapely.wkt import loads
-import cartagen4py as c4
+import cartagen as c4
 
 buildings = [
     loads('Polygon ((483127.74420795019250363 6044736.3644003514200449, 483114.73178073146846145 6044726.71342246327549219, 483105.54601464356528595 6044745.89678345806896687, 483126.689473906182684 6044760.17289155162870884, 483131.8525651500094682 6044752.51116773299872875, 483120.7926855415571481 6044744.87053745705634356, 483124.51392676471732557 6044739.6514466255903244, 483130.07537209440488368 6044743.6170473350211978, 483128.97353314666543156 6044745.52951406966894865, 483138.98800764861516654 6044753.24484121147543192, 483142.85408783901948482 6044747.99430864583700895, 483127.74420795019250363 6044736.3644003514200449))'),

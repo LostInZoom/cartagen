@@ -1,7 +1,7 @@
-﻿cartagen4py.morphological_amalgamation
+﻿cartagen.morphological_amalgamation
 ======================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: morphological_amalgamation
 

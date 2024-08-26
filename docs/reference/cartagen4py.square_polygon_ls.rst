@@ -1,7 +1,7 @@
-﻿cartagen4py.square_polygon_ls
+﻿cartagen.square_polygon_ls
 =============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: square_polygon_ls
 

@@ -7,7 +7,7 @@ Lines
 Simplification
 --------------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -20,7 +20,7 @@ Simplification
 Smoothing
 ---------
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:

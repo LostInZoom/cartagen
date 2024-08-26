@@ -1,7 +1,7 @@
-﻿cartagen4py.skeletonize_natural
+﻿cartagen.skeletonize_natural
 ===============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: skeletonize_natural
 

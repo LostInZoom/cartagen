@@ -1,7 +1,7 @@
-﻿cartagen4py.douglas_peucker
+﻿cartagen.douglas_peucker
 ===========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: douglas_peucker
 

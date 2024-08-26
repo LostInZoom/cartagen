@@ -1,7 +1,7 @@
-﻿cartagen4py.BuildingSquarenessConstraint
+﻿cartagen.BuildingSquarenessConstraint
 ========================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autoclass:: BuildingSquarenessConstraint
    :members:

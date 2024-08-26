@@ -1,7 +1,7 @@
-﻿cartagen4py.polygon_concavity
+﻿cartagen.polygon_concavity
 =============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: polygon_concavity
 

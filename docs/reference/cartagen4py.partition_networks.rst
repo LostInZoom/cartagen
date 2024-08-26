@@ -1,7 +1,7 @@
-﻿cartagen4py.partition_networks
+﻿cartagen.partition_networks
 ==============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: partition_networks
 

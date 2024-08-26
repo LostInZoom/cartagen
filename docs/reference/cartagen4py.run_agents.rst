@@ -1,7 +1,7 @@
-﻿cartagen4py.run_agents
+﻿cartagen.run_agents
 ======================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: run_agents
 

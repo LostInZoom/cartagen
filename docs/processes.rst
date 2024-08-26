@@ -20,7 +20,7 @@ For a better understanding of the AGENT process, you can refer to
 Barrault *et al.* :footcite:p:`barrault:2001`, Ruas & Duchêne :footcite:p:`ruas:2007`
 and Duchêne *et al.* :footcite:p:`duchene:2018`
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -37,7 +37,7 @@ cartographic features without consideration for their surroundings.
 Buildings
 ^^^^^^^^^
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:
@@ -54,7 +54,7 @@ Meso-agents
 Building blocks
 ^^^^^^^^^^^^^^^
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autosummary::
     :nosignatures:

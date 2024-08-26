@@ -1,7 +1,7 @@
-﻿cartagen4py.visvalingam_whyatt
+﻿cartagen.visvalingam_whyatt
 ==============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: visvalingam_whyatt
 

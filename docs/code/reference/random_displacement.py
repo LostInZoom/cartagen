@@ -6,7 +6,7 @@ import numpy
 import geopandas as gpd
 from shapely.wkt import loads
 from shapely.ops import unary_union
-import cartagen4py as c4
+import cartagen as c4
 
 roads = [
     loads('LineString (296357.78140309813898057 5666233.14838615339249372, 296307.9774523067753762 5666228.12613901309669018)'),

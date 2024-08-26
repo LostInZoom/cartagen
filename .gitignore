@@ -8,11 +8,11 @@ evaluation/constraint_monitors/__pycache__/
 
 # Folder created by setuptools for the pip package creation
 build/
-cartagen4py.egg-info/
+cartagen.egg-info/
 
 test
 test*.py
-cartagen4py/test
+cartagen/test
 
 # Remove qgis files
 *.qgz
@@ -22,7 +22,7 @@ cartagen4qgis-template
 
 # Pypi token file
 .pypirc
-cartagen4py/algorithms/__pycache__/__init__.cpython-310.pyc
-cartagen4py/algorithms/buildings/__pycache__/__init__.cpython-310.pyc
-/cartagen4py/algorithms/buildings/__pycache__
+cartagen/algorithms/__pycache__/__init__.cpython-310.pyc
+cartagen/algorithms/buildings/__pycache__/__init__.cpython-310.pyc
+/cartagen/algorithms/buildings/__pycache__
 *.pyc

@@ -1,7 +1,7 @@
-﻿cartagen4py.raposo
+﻿cartagen.raposo
 ==================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: raposo
 

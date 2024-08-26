@@ -1,7 +1,7 @@
-﻿cartagen4py.detect_roundabouts
+﻿cartagen.detect_roundabouts
 ==============================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: detect_roundabouts
 

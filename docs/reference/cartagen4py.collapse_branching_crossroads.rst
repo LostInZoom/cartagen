@@ -1,7 +1,7 @@
-﻿cartagen4py.collapse_branching_crossroads
+﻿cartagen.collapse_branching_crossroads
 =========================================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: collapse_branching_crossroads
 

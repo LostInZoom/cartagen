@@ -50,7 +50,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 .. only:: readme or pypi
 
    .. |RTD| replace:: **Documentation**
-   .. _RTD: https://cartagen4py.readthedocs.io/en/latest/
+   .. _RTD: https://cartagen.readthedocs.io/en/latest/
 
    |RTD|_
 
@@ -58,21 +58,21 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
    |
 
-.. image:: https://img.shields.io/readthedocs/cartagen4py?color=306998&style=flat-square
+.. image:: https://img.shields.io/readthedocs/cartagen?color=306998&style=flat-square
    :alt: Read the Docs
-   :target: https://cartagen4py.readthedocs.io/en/latest/
+   :target: https://cartagen.readthedocs.io/en/latest/
 
-.. image:: https://img.shields.io/pypi/v/cartagen4py?color=306998&style=flat-square
+.. image:: https://img.shields.io/pypi/v/cartagen?color=306998&style=flat-square
    :alt: PyPI - Version
-   :target: https://pypi.org/project/cartagen4py/
+   :target: https://pypi.org/project/cartagen/
 
-.. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen4py?color=ffd43b&style=flat-square
+.. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub last commit
-   :target: https://github.com/LostInZoom/cartagen4py/commits/main/
+   :target: https://github.com/LostInZoom/cartagen/commits/main/
 
-.. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen4py?color=ffd43b&style=flat-square
+.. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub contributors
-   :target: https://github.com/LostInZoom/cartagen4py/graphs/contributors
+   :target: https://github.com/LostInZoom/cartagen/graphs/contributors
 
 .. only:: pypi or html
 
@@ -83,7 +83,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
     .. image:: img/github.svg
         :alt: Repo GitHub
-        :target: https://github.com/LostInZoom/cartagen4py
+        :target: https://github.com/LostInZoom/cartagen
         :height: 40px
 
 .. raw:: html

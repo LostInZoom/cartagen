@@ -1,7 +1,7 @@
-﻿cartagen4py.resample_line
+﻿cartagen.resample_line
 =========================
 
-.. currentmodule:: cartagen4py
+.. currentmodule:: cartagen
 
 .. autofunction:: resample_line
 
