@@ -6,3 +6,5 @@ from cartagen4py.algorithms import *
 from cartagen4py.enrichment import *
 from cartagen4py.processes import *
 from cartagen4py.utils import *
+from . import _version
+__version__ = _version.get_versions()['version']
