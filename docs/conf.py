@@ -53,6 +53,17 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'sphinx_book_theme'
 
+html_theme_options = {
+    "repository_url": "https://github.com/LostInZoom/cartagen4py",
+    "path_to_docs": "docs",
+    "collapse_navbar": True,
+    "logo": {
+        "image_dark": "img/logo.png",
+        "image_light": "img/logo.png",
+        "text": "CartAGen",
+    }
+}
+
 html_static_path = ['_static']
 
 # -- Options for HTML output -------------------------------------------------
