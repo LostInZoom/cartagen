@@ -1,13 +1,17 @@
 
 
 
+.. raw:: html
+
+    <div align="center">
+
 CartAGen
 --------
 
-.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/8c67cfe42cd8a8ad68349f2ebb5a60797534b9e0/docs/img/logo.svg
+.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/c4acfbfb452b779b8c10554f158fb3aea0b69764/docs/img/logo.svg
     :alt: CartAGen Logo
     :align: center
-    :width: 25%
+    :width: 15%
 
 Cartographic generalisation for Python
 
@@ -16,3 +20,7 @@ Cartographic generalisation for Python
  .. _RTD: https://cartagen4py.readthedocs.io/en/latest/
 
  |RTD|_
+
+.. raw:: html
+
+    </div>
