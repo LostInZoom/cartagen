@@ -25,8 +25,4 @@ cartagen4qgis-template
 cartagen4py/algorithms/__pycache__/__init__.cpython-310.pyc
 cartagen4py/algorithms/buildings/__pycache__/__init__.cpython-310.pyc
 /cartagen4py/algorithms/buildings/__pycache__
-<<<<<<< HEAD
 *.pyc
-=======
-*.pyc
->>>>>>> f7f96995a2165034ea3c4421df00cecdf9ff59cd
