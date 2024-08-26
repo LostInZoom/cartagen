@@ -1,0 +1,28 @@
+.venv/
+.idea/
+.vscode/
+__pycache__
+util/__pycache__/
+evaluation/__pycache__/
+evaluation/constraint_monitors/__pycache__/
+
+# Folder created by setuptools for the pip package creation
+build/
+cartagen4py.egg-info/
+
+test
+test*.py
+cartagen4py/test
+
+# Remove qgis files
+*.qgz
+
+# Removed qgis plugin template
+cartagen4qgis-template
+
+# Pypi token file
+.pypirc
+cartagen4py/algorithms/__pycache__/__init__.cpython-310.pyc
+cartagen4py/algorithms/buildings/__pycache__/__init__.cpython-310.pyc
+/cartagen4py/algorithms/buildings/__pycache__
+*.pyc
