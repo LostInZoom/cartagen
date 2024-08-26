@@ -12,10 +12,10 @@
 
     <div align="center">
 
-.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/d8b1b2666cc5afeb2c32d607ec1c2062091cfaf5/docs/img/logo.svg
+.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/6046f9fcfdbb896a1736e76cbff1f4b7fdea6294/docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: center
-   :width: 15%
+   :width: 150px
 
 
 
@@ -43,13 +43,14 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
    :alt: PyPI - Version
    :target: https://pypi.org/project/cartagen4py/
 
-.. raw:: html
-
-    <br>
+.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/6046f9fcfdbb896a1736e76cbff1f4b7fdea6294/docs/img/github.svg
+   :alt: Repo GitHub
+   :target: https://github.com/LostInZoom/cartagen4py
+   :height: 40px
 
 .. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen4py?color=ffd43b&style=flat-square
    :alt: GitHub last commit
-   :target: https://github.com/LostInZoom/cartagen4py
+   :target: https://github.com/LostInZoom/cartagen4py/commits/main/
 
 .. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen4py?color=ffd43b&style=flat-square
    :alt: GitHub contributors
