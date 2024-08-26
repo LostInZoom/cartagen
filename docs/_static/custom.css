@@ -1,14 +1,48 @@
-/*Copied from sphinx' basic.css to ensure the sphinx >2.0 docstrings are
-rendered somewhat properly (xref https://github.com/numpy/numpydoc/issues/215) */
+.bd-sidebar-primary::-webkit-scrollbar {
+    display: none;
+}
+
+.bd-sidebar-primary {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 
 .reference {
     text-decoration: none;
 }
 
-.table tbody {
- background-color: white;
+.table.autosummary tbody {
+    background-color: white;
 }
 
-.table tbody tr:hover {
+.table.autosummary tr {
+    border-style: hidden;
+}
+
+.table.autosummary tbody tr:hover {
     background-color: white;
+}
+
+.table.autosummary tr:hover {
+    background-color: #c4d3df;
+}
+
+.table.autosummary td:last-child {
+    text-align: end;
+}
+
+nav.bd-links li > a:hover {
+    text-decoration: none;
+}
+
+.navbar-brand logo:hover {
+    text-decoration: none;
+}
+
+.search-button-field {
+    border: none;
+}
+
+.search-button-field:hover { 
+    border: none;
 }

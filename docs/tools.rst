@@ -7,6 +7,7 @@ Tools
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     dilate_line

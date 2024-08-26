@@ -23,6 +23,7 @@ and Duchêne *et al.* :footcite:p:`duchene:2018`
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     run_agents
@@ -39,6 +40,7 @@ Buildings
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     BuildingAgent
@@ -55,6 +57,7 @@ Building blocks
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     BlockAgent

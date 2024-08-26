@@ -22,7 +22,7 @@ def reduce_points_kmeans(points, shrink_ratio, centroid=False):
         A value between 0 (all points are removed) and 1 (all points are kept).
     centroid : bool, optional
         If set to True, replace the cluster by its centroid.
-        If False, replace the cluster by one of the initial point.
+        If False, replace the cluster by the point closest to the centroid of the cluster.
 
     Returns
     -------
@@ -138,8 +138,8 @@ def reduce_points_quadtree(points, depth, mode='simplification', attribute=None)
     reduced : list of tuple
         The reduced points as tuples composed of three elements:
 
-        #. The geometry of the reduced point
-        #. The index of the point in the initial Geodataframe (-1 if the point was created)
+        #. The geometry of the reduced point.
+        #. The index of the point in the initial Geodataframe (-1 if the point was created).
         #. The amount of initial points replaced (which can be used to weight the size of the symbol of this point).
     
     quadtree : QuadTree
@@ -207,7 +207,7 @@ def reduce_points_quadtree(points, depth, mode='simplification', attribute=None)
                     if value*depth > largest:
                         largest = value*depth
                         selected = point
-                output.append((selected['geometry'], selected.index, len(cell_points)))
+                output.append((selected['geometry'], selected.name, len(cell_points)))
 
             case 'simplification':
                 # the point retained in the cell is the closest to the center of the cell
@@ -219,7 +219,7 @@ def reduce_points_quadtree(points, depth, mode='simplification', attribute=None)
                     if dist < mindist:
                         mindist = dist
                         nearest = point
-                output.append((nearest[0]['geometry'], nearest.index, len(cell_points)))
+                output.append((nearest[0]['geometry'], nearest.name, len(cell_points)))
 
             case 'aggregation':
                 # the points are all aggregated to the centroid of the points.

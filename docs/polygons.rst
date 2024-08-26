@@ -10,6 +10,7 @@ Buildings
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     simplify_building
@@ -27,6 +28,7 @@ Collapsing
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     skeletonize_natural
@@ -41,6 +43,7 @@ Measures
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     polygon_elongation
@@ -54,6 +57,7 @@ Miscellaneous
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     enclosing_rectangle

@@ -81,8 +81,6 @@ def collapse_branching_crossroads(roads, crossroads, maximum_area=None):
 
     # Looping through crossroads
     for index, crossroad in enumerate(crossroads):
-        middle = crossroad['middle']
-
         # If it's connected to a roundabout, don't collapse
         # The collapsing will take place during the roundabout collapsing function
         if crossroad['roundabout'] == -1:
@@ -99,7 +97,7 @@ def collapse_branching_crossroads(roads, crossroads, maximum_area=None):
             intersection = Crossroad(network, tree, polygon)
 
             if intersection is not None:
-                main_roads = __find_main_roads(intersection, middle)
+                main_roads = __find_main_roads(intersection, crossroad['middle'])
 
                 # Test if main road(s) were found
                 if main_roads is not None:

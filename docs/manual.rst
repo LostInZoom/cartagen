@@ -1,8 +1,8 @@
 .. _manual:
 
-====================
-CartAGen User Manual
-====================
+===========
+User Manual
+===========
 
 :Authors: Guillaume Touya, Justin Berli, Azelle Courtial
 :Copyright:

@@ -14,7 +14,7 @@ def read(file):
 
 # General informations
 name = 'cartagen4py'
-version = '0.3.6'
+version = '0.3.7'
 description = 'Python package to generalise geographic objects for cartographic purposes'
 url = 'https://github.com/LostInZoom/cartagen4py'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
@@ -64,7 +64,7 @@ keywords = [
 ]
 platforms = ['Linux', 'Mac OSX', 'Windows', 'Unix']
 classifiers = [
-    'Development Status :: 1 - Planning',
+    'Development Status :: 3 - Alpha',
     'Intended Audience :: Science/Research',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',

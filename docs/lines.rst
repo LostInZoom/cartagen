@@ -10,6 +10,7 @@ Simplification
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     douglas_peucker
@@ -22,6 +23,7 @@ Smoothing
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     gaussian_smoothing

@@ -3,8 +3,8 @@
 
 .. meta::
     :author: jberli
-    :title: CartAGen - Cartographic generalisation for Python
-    :description: Generalise cartographic objects using advanced algorithms
+    :title: CartAGen
+    :description: CartAGen - home
 
 
 
@@ -12,7 +12,7 @@
 
     <div align="center">
 
-.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/9acf854b1e62dee4c447015e4b1d5523314cc958/docs/img/logo.svg
+.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/2fb3a3d126561e2eb6e5a21d4ad1fe0d9f7ceba8/docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: center
    :width: 150px
@@ -51,15 +51,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen4py/graphs/contributors
 
-.. raw:: html
 
-    <br>
-    <br>
-
-.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen4py/9acf854b1e62dee4c447015e4b1d5523314cc958/docs/img/github.svg
-   :alt: Repo GitHub
-   :target: https://github.com/LostInZoom/cartagen4py
-   :height: 40px
 
 .. raw:: html
 
@@ -79,7 +71,9 @@ cartographic generalisation or simply want to familiarize yourself with
 the algorithms provided by CartAGen, some Jupyter notebooks are available
 `here. <https://github.com/LostInZoom/cartagen-notebooks>`_
 
-CartAGen relies on the usage of the geometry formats of `Shapely <https://github.com/shapely/shapely>`_
-and the dataset formats of `GeoPandas. <https://github.com/geopandas/geopanda>`_
+CartAGen relies on the usage of the `Shapely <https://github.com/shapely/shapely>`_ geometry objects
+and `GeoPandas <https://github.com/geopandas/geopanda>`_ dataset objects.
 This approach is based on the idea those libraries are the most commonly used among the
 community and provide advantages as powerful spatial operations, measures, indexes, *etc*.
+It is recommended for users to have an understanding of those libraries as CartAGen heavily
+relies on them.

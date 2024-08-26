@@ -10,6 +10,7 @@ Detection
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     detect_roundabouts
@@ -25,6 +26,7 @@ Collapsing
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     collapse_roundabouts
@@ -38,6 +40,7 @@ Tools
 .. currentmodule:: cartagen4py
 
 .. autosummary::
+    :nosignatures:
     :toctree: reference/
 
     network_faces

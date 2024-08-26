@@ -1,5 +1,4 @@
 from cartagen4py.utils.attributes import *
-from cartagen4py.utils.clustering import *
 from cartagen4py.utils.geometry import *
 from cartagen4py.utils.network import *
 from cartagen4py.utils.math import *
