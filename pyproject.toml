@@ -1,6 +1,8 @@
 [build-system]
 requires = [
     "setuptools",
+    "tomli; python_version < '3.11'",
+    "versioneer",
 ]
 build-backend = "setuptools.build_meta"
 
