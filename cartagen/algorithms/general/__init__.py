@@ -1,1 +1,1 @@
-from cartagen.algorithms.general.constraint import *
+from cartagen.algorithms.general.constraint import ConstraintMethod

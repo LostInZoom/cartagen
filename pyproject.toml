@@ -23,7 +23,7 @@ readme = "README.rst"
 keywords = ["gis", "cartography", "generalisation"]
 license = { text = "EUPL-1.2" }
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Operating System :: Unix",
     "Operating System :: MacOS",
