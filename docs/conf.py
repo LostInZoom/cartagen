@@ -22,28 +22,12 @@ release = '1.0rc1'
 
 master_doc = 'index'
 source_suffix = '.rst'
-extensions = [
-    'matplotlib.sphinxext.plot_directive',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx_remove_toctrees',
-    'sphinxcontrib.bibtex',
-    'sphinx_readme',
-]
 
 html_context = {
     "display_github": True,
     "github_user": "LostInZoom",
     "github_repo": "cartagen",
 }
-
-html_baseurl = "https://cartagen.readthedocs.io/en/latest/"
-
-# sphinx-readme configuration
-readme_docs_url_type = 'code'
-readme_src_files = "README.rst"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -77,9 +61,21 @@ html_css_files = [
 
 add_module_names = False
 
-##################
-#### Shamefully stolen from the shapely conf.py file
-##################
+extensions = [
+    'matplotlib.sphinxext.plot_directive',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx_remove_toctrees',
+    'sphinxcontrib.bibtex',
+    'sphinx_readme',
+]
+
+# sphinx-readme configuration
+html_baseurl = "https://cartagen.readthedocs.io/en/latest/"
+readme_docs_url_type = 'code'
+readme_src_files = "README.rst"
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),

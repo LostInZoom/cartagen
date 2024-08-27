@@ -8,9 +8,10 @@
 
 
 
+
 .. raw:: html
 
-    <div align="center">
+   <div align="center">
 
 .. image:: https://raw.githubusercontent.com/LostInZoom/cartagen/1.0rc1/docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
@@ -50,6 +51,10 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 .. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen/graphs/contributors
+
+
+
+
 
 
 

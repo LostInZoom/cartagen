@@ -5,17 +5,19 @@
 
 .. only:: pypi
 
-    CartAGen - Generalise cartographic objects using advanced algorithms
-    --------------------------------------------------------------------
+   CartAGen - Generalise cartographic objects using advanced algorithms
+   --------------------------------------------------------------------
 
-    .. image:: img/logo.svg
-        :alt: CartAGen - Generalise cartographic objects using advanced algorithms
-        :align: center
-        :width: 150px
+   .. image:: img/logo.svg
+      :alt: CartAGen - Generalise cartographic objects using advanced algorithms
+      :align: center
+      :width: 150px
 
-.. raw:: html
+.. only:: readme or html
+   
+   .. raw:: html
 
-    <div align="center">
+      <div align="center">
 
 .. only:: readme
 
@@ -74,7 +76,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen/graphs/contributors
 
-.. only:: pypi or html
+.. only:: html
 
     .. raw:: html
 
@@ -86,9 +88,20 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
         :target: https://github.com/LostInZoom/cartagen
         :height: 40px
 
-.. raw:: html
 
-   </div>
+.. only:: pypi
+
+   .. image:: img/github.svg
+         :alt: Repo GitHub
+         :target: https://github.com/LostInZoom/cartagen
+         :height: 40px
+
+
+.. only:: readme or html
+
+   .. raw:: html
+
+      </div>
 
 |
 
