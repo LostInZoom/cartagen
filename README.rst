@@ -1,15 +1,8 @@
-.. meta::
-   :author: jberli
-   :title: CartAGen
-   :description: CartAGen - home
-
 |logosub| CartAGen
 ##################
 
-.. |logosub| image:: docs/img/logo.svg
-   :alt: CartAGen - Generalise cartographic objects using advanced algorithms
-   :align: left
-   :width: 30px
+.. |logosub| image:: img/logo.svg
+   :height: 50px
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
@@ -33,8 +26,6 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 .. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen/graphs/contributors
-
-|
 
 **CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
 the `EUPL-1.2 <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
