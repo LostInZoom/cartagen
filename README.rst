@@ -1,11 +1,3 @@
-|logosub| CartAGen
-##################
-
-.. |logosub| image:: docs/img/logo.svg
-   :height: 25px
-
-A Python library for cartogaphic generalisation using Shapely and GeoPandas
-
 .. image:: https://img.shields.io/readthedocs/cartagen?color=306998&style=flat-square
    :alt: Read the Docs
    :target: https://cartagen.readthedocs.io/en/latest/
@@ -21,6 +13,14 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 .. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen/graphs/contributors
+
+|logosub| CartAGen
+##################
+
+.. |logosub| image:: docs/img/logo.svg
+   :height: 25px
+
+A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
 |
 
