@@ -6,8 +6,6 @@
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
-|
-
 .. image:: https://img.shields.io/readthedocs/cartagen?color=306998&style=flat-square
    :alt: Read the Docs
    :target: https://cartagen.readthedocs.io/en/latest/
@@ -23,6 +21,8 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 .. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen/graphs/contributors
+
+|
 
 **CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
 the `EUPL-1.2 <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
