@@ -11,24 +11,18 @@
     text-decoration: none;
 }
 
-.table.autosummary tbody {
-    background-color: white;
-}
-
 .table.autosummary tr {
     border-style: hidden;
-}
-
-.table.autosummary tbody tr:hover {
-    background-color: white;
+    background-color: white !important;
 }
 
 .table.autosummary tr:hover {
-    background-color: #c4d3df;
+    background-color: #c4d3df !important;
 }
 
 .table.autosummary td:last-child {
     text-align: end;
+    border: hidden;
 }
 
 nav.bd-links li > a:hover {

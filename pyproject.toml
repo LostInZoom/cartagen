@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cartagen"
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 authors = [
     { name = "Guillaume Touya" },
     { name = "Justin Berli" },
@@ -19,7 +19,6 @@ maintainers = [
 ]
 
 description = "Cartographic generalisation of spatial objects"
-readme = "README.rst"
 keywords = ["gis", "cartography", "generalisation"]
 license = { text = "EUPL-1.2" }
 classifiers = [

@@ -12,7 +12,7 @@
 
     <div align="center">
 
-.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen/85c4880fd88a08420080a45ee586f3bfac5705f4/docs/img/logo.svg
+.. image:: https://raw.githubusercontent.com/LostInZoom/cartagen/1.0rc1/docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: center
    :width: 150px
@@ -60,7 +60,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 |
 
 **CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
-the `EUPL-1.2. <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
+the `EUPL-1.2 <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
 It is a port of the `Java application, <https://github.com/IGNF/CartAGen>`_
 originally developed at IGN France.
 

@@ -7,14 +7,15 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import os, sys
-import cartagen
+# import cartagen
 
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'cartagen'
 copyright = '2024, IGN, Univ Gustave Eiffel'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
-release = cartagen.__version__.split("+")[0]
+release = '1.0rc1'
+# release = cartagen.__version__.split("+")[0]
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
