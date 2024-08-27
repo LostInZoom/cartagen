@@ -1,15 +1,15 @@
 .. meta::
-    :author: jberli
-    :title: CartAGen
-    :description: CartAGen - home
+   :author: jberli
+   :title: CartAGen
+   :description: CartAGen - home
 
-.. image:: docs/img/logo.svg
+|logosub| CartAGen
+##################
+
+.. |logosub| image:: docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: left
    :width: 30px
-
-CartAGen
-########
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
