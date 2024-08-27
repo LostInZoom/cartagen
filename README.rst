@@ -6,11 +6,6 @@
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
-.. |RTD| replace:: **Documentation**
-.. _RTD: https://cartagen.readthedocs.io/en/latest/
-
-|RTD|_
-
 .. image:: https://img.shields.io/readthedocs/cartagen?color=306998&style=flat-square
    :alt: Read the Docs
    :target: https://cartagen.readthedocs.io/en/latest/
