@@ -76,6 +76,7 @@ extensions = [
 html_baseurl = "https://cartagen.readthedocs.io/en/latest/"
 readme_docs_url_type = 'code'
 readme_src_files = "README.rst"
+readme_raw_directive = False
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),

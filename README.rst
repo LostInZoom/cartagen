@@ -9,9 +9,7 @@
 
 
 
-.. raw:: html
 
-   <div align="center">
 
 .. image:: https://raw.githubusercontent.com/LostInZoom/cartagen/1.0rc1/docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
@@ -20,9 +18,7 @@
 
 
 
-.. raw:: html
 
-     <h1>CartAGen</h1>
 
 
 
@@ -58,9 +54,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
 
 
-.. raw:: html
 
-   </div>
 
 |
 
