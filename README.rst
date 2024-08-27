@@ -6,7 +6,7 @@
 .. image:: docs/img/logo.svg
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: left
-   :width: 50px
+   :width: 25px
 
 CartAGen
 ########
