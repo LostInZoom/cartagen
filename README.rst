@@ -1,7 +1,7 @@
 |logosub| CartAGen
 ##################
 
-.. |logosub| image:: img/logo.svg
+.. |logosub| image:: docs/img/logo.svg
    :height: 50px
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
