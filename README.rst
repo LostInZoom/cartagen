@@ -2,7 +2,7 @@
 ##################
 
 .. |logosub| image:: docs/img/logo.svg
-   :height: 50px
+   :height: 30px
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
