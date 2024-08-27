@@ -1,8 +1,3 @@
-.. meta::
-    :author: jberli
-    :title: CartAGen
-    :description: CartAGen - home
-
 .. raw:: html
 
    <div align="center">
@@ -14,14 +9,10 @@
 
 .. raw:: html
 
-     <h1>CartAGen</h1>
+   <br>
+   <h1>CartAGen</h1>
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
-
-.. |RTD| replace:: **Documentation**
-.. _RTD: https://cartagen.readthedocs.io/en/latest/
-
-|RTD|_
 
 .. image:: https://img.shields.io/readthedocs/cartagen?color=306998&style=flat-square
    :alt: Read the Docs
@@ -38,6 +29,16 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 .. image:: https://img.shields.io/github/contributors/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen/graphs/contributors
+
+.. raw:: html
+
+   <br>
+   <br>
+
+.. image:: img/github.svg
+   :alt: Repo GitHub
+   :target: https://github.com/LostInZoom/cartagen
+   :height: 40px
 
 .. raw:: html
 
@@ -66,14 +67,17 @@ relies on them.
 
 Apply map generalisation operations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. image:: img/buiding_simplification.png
 
 Orchestrate multiple algorithms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. image:: img/agents_micro.png
 
 Enrich your cartographic data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. image:: img/boffet_urban_areas.png
 
 Evaluate your generalised map

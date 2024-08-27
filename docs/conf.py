@@ -7,15 +7,14 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import os, sys
-# import cartagen
+import cartagen
 
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'cartagen'
 copyright = '2024, IGN, Univ Gustave Eiffel'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
-release = '1.0rc1'
-# release = cartagen.__version__.split("+")[0]
+release = cartagen.__version__.split("+")[0]
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -71,13 +70,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx_remove_toctrees',
     'sphinxcontrib.bibtex',
-    'sphinx_readme',
 ]
-
-# sphinx-readme configuration
-readme_docs_url_type = 'code'
-readme_src_files = "README.rst"
-# readme_raw_directive = False
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
