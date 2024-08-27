@@ -29,6 +29,8 @@ html_context = {
     "github_repo": "cartagen",
 }
 
+html_baseurl = "https://cartagen.readthedocs.io/en/latest/"
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -73,10 +75,9 @@ extensions = [
 ]
 
 # sphinx-readme configuration
-html_baseurl = "https://cartagen.readthedocs.io/en/latest/"
 readme_docs_url_type = 'code'
 readme_src_files = "README.rst"
-readme_raw_directive = False
+# readme_raw_directive = False
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
