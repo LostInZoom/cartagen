@@ -1,6 +1,5 @@
 import shapely
 import geopandas as gpd
-import pprint
 
 from cartagen.utils.geometry.dilation import *
 from cartagen.utils.geometry.line import *
