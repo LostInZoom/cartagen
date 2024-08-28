@@ -27,6 +27,11 @@ def hull_delaunay(points, length):
     -------
     Polygon
 
+    Warning
+    -------
+    This algorithm cannot create multiple polygons, unlike :func:`hull_swinging_arm`.
+    Using a length too low can produce an invalid geometry.
+
     See Also
     --------
     hull_swinging_arm :
@@ -122,6 +127,10 @@ def hull_swinging_arm(points, length, direction='ccw'):
     --------
     hull_delaunay :
         Create the hull of a set of points using the Delaunay triangulation.
+
+    Notes
+    -----
+    This algorithm can create multiple polygons, unlike :func:`hull_delaunay`
 
     References
     ----------
@@ -418,4 +427,5 @@ def hull_swinging_arm(points, length, direction='ccw'):
         new_points, poly = swingSimpleLoop(new_points, length, direction, poly)
     if isinstance(poly, Polygon):
         polygons.append(poly)
+
     return polygons

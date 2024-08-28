@@ -146,16 +146,16 @@ def rural_traffic(roads, min_traffic=1,
     samples : GeoDataFrame of Point, optional
         The random sample if wanted, and if no attraction points were provided.
 
-    See Also
-    --------
-    rural_betweeness :
-        Detect central roads inside a network using traffic simulation.
-
     Warning
     -------
     This algorithm can quickly become very intensive, especially
     when using a large dataset and a high ``sample_size`` parameter,
     but it preserves the connectivity of the network.
+
+    See Also
+    --------
+    rural_betweeness :
+        Detect central roads inside a network using traffic simulation.
 
     References
     ----------
