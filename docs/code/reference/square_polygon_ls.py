@@ -1,25 +1,3 @@
-# import geopandas as gpd
-# import shapely
-# import numpy
-# from matplotlib import pyplot as plt
-# from matplotlib.path import Path
-# from matplotlib.patches import PathPatch
-
-# from cartagen.algorithms.network.dual_carriageways import collapse_dual_carriageways
-# from cartagen.enrichment.network.dual_carriageways import detect_dual_carriageways
-
-# roads = gpd.read_file("cartagen/data/routes_noz.geojson")
-# crs = roads.crs
-# ro = roads.to_dict('records')
-
-# duals = detect_dual_carriageways(roads)
-# duals.to_file("cartagen/data/duals.geojson", driver="GeoJSON")
-
-# collapsed = collapse_dual_carriageways(roads, duals)
-
-# from cartagen.utils.debug import *
-# geojson_to_variable("docs/code/data/test1.geojson")
-
 from matplotlib import pyplot as plt
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch

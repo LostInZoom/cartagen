@@ -17,8 +17,8 @@ values = numpy.random.randint(1, 10, N)
 
 points = [ Point(*coord) for coord in coords ]
 
-simplified1 = c4.reduce_points_kmeans(points, 0.1, True)
-simplified2 = c4.reduce_points_kmeans(points, 0.4, True)
+simplified1 = c4.reduce_kmeans(points, 0.1, True)
+simplified2 = c4.reduce_kmeans(points, 0.4, True)
 
 fig = plt.figure(1, (12, 24))
 

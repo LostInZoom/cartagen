@@ -21,8 +21,8 @@ points = [ Point(*coord) for coord in coords ]
 gdf = gpd.GeoDataFrame([ {'geometry': x} for x in points ])
 gdf['value'] = values
 
-output1, qtree1 = c4.reduce_points_quadtree(gdf, depth1, 'selection', attribute='value')
-output2, qtree2 = c4.reduce_points_quadtree(gdf, depth2, 'selection', attribute='value')
+output1, qtree1 = c4.reduce_quadtree(gdf, depth1, 'selection', attribute='value')
+output2, qtree2 = c4.reduce_quadtree(gdf, depth2, 'selection', attribute='value')
 
 fig = plt.figure(1, (12, 36))
 

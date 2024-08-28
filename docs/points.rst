@@ -13,5 +13,18 @@ Reduction
     :nosignatures:
     :toctree: reference/
 
-    reduce_points_kmeans
-    reduce_points_quadtree
+    reduce_kmeans
+    reduce_labelgrid
+    reduce_quadtree
+
+Covering
+--------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    hull_delaunay
+    hull_swinging_arm

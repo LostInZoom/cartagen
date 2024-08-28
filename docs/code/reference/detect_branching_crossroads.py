@@ -5,7 +5,7 @@ from matplotlib.patches import PathPatch
 import numpy
 import geopandas as gpd
 from shapely.wkt import loads
-import cartagen c4
+import cartagen as c4
 
 network = [
     loads('LINESTRING (-186131.08878997288 5375717.304421046, -186139.69426741 5375718.737198636, -186147.9412263793 5375716.327910789)'), 
