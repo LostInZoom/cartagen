@@ -1,14 +1,15 @@
 # This file contains several algorithms to amalgamate or aggregate two or more buildings
 
-import math
-
+import numpy as np
 from shapely.geometry import Polygon,MultiPolygon,Point
 
 from cartagen.utils.math.morphology import close_multipolygon, open_polygon
 from cartagen.utils.math.vector import Vector2D
 from cartagen.utils.geometry.segment import get_segment_list
+
+from cartagen.utils.debug import plot_debug
  
-def morphological_amalgamation(buildings, buffer, edge_length):
+def morphological_amalgamation(buildings, buffer, edge_length, threshold=0.2):
     """
     Amalgamate buildings using dilation and erosion.
     
@@ -26,6 +27,9 @@ def morphological_amalgamation(buildings, buffer, edge_length):
     edge_length : float
         Minimum length of edges in the amalgamated geometries
         (a simplification process is carried out).
+    threshold : float, optional
+        The threshold used for the Douglas-Peucker simplification of the
+        resulting polygon before the edge removal. Do not change.
 
     Returns
     -------
@@ -51,7 +55,7 @@ def morphological_amalgamation(buildings, buffer, edge_length):
     multipolygon = MultiPolygon(buildings)
 
     # make a morphological closing on the multipolygon
-    closed = close_multipolygon(multipolygon, buffer, cap_style=2)
+    closed = close_multipolygon(multipolygon, buffer, quad_segs=2)
     merged = open_polygon(closed, buffer, quad_segs=2)
 
     if(merged.geom_type == 'Polygon'):
@@ -61,82 +65,83 @@ def morphological_amalgamation(buildings, buffer, edge_length):
             clusters.append(simple)
     
     for newbuilding in clusters:
-        simplified = __edge_removal(newbuilding, edge_length)
+        simplified = __edge_removal(newbuilding, edge_length, threshold)
         output_collection.append(simplified)
     
     return output_collection
 
-def __edge_removal(polygon, edge_length):
+def __edge_removal(polygon, edge_length, threshold):
     # first filter unnecessary vertices with a Douglas & Peucker filter with a very small threshold
-    filtered = polygon.simplify(0.2)
+    filtered = polygon.simplify(threshold)
 
-    # then initialise the final list of vertices and add the first vertex
+    # then initialise the final list of vertices
     final_coords = []
     final_coords.append(filtered.exterior.coords[0])
 
     # get the list of segments of the polygon
-    segment_list = get_segment_list(polygon)
+    segment_list = get_segment_list(filtered)
 
     # then, loop on the segments to remove the ones that are too short
-    previousEdge = segment_list[len(segment_list)-1]
-    for i in range(0,len(segment_list)-1):
+    previousEdge = segment_list[-1]
+    for i in range(0, len(segment_list)):
         segment = segment_list[i]
         final_coords.append(segment.point2)
 
         # check the segment length
-        if(segment.length() >= edge_length):
-            continue
+        if segment.length() < edge_length:
+            # arrived here, the edge is too short
+            nextEdge = None
+            if(i == len(segment_list) - 1):
+                nextEdge = segment_list[0]
+            else:
+                nextEdge = segment_list[i + 1]
+            
+            # we compute the angle between previousEdge and nextEdge
+            angle = abs(previousEdge.orientation() - nextEdge.orientation())
 
-        # arrived here, the edge is too short
-        nextEdge = None
-        if(i == len(segment_list)-1):
-            nextEdge = segment_list[0]
-        else:
-            nextEdge = segment_list[i+1]
-        
-        # we compute the angle between previousEdge and nextEdge
-        angle = abs(previousEdge.orientation() - nextEdge.orientation())
-        if(angle < math.pi/4):
-            # offset case
-            # create a vector from the edge
-            vector = Vector2D.from_segment(nextEdge)
-            # keep last vertex of final_coords in memory
-            last_vertex = final_coords[len(final_coords)-1]
-            # remove the last two vertices
-            l_element = len(final_coords)-2
-            final_coords = final_coords[:l_element]
-            # get the antepenultimate vertex of final_coords (which is now the last)
-            antepenultimate = final_coords[len(final_coords)-1]
-            # translate this vertex with the vector
-            translated = vector.translate(Point(antepenultimate))
-            # add translated and then lastVertex to the list of vertices
-            final_coords.append(translated.coords)
-            final_coords.append(last_vertex)
-        elif(angle < 3*math.pi/4):
-            # it is a corner case
-            # get the intersection point of previousEdge and nextEdge considered as straight lines
-            intersection = previousEdge.straight_line_intersection(nextEdge)
-            # keep last vertex of final_coords in memory
-            last_vertex = final_coords[len(final_coords)-1]
-            # remove last vertex
-            l_element = len(final_coords)-1
-            final_coords = final_coords[:l_element]
-            # add intersection and then lastVertex to the list of vertices
-            final_coords.append(intersection.coords[0])
-            final_coords.append(last_vertex)
-        else:
-            # intrusion or protrusion case
-            # create a vector from the edge
-            vector = Vector2D.from_segment(nextEdge)
-            # remove the last two vertices
-            l_element = len(final_coords)-2
-            final_coords = final_coords[:l_element]
-            # get the antepenultimate vertex of final_coords (which is now the last)
-            antepenultimate = final_coords[len(final_coords)-1]
-            # translate this vertex with the vector
-            translated = vector.translate(Point(antepenultimate))
-            final_coords.append(intersection.coords[0])
-            final_coords.append(nextEdge.point2)
-    
+            if(angle < np.pi/4):
+                if len(final_coords) > 2:
+                    # offset case
+                    # create a vector from the edge
+                    vector = Vector2D.from_segment(segment)
+                    # keep last vertex of final_coords in memory
+                    last_vertex = final_coords[-1]
+                    # remove the last two vertices
+                    del final_coords[-2:]
+                    # # get the antepenultimate vertex of final_coords (which is now the last)
+                    antepenultimate = final_coords[len(final_coords)-1]
+                    # translate this vertex with the vector
+                    translated = vector.translate(Point(antepenultimate))
+                    # add translated and then lastVertex to the list of vertices
+                    final_coords.append(translated.coords[0])
+                    final_coords.append(last_vertex)
+
+            elif(angle < 3*np.pi/4):
+                # it is a corner case
+                # get the intersection point of previousEdge and nextEdge considered as straight lines
+                intersection = previousEdge.straight_line_intersection(nextEdge)
+                # keep last vertex of final_coords in memory
+                last_vertex = final_coords[-1]
+                # remove last vertex
+                del final_coords[-1:]
+                # add intersection and then lastVertex to the list of vertices
+                final_coords.append(intersection.coords[0])
+                final_coords.append(last_vertex)
+            else:
+                if len(final_coords) > 2:
+                    # intrusion or protrusion case
+                    # create a vector from the edge
+                    vector = Vector2D.from_segment(segment)
+                    # remove the last two vertices
+                    del final_coords[-2:]
+                    # get the antepenultimate vertex of final_coords (which is now the last)
+                    antepenultimate = final_coords[-1]
+                    # translate this vertex with the vector
+                    translated = vector.translate(Point(antepenultimate))
+                    final_coords.append(translated.coords[0])
+                    final_coords.append(nextEdge.point2)
+
+        previousEdge = segment
+
     return Polygon(final_coords)
 

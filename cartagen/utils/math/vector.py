@@ -29,7 +29,9 @@ class Vector2D:
         """
         Create a vector from a segment.
         """
-        return cls(segment.point1, segment.point2)
+        point1 = Point(segment.point1[0], segment.point1[1])
+        point2 = Point(segment.point2[0], segment.point2[1])
+        return cls(point1, point2)
 
     @classmethod
     def from_angle(cls, angle, norm):

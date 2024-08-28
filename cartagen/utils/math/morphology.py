@@ -2,6 +2,8 @@
 from shapely.geometry import Point, Polygon, MultiPolygon
 from shapely.ops import unary_union
 
+from cartagen.utils.debug import plot_debug
+
 def close_polygon(polygon, size, quad_segs=1):
     """
     Close a polygon using dilation and erosion.
@@ -79,56 +81,59 @@ def open_polygon(polygon, size, quad_segs=1):
     >>> open_polygon(polygon, 1)
     <POLYGON ((0 1, 1 4, 4 3, 3 0, 0 1))>
     """
-
-    if (polygon.geom_type == 'Polygon'):
-        return open_simple(polygon, size, quad_segs)
-
+    
     polygons = []
-    if (polygon.geom_type == 'MultiPolygon'):
+    if (polygon.geom_type == 'Polygon'):
+        polygons = open_simple(polygon, size, quad_segs)
+    elif (polygon.geom_type == 'MultiPolygon'):
         for simple in polygon.geoms:
-            polygons.append(open_simple(simple, size, quad_segs))
+            polygons.extend(open_simple(simple, size, quad_segs))
             
     return MultiPolygon(polygons)
 
-def close_multipolygon(multipolygon, buffer_size, cap_style=1):
-    buffered = multipolygon.buffer(buffer_size, cap_style=cap_style)
+def close_multipolygon(multipolygon, buffer_size, quad_segs=1):
+    buffered = multipolygon.buffer(buffer_size, quad_segs=quad_segs)
     # then filter the buffer a little bit to avoid geometry problems
     filtered = buffered.simplify(1.0)
 
     # check if it is still a multi polygon after the buffer and the erosion
     if (filtered.geom_type == 'MultiPolygon'):
-        return erode_multipolygon(filtered, buffer_size, cap_style)
+        return erode_multipolygon(filtered, buffer_size, quad_segs)
     
     if (filtered.geom_type == 'Polygon'):
-        return erosion(filtered, buffer_size, cap_style)
+        return erosion(filtered, buffer_size, quad_segs)
 
     # if we arrive here, something went wrong during the closing, return the initial geometry
     return multipolygon
 
-def open_simple(polygon, buffer_size, cap_style=1):
-    eroded = erosion(polygon, buffer_size, cap_style)
+def open_simple(polygon, buffer_size, quad_segs=1):
+    eroded = erosion(polygon, buffer_size, quad_segs)
     if (eroded is None):
-        return None
-    dilated = eroded.buffer(buffer_size, cap_style)
+        return []
+    dilated = eroded.buffer(buffer_size, quad_segs)
     filtered = dilated.simplify(1.0)
 
-    return filtered
+    opened = []
+    if filtered.geom_type == 'MultiPolygon':
+        return [ s for s in filtered.geoms ]
+    else:
+        return [ filtered ]
 
-def erode_multipolygon(multipolygon, buffer_size, cap_style=1):
+def erode_multipolygon(multipolygon, buffer_size, quad_segs=1):
     erodedlist=[]
     for simple in multipolygon.geoms:
-        eroded = erosion(simple, buffer_size, cap_style)
+        eroded = erosion(simple, buffer_size, quad_segs)
         if eroded is None:
             continue
         erodedlist+=[eroded]
     return unary_union(erodedlist)
 
-def erosion(polygon, buffer_size, cap_style=1):
+def erosion(polygon, buffer_size, quad_segs=1):
     # get the outer ring of the polygon
     outer_ring = polygon.exterior
 
     # first erode the outer ring
-    eroded_outer = erosion_no_hole(Polygon(outer_ring), buffer_size, cap_style)
+    eroded_outer = erosion_no_hole(Polygon(outer_ring), buffer_size, quad_segs)
     if(eroded_outer is None):
         return None
     
@@ -138,7 +143,7 @@ def erosion(polygon, buffer_size, cap_style=1):
         for i in range(0,len(polygon.interiors)):
             ring = polygon.interiors[i]
             poly = Polygon(ring)
-            buffered = poly.buffer(buffer_size, cap_style)
+            buffered = poly.buffer(buffer_size, quad_segs)
             eroded = eroded.difference(buffered)
     
     if(eroded.is_empty):
@@ -147,12 +152,12 @@ def erosion(polygon, buffer_size, cap_style=1):
     return eroded
 
 # Applies an erosion to a polygon with no hole (or inner ring)
-def erosion_no_hole(polygon, buffer_size, cap_style=1):
+def erosion_no_hole(polygon, buffer_size, quad_segs=1):
     # get the outer ring of the polygon
     outer_ring = polygon.exterior
 
     # then buffer the outer ring of the polygon
-    buffered_ring = outer_ring.buffer(buffer_size, cap_style)
+    buffered_ring = outer_ring.buffer(buffer_size, quad_segs)
 
     # check if the buffer is a valid polygon
     if(buffered_ring.geom_type != 'Polygon'):
@@ -182,18 +187,18 @@ def erosion_no_hole(polygon, buffer_size, cap_style=1):
     
     return MultiPolygon(rings)
 
-if __name__ == '__main__':
-    from shapely.wkt import loads
-    from shapely.geometry import Polygon, LineString
-    import matplotlib.pyplot as plt
-    import geopandas as gpd
+# if __name__ == '__main__':
+#     from shapely.wkt import loads
+#     from shapely.geometry import Polygon, LineString
+#     import matplotlib.pyplot as plt
+#     import geopandas as gpd
 
-    polygon1 = Polygon([(0,0),(0,100),(50,150),(100,100),(100,0),(0,0)])
+#     polygon1 = Polygon([(0,0),(0,100),(50,150),(100,100),(100,0),(0,0)])
 
-    eroded = erosion_no_hole(polygon1,10)
-    p1 = gpd.GeoSeries(polygon1)
-    p2 = gpd.GeoSeries(eroded)
-    base = p1.plot()
-    p2.plot(ax=base, color='red')
-    plt.show()
-    print(eroded)
+#     eroded = erosion_no_hole(polygon1,10)
+#     p1 = gpd.GeoSeries(polygon1)
+#     p2 = gpd.GeoSeries(eroded)
+#     base = p1.plot()
+#     p2.plot(ax=base, color='red')
+#     plt.show()
+#     print(eroded)

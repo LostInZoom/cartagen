@@ -9,11 +9,11 @@ import numpy as np
 def get_segment_list(geometry):
     coords = []
     if(geometry.geom_type == 'LineString'):
-        coords = geometry.coords
+        coords = list(geometry.coords)
     elif(geometry.geom_type == 'Polygon'):
-        coords = geometry.exterior.coords
+        coords = list(geometry.exterior.coords)
     segment_list = []
-    for i in range(1,len(coords)):
+    for i in range(1, len(coords)):
         segment_list.append(Segment(coords[i-1],coords[i]))
     return segment_list
 
@@ -68,10 +68,10 @@ class Segment:
     # compute the intersection point of two segments extended as straight lines
     def straight_line_intersection(self, segment2):
         matrix = np.zeros((2,2))
-        matrix.itemset((0,0),self.__coefA)
-        matrix.itemset((1,0),segment2.__coefA)
-        matrix.itemset((0,1),self.__coefB)
-        matrix.itemset((1,1),segment2.__coefB)
+        matrix[(0, 0)] = self.__coefA
+        matrix[(1, 0)] = segment2.__coefA
+        matrix[(0, 1)] = self.__coefB
+        matrix[(1, 1)] = segment2.__coefB
 
         # check if straight lines are parallel, i.e. matrix determinant is zero
         det = np.linalg.det(matrix)
