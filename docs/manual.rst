@@ -15,7 +15,7 @@ User Manual
 Introduction
 ============
 
-The user manual aims at providing an **overview** of the cartographic generalisation algorithms proposed by CartAGen.
+The user manual aims at providing an **overview** of the cartographic generalisation algorithms proposed by Cartagen.
 Some complex algorithms and processes are more deeply explained here than in the API Reference, in particular for
 those having several steps.
 
@@ -24,7 +24,7 @@ methods are developped to address the same issue, for example to avoid polygon c
 Those issues can also depend on the type of geographic objects you are trying to generalise. For example, maybe you
 don't want to simplify rivers and roads the same way, as their representation on the map doesn't have the same constraints.
 
-With that in mind, we tried here to offer here an overview of the algorithms offered by CartAGen in order to help you make
+With that in mind, we tried here to offer here an overview of the algorithms offered by Cartagen in order to help you make
 a choice in your cartographic endeavors. Please keep in mind that **this is not a lecture on cartographic generalisation**
 nor a full explanation of the generalisation process. We have designed several **Jupyter notebooks** to serve as learning
 material, they are accessible `here. <https://github.com/LostInZoom/cartagen-notebooks>`_
