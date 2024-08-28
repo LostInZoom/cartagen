@@ -26,4 +26,5 @@ cartagen4qgis-template
 cartagen/algorithms/__pycache__/__init__.cpython-310.pyc
 cartagen/algorithms/buildings/__pycache__/__init__.cpython-310.pyc
 /cartagen/algorithms/buildings/__pycache__
+
 *.pyc
