@@ -1,3 +1,6 @@
+Simplification
+~~~~~~~~~~~~~~
+
 Multiple algorithms for line simplification are available, including:
 
 - :func:`Douglas-Peucker <cartagen.douglas_peucker>`
@@ -12,8 +15,13 @@ natural lines such as rivers. You can read more about them in the API Reference 
   
   Line simplification algorithms
 
+Smoothing
+~~~~~~~~~
+
 For now, only one algorithm is available for line smoothing:
 
 - :func:`Gaussian smoothing <cartagen.gaussian_smoothing>`
 
 .. plot:: code/manual/lines_smoothing.py
+
+    Tweaking of the gaussian smoothing parameters

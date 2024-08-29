@@ -287,7 +287,7 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
         If not provided, the sample is derived from the geometry and is the average distance between
         each consecutive vertex.
     densify : bool, optional
-        Whether the resulting line should keep the new node density. Default to True.
+        Whether the resulting geometry should keep the new vertex density. Default to True.
 
     Returns
     -------
@@ -302,6 +302,10 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
     >>> c4.gaussian_smoothing(line, 1)
     <LINESTRING (0 0, 1.666666666666667 0.6051115971014416, 3.333333333333334 1.6051115971014418, 5 3)>
+
+    >>> polygon = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    >>> c4.gaussian_smoothing(polygon, 1)
+    <POLYGON ((0.1168459780814714 0.3005282653219513, ... 0.1168459780814714 0.3005282653219513))>
     """
     # Extend the given set of points at its first and last points of k points using central inversion.
     def extend(line, interval):
