@@ -263,11 +263,12 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
 def __li_openshaw_simplification(line, cell_size):
     # TODO: li openshaw line simplification
     return line
-    
 
-def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
+from cartagen.utils.debug import plot_debug    
+
+def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
     """
-    Smooth a line and attenuate its inflexion points.
+    Smooth a line or a polygon and attenuate its inflexion points.
 
     The gaussian smoothing has been studied by Babaud *et al.* :footcite:p:`babaud:1986`
     for image processing, and by Plazanet :footcite:p:`plazanet:1996`
@@ -275,20 +276,22 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
 
     Parameters
     ----------
-    line : LineString
-        The line to smooth.
+    geometry : LineString or Polygon
+        The line or polygon to smooth.
+        If a line is provided, the first and last vertexes are kept.
+        If a polygon is provided, every vertex is smoothed.
     sigma : float, optional
         Gaussian filter strength. Default value to 30, which is a high value.
     sample : float, optional
-        The length in meter between each nodes after resampling the line.
-        If not provided, the sample is derived from the line and is the average distance between
+        The length in meter between each nodes after resampling the geometry.
+        If not provided, the sample is derived from the geometry and is the average distance between
         each consecutive vertex.
     densify : bool, optional
         Whether the resulting line should keep the new node density. Default to True.
 
     Returns
     -------
-    LineString
+    LineString or Polygon
 
     References
     ----------
@@ -327,8 +330,21 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
         result.extend([central_inversion(last, coords[i]) for i in range(pen, pen - interval, -1)])
 
         return LineString(result)
-   
-    coords = list(line.coords)
+
+    polygon = None
+    ring = None
+    geomtype = geometry.geom_type
+    if geomtype == 'LineString':
+        polygon = False
+        ring = geometry
+    elif geomtype == 'Polygon':
+        polygon = True
+        ring = geometry.exterior
+    else:
+        raise Exception("{0} geometry cannot be smoothed.".format(geomtype))
+
+    coords = list(ring.coords)
+
     if sample is None:
         distances = []
         for i in range(0, len(coords) - 1):
@@ -338,7 +354,7 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
         sample = avg
 
     # First resample the line, making sure there is a maximum distance between two consecutive vertices
-    resampled = resample_line(line, sample)
+    resampled = resample_line(ring, sample)
 
     # Calculate the interval (number of vertex to take into consideration when smoothing)
     interval = round(4 * sigma / sample)
@@ -361,11 +377,17 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
         if k > 0:
             total += weight
     
-    # Extend the line at its first and last points with central inversion
-    extended = extend(resampled, interval)
+    rline = list(resampled.coords)
+    length = len(rline)
 
+    if polygon:
+        extended = LineString(rline[-interval:] + rline + rline[:interval])
+    else:
+        # Extend the line at its first and last points with central inversion
+        extended = extend(resampled, interval)
+   
     smoothed_coords = []
-    for i in range(0, len(resampled.coords)):
+    for i in range(0, length):
         x, y = 0, 0
         for k in range(-interval , interval + 1):
             p1 = extended.coords[i - k + interval]
@@ -381,7 +403,7 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
         # Stores for index of already treated vertices
         done = []
         # Loop through initial vertices
-        for point in list(line.coords):
+        for point in coords:
             # Set the distance to infinite
             distance = float("inf")
             nearest = None
@@ -403,11 +425,17 @@ def gaussian_smoothing(line, sigma=30, sample=None, densify=True):
             else:
                 final_coords.append(point)
     
-    # Replace first and last vertex by the line's original ones
-    final_coords[0] = Point(coords[0])
-    final_coords[-1] = Point(coords[-1])
+    result = None
+    if polygon:
+        final_coords.append(final_coords[0])
+        result = Polygon(final_coords)
+    else:
+        # Replace first and last vertex by the line's original ones
+        final_coords[0] = Point(coords[0])
+        final_coords[-1] = Point(coords[-1])
+        result = LineString(final_coords)
     
-    return LineString(final_coords)
+    return result
 
 def get_bend_side(line):
     """
