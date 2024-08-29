@@ -6,32 +6,37 @@ Changelog
 1.0rc2 (unreleased)
 ===================
 
-Features:
+- **New features**:
 
-- Exposed covering algorithms to create convex and concave hull:
+  #. Exposed covering algorithms to create convex and concave hull:
     
-  - :func:`hull_delaunay`
-  - :func:`hull_swinging_arm`
+     - :func:`hull_delaunay`
+     - :func:`hull_swinging_arm`
 
-- Exposed :func:`reduce_labelgrid` as a new point reduction method.
+  #. Exposed :func:`reduce_labelgrid` as a new point reduction method.
 
-Improvements:
+  #. Exposed :func:`strokes_roads` to detect strokes inside a road network.
+     This allows an easy strokes calculation by reducing the number of steps.
 
-- Renamed point reduction functions:
+- **Changes**:
 
-  - reduce_points_kmeans to :func:`reduce_kmeans`.
-  - reduce_points_quadtree to :func:`reduce_quadtree`.
+  #. Renamed point reduction functions:
 
-Bug fixes:
+     - :func:`reduce_points_kmeans` to :func:`reduce_kmeans`.
+     - :func:`reduce_points_quadtree` to :func:`reduce_quadtree`.
 
-- Fixed the :func:`morphological_amalgamation` function caused by:
+- **Bug fixes**:
 
-  - The ``__edge_removal`` function. The function was reworked.
-  - The ``straight_line_intersection`` method of the ``Segment`` class crashed
-    because of the use of the deprecated numpy array method ``itemset``.
-  - The ``Vector2D.from_segment`` method which was fixed.
-    
+  #. Fixed the :func:`morphological_amalgamation` function caused by:
 
+     - The ``__edge_removal`` function. The function was reworked.
+     - The ``straight_line_intersection`` method of the ``Segment`` class crashed
+       because of the use of the deprecated numpy array method ``itemset``.
+     - The ``Vector2D.from_segment`` method which was fixed.
+
+  #. Fixed bugs in the network enrichment functions: :func:`detect_roundabouts`,
+     :func:`detect_branching_crossroads`, :func:`detect_dead_ends`, :func:`detect_dual_carriageways`,
+     :func:`rural_traffic`. They now return an emty GeoDataFrame if no entity was detected.
 
 1.0rc1
 ======

@@ -279,4 +279,4 @@ def rural_traffic(roads, min_traffic=1,
         if len(result) > 0:
             return gpd.GeoDataFrame(result, crs=crs)
         else:
-            return None
+            return gpd.GeoDataFrame()

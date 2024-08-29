@@ -95,7 +95,10 @@ def detect_dual_carriageways(
             separators.append(infos)
             index += 1
 
-    return gpd.GeoDataFrame(separators, crs=crs)
+    if len(separators) > 0:
+        return gpd.GeoDataFrame(separators, crs=crs)
+    else:
+        return gpd.GeoDataFrame()
     
 def is_dual_carriageway(
         polygon, roads, tree,

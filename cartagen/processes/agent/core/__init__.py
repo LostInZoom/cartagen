@@ -1,1 +1,1 @@
-from cartagen.processes.agent.core.agent_scheduler import *
+from cartagen.processes.agent.core.agent_scheduler import run_agents

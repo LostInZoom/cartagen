@@ -8,23 +8,59 @@ import networkx as nx
 
 from cartagen.utils.geometry.angle import angle_3_pts, angle_between_2lines
 
-def strokes_roads(roads, attributes, angle=45, angle_sum=30):
+def strokes_roads(roads, attributes, angle=45.0, angle_sum=30.0):
     """
     Calculate strokes inside a road network.
+
+    This algorithm is based on the 'Good Continuation' principle
+    as defined by Thomson & Richardson. :footcite:p:`thomson:2002`
+    It defines strokes, which are segments that follow this perceptual
+    grouping also known as Gestalt's principle.
+
+    Parameters
+    ----------
+    roads : GeoDataFrame of LineString
+        The roads to calculate the strokes from.
+    attributes : list of str
+        The list of attributes to help the derivation of continuity.
+    angle : float, optional
+        Thresholds for the maximum angle between two segments
+        at the junction of two sections belonging to the same stroke.
+    angle_sum : float, optional
+        Thresholds for the maximum angle between
+        two sections belonging to the same stroke.
+
+    Returns
+    -------
+    GeoDataFrame of LineString
+
+    References
+    ----------
+    .. footbibliography::
     """
     crs = roads.crs
     strokes = StrokeNetwork(roads, attributes)
     strokes.buildStrokes(attributes, angle, angle_sum)
-    
-    # s = strokes.reconstruct_strokes()
-    # return gpd.GeoDataFrame(s, crs=crs)
+    s = strokes.reconstruct_strokes()
+    return gpd.GeoDataFrame(s,  columns = ['id','geometry','section'], crs=crs, geometry='geometry') 
 
-def strokes_rivers():
+def strokes_rivers(rivers, attributes, angle=45.0, angle_sum=30.0):
     """
     Calculate strokes inside a river network.
+
+    Strokes are network segments that follow the perceptual
+    grouping principle of Good Continuity (Gestalt).
     """
+    crs = rivers.crs
+    strokes = RiverStrokeNetwork(rivers, attributes)
+    strokes.buildRiverStrokes(attributes, angle, angle_sum)
+    s = strokes.reconstruct_strokes()
+    return gpd.GeoDataFrame(s,  columns = ['id','geometry','strahler'], crs=crs, geometry='geometry') 
 
 class Stroke:
+    """
+    
+    """
     COUNTER = 0
     def __init__(self, network, root):
         self.network = network
@@ -284,6 +320,13 @@ class Stroke:
         return liste
     
 class StrokeNetwork:
+    """
+    This Class contains methods allowing the computation of strokes
+    in a line network representing geographic entities (e.g., roads).
+
+    The initialization of this class is required prior to computing strokes,
+    it includes the precomputing of neighbouring relations between edges of the network.
+    """
     def __init__(self, features):
             #Initialisation from a list of shapely geometry with the correct attributes
           self.features = features
@@ -335,6 +378,10 @@ class StrokeNetwork:
 
 
     def buildStrokes(self, attributeNames, deviatAngle, deviatSum) :
+        """
+        This method computes the strokes in a Strokenetwork
+        using a loop on network features, and updates its strokes attribute.
+        """
         #loop on the network features
         for obj in self.features :
             #test if the feature has already been treated
@@ -407,10 +454,11 @@ class RiverStrokeNetwork:
         for idx in lines.index: 
             elem={}
             elem["geom"]=lines.geometry[idx]
-            elem["id"]=lines.id[idx]
+            elem["id"]=idx
             if not self.NoAttribute:
                 elem["name"]=getattr(lines,attributeName)[idx]
             features+=[elem]
+
         self.features = features
         self.sources = []
         self.sinks = []
@@ -419,7 +467,6 @@ class RiverStrokeNetwork:
         self.strokes = []
         self.dic_neighbours,self.dicentrant=self.compute_neighbours(features)
         self.dtf=lines
-
         
     def compute_neighbours(self, network):
         ntx=nx.DiGraph()
@@ -475,7 +522,7 @@ class RiverStrokeNetwork:
             return unbraidedStroke
         #first, make a decision on river name
         if not self.NoAttribute: 
-            if (not downstreamSection["name"] is None) :        
+            if not downstreamSection["name"] is None:        
                 for stroke in upstreamStrokes:
                     if (downstreamSection["name"]==stroke.features[-1]["name"]):
                         return stroke

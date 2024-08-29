@@ -1,4 +1,4 @@
-from cartagen.processes.agent.constraints.generalisation_constraint import GeneralisationConstraint
+from cartagen.processes.agent.constraints.abstract import GeneralisationConstraint
 from cartagen.processes.agent.actions.generalisation_action import MesoMicroActivation
 from cartagen.processes.agent.actions.block_actions import PromBlockEliminationAction, RandomBlockDisplacementAction
 

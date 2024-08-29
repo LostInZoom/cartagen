@@ -35,27 +35,15 @@ Algorithms
 Points
 ------
 
-
+.. include:: manual/points.rst
 
 Lines
 -----
 
-Multiple algorithms for line simplification are available, including:
-
-- :func:`Douglas-Peucker <cartagen.douglas_peucker>`
-- :func:`Visvalingam-Whyatt <cartagen.visvalingam_whyatt>`
-- :func:`Raposo <cartagen.raposo>`
-
-Those line simplification algorithm are used for different purposes and their computational
-time differs. For example, Raposo :footcite:p:`raposo:2013` is mainly used to simplify
-natural lines such as rivers. You can read more about them in the API Reference section.
-
-.. plot:: code/manual/simplification_line.py
-
-Figure 1. Line simplification algorithms.
+.. include:: manual/lines.rst
 
 Polygons
-^^^^^^^^
+--------
 
 This library also contains algorithms that process any type of polygons,
 and others specific to some types of map polygons, such as buildings.
@@ -65,12 +53,12 @@ one polygon at a time, including:
 - :func:`Simplify building <cartagen.simplify_building>`
 - :func:`Square polygon  <cartagen.square_polygon_ls>`
 
-.. plot:: code/manual/simplification_building.py
+.. plot:: code/manual/simplification_buildings.py
 
-Figure 2. Building simplification algorithms.
+  Building simplification algorithms
 
 Groups of objects
-^^^^^^^^^^^^^^^^^
+-----------------
 
 .. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
 
@@ -184,156 +172,6 @@ Measures on map features
   >>> polygon = Polygon([(0, 0), (0, 10), (2, 10), (2, 6), (5, 6), (5, 0), (0, 0)])
   >>> building_min_width(polygon)
   2.0
-
-Stroke computation (in general)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Strokes are network segments that follow the perceptual grouping principle of Good Continuity (Gestalt).
-
-.. class:: StrokeNetwork(lines, attributeNames)
-
-    This Class contains methods allowing the computation of strokes in a line network representing geographic entities (e.g., roads). 
-    
-    :param lines: The geopanda dataframe from which the network must be initialized. It must contain an 'id' column with a unique id (the name is case sensitive). Geometry must be simple LineString (no MultiLineString). The geometry can have a Z value but inconsistencies in Z value may make the stroke research fails.  
-    :type lines: GeoDataFrame
-    :param attributeNames: List of attribute names to be used as a criteria for continuity.
-    :type attributeNames: list[str]
-    
-    The initialization of this class is required prior to computing strokes, it includes the precomputing of neighbouring relations between edges of the network.
-
-.. method:: buildStrokes(self, attributeNames,deviatAngle, deviatSum)
-
-    This method computes the strokes in a Strokenetwork using a loop on network features, and updates its strokes attribute.
-    
-    :param self: The network in which we expect to compute strokes
-    :type self: StrokeNetwork
-    :param attributeNames: List of attribute names to be used as a criteria for continuity.
-    :type attributeNames: list[str]
-    :param deviatAngle: Thresholds for the maximum angle between two segments at the junction of two sections belonging to the same stroke.
-    :type deviatAngle: float
-    :param deviatSum: Thresholds for the maximum angle between two sections belonging to the same stroke.
-    :type deviatAngle, deviatSum: float
-    
-     For each feature that does not already belong to a stroke, it creates a new object of class Stroke and applies the method one side stroke on both sides to find sections that belong to the same stroke as the current section.
-
-.. code-block:: pycon
-
-	from shapely.geometry import LineString, Point
-	import geopandas as gpd
-	from cartagen.enrichment import StrokeNetwork
-	import matplotlib.pyplot as plt
-
-	data={'geometry':
-        [LineString([Point(0, 0),Point(1, 1)]),
-        LineString([Point(1, 1),Point(1, 0)]),
-        LineString([Point(1, 1),Point(2, 2.2)]),
-        LineString([Point(1, 1),Point(2.2, 2)]),
-        LineString([Point(2.2, 2),Point(3, 3)])],
-        'name':["rue A",None,None,"rue A","rue A"],
-        'id':[1,2,3,4,5]}
-	lines =gpd.GeoDataFrame(data, crs="EPSG:4326")
-
-	sn=StrokeNetwork(lines,['name'])
-
-	sn.buildStrokes(['name'], 45,30)
-	array=sn.reconstruct_strokes()
-	gdf = gpd.GeoDataFrame(array,  columns = ['id','geom',"section"],crs="epsg:2154",geometry="geom")   
-	gdf.plot('id')
-	plt.show()
-
-
-.. plot:: code/stroke.py
-
-Figure 11. A set of lines with colour depicting the stroke it belongs to using the general algorithm for stroke computation algorithm, with parameters "name", 45 and 30 respectively for attributeNames, deviatAngle and deviatSum.
-
-.. method:: save_strokes_shp(path)
-
-    This method save the computed stroke in a shapefile. 
-    
-    :param path: The access path to the file in which the stroke must be recorded
-    :type path: str
-    
-    The saved shapefile is made with segment belonging to a unique stroke merged in a geometries  the attributes of each geometries are an id (generated as a serial) and the comma-separated list of IDs of initial sections used to construct the stroke.
-
-
-Stroke computation (for river networks)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: RiverStrokeNetwork(lines, attributeNames)
-
-    This Class contains methods allowing the computation of the strokes in a river network. 
-    
-    :param lines: The geopanda dataframe from which the network must be initialized. It must contain an 'id' column with a unique id (the name is case sensitive). Geometry must be simple LineString (no MultiLineString). The geometry can have a Z value but inconsistencies in Z value may make the stroke research fails.  
-    :type lines: GeoDataFrame
-    :param attributeNames: List of attribute names to be used as a criteria for continuity.
-    :type attributeNames: list[str]
-    The initialization of this class is required prior to computing strokes, it includes the precomputing of neighbouring relations between edges of the network.
-
-
-.. method:: buildRiverStrokes(self, attributeNames,deviatAngle, deviatSum)
-
-    This method computes strokes in a RiverStrokeNetwork, and updates its strokes attributes. It can find strokes in complex braided networks.
-
-    :param self: The RiverNetwork in which we expect to compute strokes
-    :type self: RiverStrokeNetwork
-    :param attributeNames: List of attribute names to be used as a criteria for continuity.
-    :type attributeNames: list[str]
-    :param deviatAngle: Thresholds for the maximum angle between two segments at the junction of two sections belonging to the same stroke.
-    :type deviatAngle: float
-    :param deviatSum: Thresholds for the maximum angle between two sections belonging to the same stroke.
-    :type deviatAngle, deviatSum: float
-    Stroke are computed from sources to sink while computing Strahler order.
-    First, it identifies each source as a departure for a stroke adds them to the downstream section list and sets its Strahler order to 1.
-    Then the main loop runs through the downstream section list, pops the current element and adds the next section in its stroke (if exists).
-
-
-.. code-block:: pycon
-    from shapely.geometry import LineString, Point
-    import geopandas as gpd
-    from cartagen.enrichment import RiverStrokeNetwork
-    import matplotlib.pyplot as plt
-
-    data={'geometry':
-        [LineString([Point(1,4),Point(1, 3)]),
-         LineString([Point(1.5,3.5),Point(1, 3)]),
-         LineString([Point(1, 3),Point(1, 2.4)]),
-         LineString([Point(1, 2.4),Point(0.8, 1.8),Point(0.9, 1.5)]),
-         LineString([Point(1, 2.4),Point(1.2, 2.1)]),
-         LineString([Point(1.2, 2.1),Point(0.9, 1.5)]),
-         LineString([Point(0.9, 1.5),Point( 1.2,0.6)]),
-         LineString([Point(1.2, 2.1),Point( 1.2,0.6)]),
-         LineString([Point( 1.2,0.6),Point(1.1, 0.3)]),
-         LineString([Point(1.1, 0.3),Point(1, 0)]),
-         LineString([Point(0.5, 2),Point(1.1, 0.3)])],
-        'id':[1,2,3,4,5,6,8,9,10,11,12]}
-    lines =gpd.GeoDataFrame(data, crs="EPSG:4326")
-
-    sn=RiverStrokeNetwork(lines,None)
-
-    sn.buildRiverStrokes([], 45,30)
-    array=sn.reconstruct_strokes()
-    gdf = gpd.GeoDataFrame(array,  columns = ['id', 'geom',"strahler"],crs="epsg:4326",geometry="geom")
-
-    a=gdf.plot('id')
-    plt.show()
-
-    b=gdf.plot('strahler')
-    plt.show()
-
-.. plot:: code/riverstroke.py
-
-Figure 12. A river network with color depicting the stroke. 
-Figure 13. A river network with color depicting the Horton order : purple =1; yellow=2.
-
-.. method:: save_strokes_shp(path)
-
-    This method save the computed stroke in a shapefile. 
-    
-    :param path: The access path to the file in which the stroke must be recorded
-    :type path: str
-    
-    The saved shapefile is made with segment belonging to a unique stroke merged in a geometries  the attributes of each geometries are an id (generated as a serial) and the comma-separated list of IDs of initial sections used to construct the stroke.
-
 
 Apply map generalisation complex processes
 ------------------------------------------

@@ -1,5 +1,6 @@
-from cartagen.enrichment.network.branching_crossroads import *
-from cartagen.enrichment.network.dead_ends import *
-from cartagen.enrichment.network.dual_carriageways import *
-from cartagen.enrichment.network.roundabouts import *
-from cartagen.enrichment.network.rural_areas import *
+from cartagen.enrichment.network.branching_crossroads import detect_branching_crossroads
+from cartagen.enrichment.network.dead_ends import detect_dead_ends
+from cartagen.enrichment.network.dual_carriageways import detect_dual_carriageways
+from cartagen.enrichment.network.roundabouts import detect_roundabouts
+from cartagen.enrichment.network.rural_areas import rural_betweeness, rural_traffic
+from cartagen.enrichment.network.strokes import strokes_roads

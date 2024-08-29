@@ -1,6 +1,6 @@
 # This file contains algorithms to eliminate buildings in a block
 from cartagen.utils.multicriteria.promethee import *
-from cartagen.enrichment.building_measures import *
+from cartagen.enrichment.urban.building_measures import *
 
 class SizeCriterion(PrometheeCriterion):
 

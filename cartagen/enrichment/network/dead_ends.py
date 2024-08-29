@@ -146,10 +146,8 @@ def detect_dead_ends(roads, outside_faces=False):
             r['deadend'] = False
             deadends.append(r)
 
-    if len(deadends) > 0:
-        return gpd.GeoDataFrame(deadends, crs=crs)
-    else:
-        return gpd.GeoDataFrame([], crs=crs)    
+    return gpd.GeoDataFrame(deadends, crs=crs)
+
 
 def __topological_grouping(indexes, geometries, face, hull):
     """

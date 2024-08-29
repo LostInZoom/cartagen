@@ -19,6 +19,7 @@ Detection
     detect_dead_ends
     rural_betweeness
     rural_traffic
+    strokes_roads
 
 Collapsing
 ----------

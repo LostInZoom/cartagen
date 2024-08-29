@@ -1,4 +1,4 @@
-from cartagen.processes.agent.constraints.generalisation_constraint import GeneralisationConstraint
+from cartagen.processes.agent.constraints.abstract import GeneralisationConstraint
 from cartagen.processes.agent.actions.generalisation_action import DeletionAction
 from cartagen.processes.agent.actions.building_actions import EnlargementAction, EnlargeToRectangleAction, SimplificationAction, SquaringAction
 from cartagen.utils.geometry.segment import *
