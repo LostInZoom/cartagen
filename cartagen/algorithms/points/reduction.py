@@ -111,6 +111,8 @@ def reduce_kmeans(points, shrink_ratio, centroid=False):
 
     return final_pts
 
+from cartagen.utils.debug import plot_debug
+
 def reduce_quadtree(points, depth, mode='simplification', attribute=None):
     """
     Reduce a set of points using a quadtree.
@@ -164,11 +166,13 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
     """
 
     # First get the extent of the quadtree
+    xmin, ymin, xmax, ymax = points.geometry.total_bounds
+    xcenter, ycenter = xmin + ((xmax - xmin) / 2), ymin + ((ymax - ymin) / 2)
+    length = max(xmax - xmin, ymax - ymin) / 2
+    xdmin, ydmin, xdmax, ydmax = xcenter - length, ycenter - length, xcenter + length, ycenter + length
+    domain = Polygon([(xdmin, ydmin), (xdmin, ydmax), (xdmax, ydmax), (xdmax, ydmin)])
 
     # Then create the quadtree and populate it with the points
-    xmin, ymin, xmax, ymax = points.geometry.total_bounds
-    length = max(xmax-xmin, ymax-ymin)
-    domain = Polygon([(xmin, ymin), (xmin + length, ymin), (xmin + length, ymin + length), (xmin, ymin + length), (xmin,ymin)])
     qtree = PointSetQuadTree(domain, 1)
     qtree.populate(points)
 
@@ -222,12 +226,12 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
                 center = cell.envelope.centroid
                 mindist = float("inf")
                 nearest = None
-                for point in cell_points:
-                    dist = point[0]['geometry'].distance(center)
+                for point, depth in cell_points:
+                    dist = point['geometry'].distance(center)
                     if dist < mindist:
                         mindist = dist
                         nearest = point
-                output.append((nearest[0]['geometry'], nearest.name, len(cell_points)))
+                output.append((nearest['geometry'], nearest.name, len(cell_points)))
 
             case 'aggregation':
                 # the points are all aggregated to the centroid of the points.
@@ -264,7 +268,8 @@ def reduce_labelgrid(points, attribute, width, height, shape='square', mode='sel
         The reduction method used, can be:
 
         - **'selection'** keeps the point with the highest attribute value.
-        - **'aggregation'** keeps the centroid of the cell.
+        - **'aggregation'** keeps the centroid of the cell and adds the number of points within that cell
+          as an attribute.
     grid : bool, optional
         If set to True, returns a tuple with the points and the grid.
 
