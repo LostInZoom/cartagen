@@ -29,21 +29,12 @@ a choice in your cartographic endeavors. Please keep in mind that **this is not 
 nor a full explanation of the generalisation process. We have designed several **Jupyter notebooks** to serve as learning
 material, they are accessible `here. <https://github.com/LostInZoom/cartagen-notebooks>`_
 
-Algorithms
-==========
-
-Points
-------
-
 .. include:: manual/points.rst
-
-Lines
------
-
+  
 .. include:: manual/lines.rst
 
 Polygons
---------
+========
 
 This library also contains algorithms that process any type of polygons,
 and others specific to some types of map polygons, such as buildings.
@@ -58,7 +49,7 @@ one polygon at a time, including:
   Building simplification algorithms
 
 Groups of objects
------------------
+=================
 
 .. method:: morphological_amalgamation(buildings, buffer_size, edge_length)
 
