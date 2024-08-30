@@ -1,6 +1,7 @@
 # this file contains a data structure useful for several point set operations: the PointSetQuadTree, proposed by Bereuter & Weibel (2012)
 import numpy as np
 from shapely.geometry import Polygon, Point
+from cartagen.utils.debug import plot_debug
 
 class PointSetQuadTree():
 
@@ -38,7 +39,7 @@ class PointSetQuadTree():
         """Divide (branch) this node by spawning four children nodes."""
 
         cx, cy = self.envelope.centroid.x, self.envelope.centroid.y
-        length = abs(self.envelope.bounds[0]) - (self.envelope.bounds[2])
+        length = abs((self.envelope.bounds[0]) - (self.envelope.bounds[2]))
         # The boundaries of the four children nodes are "northwest",
         # "northeast", "southeast" and "southwest" quadrants within the
         # boundary of the current node.
@@ -58,8 +59,7 @@ class PointSetQuadTree():
     
     def insert(self, point):
         """Try to insert a point from a GeoDataFrame into this QuadTree."""
-
-        if not self.envelope.contains(point['geometry']):
+        if not self.envelope.intersects(point['geometry']):
             # The point does not lie inside boundary: bail.
             return False
         if len(self.points) < self.max_points:
@@ -71,15 +71,17 @@ class PointSetQuadTree():
         if not self.divided:
             self.divide()
             for prev_point in self.points:
-              (self.ne.insert(prev_point) or
+                (self.ne.insert(prev_point) or
                 self.nw.insert(prev_point) or
                 self.se.insert(prev_point) or
-                self.sw.insert(prev_point))  
+                self.sw.insert(prev_point))
 
-        return (self.ne.insert(point) or
-                self.nw.insert(point) or
-                self.se.insert(point) or
-                self.sw.insert(point))
+        return (
+            self.ne.insert(point) or
+            self.nw.insert(point) or
+            self.se.insert(point) or
+            self.sw.insert(point)
+        )
     
     def __len__(self):
         """Return the number of points in the quadtree."""
@@ -107,7 +109,6 @@ class PointSetQuadTree():
     
     def populate(self, geodataframe):
         """Populate the quadtree with the points contained in a GeoDataFrame, with a Point geometry"""
-
         for index, feature in geodataframe.iterrows():
             self.insert(feature)
 
