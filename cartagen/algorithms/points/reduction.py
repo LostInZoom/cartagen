@@ -111,8 +111,6 @@ def reduce_kmeans(points, shrink_ratio, centroid=False):
 
     return final_pts
 
-from cartagen.utils.debug import plot_debug
-
 def reduce_quadtree(points, depth, mode='simplification', attribute=None):
     """
     Reduce a set of points using a quadtree.
@@ -219,7 +217,9 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
                     if value*depth > largest:
                         largest = value*depth
                         selected = point
-                output.append((selected['geometry'], selected.name, len(cell_points)))
+
+                if selected is not None:
+                    output.append((selected['geometry'], selected.name, len(cell_points)))
 
             case 'simplification':
                 # the point retained in the cell is the closest to the center of the cell
@@ -415,8 +415,8 @@ class LabelGrid():
 
     def set_point_label_grid(self):
         """Set the attributes points_res and grid of the LabelGrid object."""
-        self.__points.reset_index(drop=True, inplace=True)
-        self.__points = self.__points[['geometry', self.__attribute]]
+        # self.__points.reset_index(drop=True, inplace=True)
+        # self.__points = self.__points[['geometry', self.__attribute]]
         
         self.__grid = self.__createGrid()
         
@@ -433,8 +433,8 @@ class LabelGrid():
         
         if self.__mode == 'selection':
             ind = [e.nlargest(1).index[0] for e in lst_all_value if not e.empty]
-            p = [self.__points['geometry'].iloc[i] for i in ind]
-            point_results = gpd.GeoDataFrame(geometry=gpd.GeoSeries(p))
+            p = [self.__points.iloc[i] for i in ind]
+            point_results = gpd.GeoDataFrame(p, geometry="geometry")
             
         if self.__mode == 'aggregation':
             aggreg = [(geom, len(cell)) for geom, cell in zip(self.__grid.centroid, lst_all_value) if not cell.empty]

@@ -1,7 +1,6 @@
 # this file contains a data structure useful for several point set operations: the PointSetQuadTree, proposed by Bereuter & Weibel (2012)
 import numpy as np
-from shapely.geometry import Polygon, Point
-from cartagen.utils.debug import plot_debug
+from shapely.geometry import Polygon, Point, LineString
 
 class PointSetQuadTree():
 
@@ -106,6 +105,29 @@ class PointSetQuadTree():
             self.ne.draw(ax, max_depth)
             self.se.draw(ax, max_depth)
             self.sw.draw(ax, max_depth)
+
+    def geometry(self, max_depth=None, index=None):
+        """Get the geometry of the quadtree as individual lines for drawing"""
+        lines = []
+        border = list(self.envelope.boundary.coords)
+        borderline = []
+        for i in range(0, len(border) - 1):
+            borderline.append(LineString([border[i], border[i + 1]]))
+
+        if index is None:
+            lines += borderline
+        else:
+            lines.append(borderline[index])
+
+        if max_depth is not None and self.depth >= max_depth:
+            return lines
+        else:
+            if self.divided:
+                lines += self.nw.geometry(max_depth, 0)
+                lines += self.ne.geometry(max_depth, 3)
+                lines += self.se.geometry(max_depth, 2)
+                lines += self.sw.geometry(max_depth, 1)
+            return lines
     
     def populate(self, geodataframe):
         """Populate the quadtree with the points contained in a GeoDataFrame, with a Point geometry"""
