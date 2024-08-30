@@ -112,7 +112,7 @@ def geojson_debug(geom, *geoms):
             gdf.to_file('{0}.geojson'.format(name), driver='GeoJSON')
             name += 1
 
-def geojson_to_variable(geojson, write=False):
+def geojson_to_variable(geojson, write=False, attributes=None):
     """
     Generate a variable string to directly load the shapely geometry inside the Python file.
     """
@@ -125,10 +125,21 @@ def geojson_to_variable(geojson, write=False):
 
     s = "variable = ["
     for o in v:
-        geom = "loads('{0}'), \n".format(o['geometry'].wkt)
-        if write:
-            f.write(geom)
-        s += geom
+        if attributes is not None:
+            entry = "{"
+            for k, v in o.items():
+                if k in attributes:
+                    entry += "'{0}': {1},".format(k, v)
+            entry += "'geometry': loads('{0}')".format(o['geometry'].wkt)
+            entry += "}, \n"
+            if write:
+                f.write(entry)
+        else:
+            entry = "loads('{0}'), \n".format(o['geometry'].wkt)
+            if write:
+                f.write(entry)
+            s += entry
     
     s += "]"
-    print(s)
+    if not write:
+        print(s)
