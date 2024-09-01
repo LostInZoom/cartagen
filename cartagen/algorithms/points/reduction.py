@@ -2,15 +2,18 @@
 # A reduction means that there is still a set of points as output of the algorithm, but fewer points.
 
 from shapely.geometry import MultiPoint, Point, Polygon
+from shapely.ops import nearest_points
 from cartagen.utils.partitioning.quadtree import PointSetQuadTree
+import warnings
 import random
 import pandas as pd
 import geopandas as gpd
+import shapely
 import numpy as np
 import matplotlib.pyplot as plt
 
 # @gtouya
-def reduce_kmeans(points, shrink_ratio, centroid=False):
+def reduce_kmeans(points, ratio, mode='simplification', column=None):
     """
     Reduce a set of points using K-Means clustering.
 
@@ -20,17 +23,25 @@ def reduce_kmeans(points, shrink_ratio, centroid=False):
 
     Parameters
     ----------
-    points : list of Point
+    points : GeoDataFrame of Point
         The points to reduce.
-    shrink_ratio : float
+    ratio : float
         A value between 0 (all points are removed) and 1 (all points are kept).
-    centroid : bool, optional
-        If set to True, replace the cluster by its centroid.
-        If False, replace the cluster by the point closest to the centroid of the cluster.
+    mode : str, optional
+        There are three available modes:
+
+        - *'selection'*: inside the cluster, only point with the largest
+          value in the chosen column is retained.
+          This option requires the column parameter to be provided.
+        - *'simplification'*: the point retained in the cluster
+          is the closest to the centroid of the cluster.
+        - *'aggregation'*: the points are all aggregated to
+          the centroid of the cluster. The count of point is added as a new attribute.
+          If a column name is provided, also adds the sum of the attribute.
 
     Returns
     -------
-    list of Point
+    GeoDataFrame of Point
 
     See Also
     --------
@@ -39,47 +50,57 @@ def reduce_kmeans(points, shrink_ratio, centroid=False):
     reduce_labelgrid :
         Reduce a set of points using the Label Grid method.
     """
+    if column is None and mode == 'selection':
+        raise Exception('Provide an attribute name in selection mode.')
+
+    if column is not None and mode == 'simplification':
+        warnings.warn("Warning: There is no need to indicate a column name in simplification mode.")
+
+    geometries = list(points.geometry)
 
     final_pts = []
 
     # first compute the number of points kept in the generalised point set
-    k = int(round(len(points) * shrink_ratio, 0))
+    k = int(round(len(geometries) * ratio, 0))
 
     if k == 0:
-        return final_pts
-    if k == len(points):
+        return gpd.GeoDataFrame()
+    if k == len(geometries):
         return points
+
+    indexes = [ ip for ip in range(0, len(geometries)) ]
     
     #***********************************************
     # create k cluster with the K-Means algorithm
     clusters = []
     movement_tol = 3
     # initialise the clusters with random centers
-    initial_centers = random.sample(points, k)
+    initial_centers = random.sample(geometries, k)
     centers = initial_centers.copy()
-    while(movement_tol > 2):
+    while movement_tol > 2:
         movement_tol = 0
         # build empty clusters
         clusters.clear()
         for i in range(0,k):
             clusters.append([])
         # put the points in the closest cluster
-        for point in points:
+        for ip in indexes:
             mindist = float("inf")
             nearest = -1
             i = 0
             for center in centers:
-                dist = center.distance(point)
+                dist = center.distance(geometries[ip])
                 if(dist < mindist):
                     nearest = i
                     mindist = dist
                 i += 1
-            clusters[nearest].append(point)
+            clusters[nearest].append(ip)
         # now compute the new centers of the clusters
         for i in range(0, k):
             if len(clusters[i]) == 0:
                 continue # do not change the center in this case
-            multi_cluster = MultiPoint(clusters[i])
+
+            multi_cluster = MultiPoint([ geometries[j] for j in clusters[i] ])
             new_center = multi_cluster.centroid
             # compute the distance between the old center and the new one for this cluster
             dist = new_center.distance(centers[i])
@@ -89,29 +110,68 @@ def reduce_kmeans(points, shrink_ratio, centroid=False):
             # apply the new center for this cluster
             centers[i] = new_center
 
-    #***********************************************
-    # then collapse each cluster into one point
+    results = []
+    records = points.to_dict('records')
     for cluster in clusters:
-        # get the centroid of the cluster
-        multi = MultiPoint(cluster)
-        center = multi.centroid
-        if(centroid):
-            # append center to the list of final points
-            final_pts.append(center)
-        else:
-            # get the nearest point from the center of the cluster
-            nearest = center
-            mindist = float("inf")
-            for point in cluster:
-                dist = center.distance(point)
-                if dist < mindist:
-                    nearest = point
-                    mindist = dist
-            final_pts.append(nearest)
+        match mode:
+            case 'selection':
+                # retain the largest value in each cluster for the chosen column
+                selected = None
+                largest = 0
+                for index in cluster:
+                    point = records[index]
+                    value = point[column]
+                    if value > largest:
+                        largest = value
+                        selected = point
 
-    return final_pts
+                if selected is not None:
+                    selected['count'] = len(cluster)
+                    results.append(selected)
 
-def reduce_quadtree(points, depth, mode='simplification', attribute=None):
+            case 'simplification':
+                # the point retained in the cluster is the closest to the centroid of the cluster
+                # get the centroid of the cluster
+                multi = MultiPoint([ geometries[j] for j in cluster ])
+                center = multi.centroid
+                mindist = float("inf")
+                nearest = None
+
+                for index in cluster:
+                    point = records[index]
+                    dist = point['geometry'].distance(center)
+                    if dist < mindist:
+                        mindist = dist
+                        nearest = point
+
+                if nearest is not None:
+                    results.append(nearest)
+
+            case 'aggregation':
+                # the points are all aggregated to the centroid of the cluster.
+                multi = MultiPoint([ geometries[j] for j in cluster ])
+                center = multi.centroid
+                total = 0
+                count = 0
+                geoms = []
+                for index in cluster:
+                    point = records[index]
+                    if column is not None:
+                        total += point[column]
+                    count += 1
+                    geoms.append(point['geometry'])
+
+                multi = MultiPoint(geoms)
+                centroid = multi.centroid
+                entry = { 'count': count }
+                if column is not None:
+                    entry['total'] = total
+                entry['geometry'] = center
+                results.append(entry)
+
+    return gpd.GeoDataFrame(results, crs=points.crs)
+
+def reduce_quadtree(points, depth, mode='simplification', column=None, quadtree=False):
     """
     Reduce a set of points using a quadtree.
 
@@ -130,26 +190,23 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
     mode : str, optional
         There are three available modes:
 
-        - *'selection'* means that for one cell, the algorithm retains
-          the point with the largest value in the chosen attribute,
-          weighted by the depth of the point. This option requires
-          the attribute parameter to be provided.
-        - *'simplification'* means that the point retained in the cell
+        - *'selection'*: for one cell, the algorithm retains
+          the point with the largest value in the chosen column, weighted by the depth of the point.
+          This option requires the column parameter to be provided.
+        - *'simplification'*: the point retained in the cell
           is the closest to the center of the cell.
-        - *'aggregation'* means the points are all aggregated to
-          the centroid of the points.
+        - *'aggregation'*: the points are all aggregated to
+          the centroid of the cell. The count of point is added as a new attribute.
+          If a column name is provided, also adds the sum of the attribute.
+
+    column : str, optional
+        Name of the column to use.
+    quadtree : bool, optional
+        If set to True, returns a tuple with the reduced points and the quadtree.
     
     Returns
     -------
-    reduced : list of tuple
-        The reduced points as tuples composed of three elements:
-
-        #. The geometry of the reduced point.
-        #. The index of the point in the initial Geodataframe (-1 if the point was created).
-        #. The amount of initial points replaced (which can be used to weight the size of the symbol of this point).
-    
-    quadtree : QuadTree
-        The quadtree object.
+    GeoDataFrame of Point or tuple (GeoDataFrame of Point, ``QuadTree``)
 
     See Also
     --------
@@ -162,6 +219,9 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
     ----------
     .. footbibliography::
     """
+
+    if column is not None and mode == 'simplification':
+        warnings.warn("Warning: There is no need to indicate a column name in simplification mode.")
 
     # First get the extent of the quadtree
     xmin, ymin, xmax, ymax = points.geometry.total_bounds
@@ -197,7 +257,7 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
             cells.append(current_cell)
 
     # loop on the cells
-    output = []
+    results = []
     for cell in cells:
         # get all the points in this cell
         cell_points = cell.get_all_points()
@@ -207,19 +267,21 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
         # then generalise the points based on the chosen mode
         match mode:
             case 'selection':
-                if attribute is None:
+                if column is None:
                     raise Exception('Provide an attribute name in selection mode.')
+
                 # retain the largest value in each cell for the chosen attribute of the point
                 selected = None
                 largest = 0
                 for point, depth in cell_points:
-                    value = point[attribute]
+                    value = point[column]
                     if value*depth > largest:
                         largest = value*depth
                         selected = point
 
                 if selected is not None:
-                    output.append((selected['geometry'], selected.name, len(cell_points)))
+                    selected['count'] = len(cell_points)
+                    results.append(selected)
 
             case 'simplification':
                 # the point retained in the cell is the closest to the center of the cell
@@ -231,20 +293,37 @@ def reduce_quadtree(points, depth, mode='simplification', attribute=None):
                     if dist < mindist:
                         mindist = dist
                         nearest = point
-                output.append((nearest['geometry'], nearest.name, len(cell_points)))
+
+                if nearest is not None:
+                    results.append(nearest)
 
             case 'aggregation':
-                # the points are all aggregated to the centroid of the points.
+                # the points are all aggregated to the centroid of the cell.
+                center = cell.envelope.centroid
+                total = 0
+                count = 0
                 geoms = []
-                for point in cell_points:
-                    geoms.append(point[0]['geometry'])
+                for point, depth in cell_points:
+                    if column is not None:
+                        total += point[column]
+                    count += 1
+                    geoms.append(point['geometry'])
+
                 multi = MultiPoint(geoms)
                 centroid = multi.centroid
-                output.append((centroid, -1, len(cell_points)))
+                entry = { 'count': count }
+                if column is not None:
+                    entry['total'] = total
+                entry['geometry'] = center
+                results.append(entry)
     
-    return output, qtree
+    output = gpd.GeoDataFrame(results, crs=points.crs)
+    if quadtree:
+        return output, qtree
+    else:
+        return output
 
-def reduce_labelgrid(points, attribute, width, height, shape='square', mode='selection', grid=False):
+def reduce_labelgrid(points, width, height, shape='square', mode='simplification', column=None, grid=False):
     """
     Reduce a set of points using the Label Grid method.
 
@@ -256,8 +335,6 @@ def reduce_labelgrid(points, attribute, width, height, shape='square', mode='sel
     ----------
     points : GeoDataFrame of Point
         The points to reduce.
-    attribute : str
-        Name of the attribute to rank the points.
     width : float
         Width of the grid cells.
     height : float
@@ -265,11 +342,19 @@ def reduce_labelgrid(points, attribute, width, height, shape='square', mode='sel
     shape : str, optional
         Shape of the grid cells, can be 'square', 'diamond', 'hexagonal'.
     mode : str, optional
-        The reduction method used, can be:
+        There are three available modes:
 
-        - **'selection'** keeps the point with the highest attribute value.
-        - **'aggregation'** keeps the centroid of the cell and adds the number of points within that cell
-          as an attribute.
+        - *'selection'*: for one cell, the algorithm retains
+          the point with the largest value in the chosen column. This option requires
+          the column parameter to be provided.
+        - *'simplification'*: the point retained in the cell
+          is the closest to the center of the cell.
+        - *'aggregation'*: the points are all aggregated to
+          the centroid of the cell. The count of point is added as a new attribute.
+          If a column name is provided, also adds the sum of the attribute.
+
+    column : str, optional
+        Name of the column to use.
     grid : bool, optional
         If set to True, returns a tuple with the points and the grid.
 
@@ -288,7 +373,22 @@ def reduce_labelgrid(points, attribute, width, height, shape='square', mode='sel
     ----------
     .. footbibliography::
     """
-    lg = LabelGrid(points, attribute, width, height, shape, mode)
+    if shape not in ['square', 'diamond', 'hexagonal']:
+        raise Exception('{0} shape is not recognized.'.format(shape))
+
+    if mode not in ['selection', 'simplification', 'aggregation']:
+        raise Exception('{0} mode is not recognized.'.format(mode))
+
+    if mode == 'selection' and column is None:
+        raise Exception('Selection mode requires an attribute.')
+
+    if column not in list(points):
+        raise Exception('Column {0} not in the provided GeoDataFrame.'.format(column))
+
+    if column is not None and mode == 'simplification':
+        warnings.warn("Warning: There is no need to indicate a column name in simplification mode.")
+
+    lg = LabelGrid(points, width, height, shape, mode, column)
     lg.set_point_label_grid()
     result = lg.getPointResults()
     if grid:
@@ -311,7 +411,7 @@ class LabelGrid():
     Cartography and Geographic Information.
     """
     
-    def __init__(self, points, attribute, width, height, typ='square', mode='selection'):
+    def __init__(self, points, width, height, shape='square', mode='simplification', column=None):
         """
         Construct all the necessary attributes for the LabelGrid object.
 
@@ -323,13 +423,13 @@ class LabelGrid():
             Width of a cell.
         height : int
             Height of a cell.
-        typ : str
-            Form of a cell. The default is 'carre'.
+        shape : str
+            Form of a cell. The default is 'square'.
         """
-        self.__attribute = attribute
+        self.__column = column
         self.__width = width
         self.__height = height
-        self.__typ = typ
+        self.__shape = shape
         self.__mode = mode
         self.__points = points
         self.__points_res = None
@@ -376,8 +476,9 @@ class LabelGrid():
 
         """
         xmin, ymin, xmax, ymax = self.__points.total_bounds
+        polygons = None
         
-        if self.__typ == 'square':
+        if self.__shape == 'square':
             cols = list(np.arange(xmin, xmax + self.__width, self.__width))
             rows = list(np.arange(ymin, ymax + self.__height, self.__height))
         
@@ -387,7 +488,7 @@ class LabelGrid():
                                  (x, y + self.__height)]) 
                         for x in cols[:-1] for y in rows[:-1]]
             
-        if self.__typ == 'diamond':
+        if self.__shape == 'diamond':
             cols = list(np.arange(xmin, xmax + self.__width*2, self.__width))
             rows = list(np.arange(ymin-self.__width, ymax + self.__width, self.__width))
             
@@ -397,7 +498,7 @@ class LabelGrid():
                                  (x - self.__width / 2, y + self.__width / 2)]) 
                         for x in cols[:-1] for y in rows[:-1]]
             
-        if self.__typ == 'hexagonal':
+        if self.__shape == 'hexagonal':
 
             odd_coords_min = (xmin-self.__width, ymin-self.__width)
             odd_coords_max = (xmax+self.__width, ymax)
@@ -411,19 +512,16 @@ class LabelGrid():
             
             polygons = odd_poly + not_odd_poly
             
-        return gpd.GeoDataFrame({'geometry':polygons})
+        return gpd.GeoDataFrame({'geometry': polygons})
 
     def set_point_label_grid(self):
         """Set the attributes points_res and grid of the LabelGrid object."""
-        # self.__points.reset_index(drop=True, inplace=True)
-        # self.__points = self.__points[['geometry', self.__attribute]]
-        
         self.__grid = self.__createGrid()
         
-        lst_in_value = [self.__points.loc[cell.contains(self.__points['geometry']), self.__attribute] 
+        lst_in_value = [self.__points.loc[cell.contains(self.__points['geometry'])] 
                         for cell in self.__grid['geometry']]
 
-        lst_inter_value = [self.__points.loc[cell.touches(self.__points['geometry']), self.__attribute] 
+        lst_inter_value = [self.__points.loc[cell.touches(self.__points['geometry'])] 
                            for cell in self.__grid['geometry']]
         
         lst_all_value = [lst_inter_value[i] 
@@ -431,17 +529,36 @@ class LabelGrid():
                          else pd.concat([lst_in_value[i],lst_inter_value[i]]) 
                          for i in range(len(lst_in_value))]
         
-        if self.__mode == 'selection':
-            ind = [e.nlargest(1).index[0] for e in lst_all_value if not e.empty]
-            p = [self.__points.iloc[i] for i in ind]
-            point_results = gpd.GeoDataFrame(p, geometry="geometry")
+        if self.__mode == 'simplification':
+            simplified = []
+            for c, centroid in enumerate(self.__grid.centroid):
+                points = lst_all_value[c]
+                if not points.empty:
+                    mindist = float("inf")
+                    nearest = None
+                    for index, point in points.iterrows():
+                        dist = point['geometry'].distance(centroid)
+                        if dist < mindist:
+                            mindist = dist
+                            nearest = point
+                    simplified.append(nearest)
+            self.__points_res = gpd.GeoDataFrame(simplified)
+
+        elif self.__mode == 'selection':
+            ind = [ e.nlargest(1, self.__column).index[0] for e in lst_all_value if not e.empty ]
+            selected = [self.__points.iloc[i] for i in ind]
+            self.__points_res = gpd.GeoDataFrame(selected)
             
-        if self.__mode == 'aggregation':
-            aggreg = [(geom, len(cell)) for geom, cell in zip(self.__grid.centroid, lst_all_value) if not cell.empty]
-            df = pd.DataFrame(aggreg, columns=["geometry", "radius"])
-            point_results = gpd.GeoDataFrame(df, geometry="geometry")
-            
-        self.__points_res = point_results
+        elif self.__mode == 'aggregation':
+            aggregation = []
+            for c, centroid in enumerate(self.__grid.centroid):
+                p = lst_all_value[c]
+                entry = { "count": len(p) }
+                if self.__column is not None:
+                    entry["total"] = p[self.__column].sum()
+                entry["geometry"] = centroid
+                aggregation.append(entry)
+            self.__points_res = gpd.GeoDataFrame(aggregation)
 
     def getPointResults(self):
         """Get points results."""
@@ -464,4 +581,4 @@ class LabelGrid():
             self.__points_res.plot(ax=ax2, color='chocolate')
             
         if self.__mode == 'aggregation':
-            self.__points_res.plot(ax=ax2, color='chocolate', markersize=self.__width*self.__points_res["radius"])
+            self.__points_res.plot(ax=ax2, color='chocolate', markersize=self.__width*self.__points_res["count"])
