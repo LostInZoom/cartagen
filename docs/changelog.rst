@@ -25,6 +25,10 @@ Changelog
      - :func:`reduce_points_kmeans` to :func:`reduce_kmeans`.
      - :func:`reduce_points_quadtree` to :func:`reduce_quadtree`.
   
+  #. Every point reduction method, namely :func:`reduce_kmeans`, :func:`reduce_quadtree` and
+     :func:`reduce_labelgrid` now takes GeoDataFrame as input and have the same modes available
+     (selection, simplification and aggregation).
+
   #. :func:`gaussian_smoothing` can now treat polygons.
 
 - **Bug fixes**:
@@ -39,6 +43,8 @@ Changelog
   #. Fixed bugs in the network enrichment functions: :func:`detect_roundabouts`,
      :func:`detect_branching_crossroads`, :func:`detect_dead_ends`, :func:`detect_dual_carriageways`,
      :func:`rural_traffic`. They now return an empty GeoDataFrame if no entity was detected.
+
+   #. Fixed a bug in :class:`PointSetQuadTree` where negative coordinates could cause problems.
 
 1.0rc1
 ======
