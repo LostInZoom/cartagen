@@ -18,21 +18,21 @@ points = [ Point(*coord) for coord in coords ]
 
 gdf = gpd.GeoDataFrame([ {'value': values[i], 'geometry': points[i]} for i in range(0, len(points)) ])
 
-o1, g1 = c4.reduce_labelgrid(gdf, 'value', 5, 5, 'square', mode='selection', grid=True)
-o2, g2 = c4.reduce_labelgrid(gdf, 'value', 5, 5, 'square', mode='aggregation', grid=True)
+o1, g1 = c4.reduce_labelgrid(gdf, 5, 5, 'square', 'selection', 'value', grid=True)
+o2, g2 = c4.reduce_labelgrid(gdf, 5, 5, 'square', 'aggregation', 'value', grid=True)
 
-o3, g3 = c4.reduce_labelgrid(gdf, 'value', 5, 5, 'diamond', mode='selection', grid=True)
-o4, g4 = c4.reduce_labelgrid(gdf, 'value', 5, 5, 'diamond', mode='aggregation', grid=True)
+o3, g3 = c4.reduce_labelgrid(gdf, 5, 5, 'diamond', 'selection', 'value', grid=True)
+o4, g4 = c4.reduce_labelgrid(gdf, 5, 5, 'diamond', 'aggregation', 'value', grid=True)
 
-o5, g5 = c4.reduce_labelgrid(gdf, 'value', 5, 5, 'hexagonal', mode='selection', grid=True)
-o6, g6 = c4.reduce_labelgrid(gdf, 'value', 5, 5, 'hexagonal', mode='aggregation', grid=True)
+o5, g5 = c4.reduce_labelgrid(gdf, 5, 5, 'hexagonal', 'selection', 'value', grid=True)
+o6, g6 = c4.reduce_labelgrid(gdf, 5, 5, 'hexagonal', 'aggregation', 'value', grid=True)
 
 plt.rcParams.update({
     'font.size': 12,
     'axes.labelpad': 10
 })
 
-fig = plt.figure(1, (12, 18))
+fig = plt.figure(1, (12, 16))
 
 sub1 = fig.add_subplot(321)
 sub1.set_xticks([])
@@ -67,12 +67,12 @@ sub6.axes.get_yaxis().set_visible(False)
 
 for point in points:
     c = point.coords[0]
-    sub1.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=2)
-    sub2.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=2)
-    sub3.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=2)
-    sub4.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=2)
-    sub5.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=2)
-    sub6.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=2)
+    sub1.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=1)
+    sub2.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=1)
+    sub3.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=1)
+    sub4.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=1)
+    sub5.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=1)
+    sub6.plot(c[0], c[1], linestyle="", marker='o', color="gray", markersize=1)
 
 for cell in g1.to_dict('records'):
     c = cell['geometry']
@@ -110,7 +110,7 @@ for point in o1.to_dict('records'):
 
 for point in o2.to_dict('records'):
     c = point['geometry'].coords[0]
-    sub2.plot(c[0], c[1], linestyle="", marker='o', color="red", markersize=5)
+    sub2.plot(c[0], c[1], linestyle="", marker='o', color="red", markersize=point['count']*3)
 
 for point in o3.to_dict('records'):
     c = point['geometry'].coords[0]
@@ -118,7 +118,7 @@ for point in o3.to_dict('records'):
 
 for point in o4.to_dict('records'):
     c = point['geometry'].coords[0]
-    sub4.plot(c[0], c[1], linestyle="", marker='o', color="red", markersize=5)
+    sub4.plot(c[0], c[1], linestyle="", marker='o', color="red", markersize=point['count']*3)
 
 for point in o5.to_dict('records'):
     c = point['geometry'].coords[0]
@@ -126,7 +126,7 @@ for point in o5.to_dict('records'):
 
 for point in o6.to_dict('records'):
     c = point['geometry'].coords[0]
-    sub6.plot(c[0], c[1], linestyle="", marker='o', color="red", markersize=5)
+    sub6.plot(c[0], c[1], linestyle="", marker='o', color="red", markersize=point['count']*3)
 
 sub1.autoscale_view()
 sub2.autoscale_view()
