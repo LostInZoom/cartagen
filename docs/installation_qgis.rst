@@ -1,4 +1,4 @@
-.. _installation-qgis:
+.. _installation_qgis:
 
 ============
 Installation

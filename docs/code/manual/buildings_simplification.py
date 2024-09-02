@@ -18,43 +18,56 @@ buildings = [
     loads('POLYGON ((483127.7442079502 6044736.364400351, 483114.73178073147 6044726.713422463, 483105.54601464357 6044745.896783458, 483126.6894739062 6044760.172891552, 483131.85256515 6044752.511167733, 483120.79268554156 6044744.870537457, 483124.5139267647 6044739.651446626, 483130.0753720944 6044743.617047335, 483128.97353314667 6044745.52951407, 483138.9880076486 6044753.2448412115, 483142.854087839 6044747.994308646, 483127.7442079502 6044736.364400351))'), 
 ]
 
-polygons = [
-    loads('Polygon ((483127.74420795019250363 6044736.3644003514200449, 483114.73178073146846145 6044726.71342246327549219, 483105.54601464356528595 6044745.89678345806896687, 483126.689473906182684 6044760.17289155162870884, 483131.8525651500094682 6044752.51116773299872875, 483120.7926855415571481 6044744.87053745705634356, 483124.51392676471732557 6044739.6514466255903244, 483130.07537209440488368 6044743.6170473350211978, 483128.97353314666543156 6044745.52951406966894865, 483138.98800764861516654 6044753.24484121147543192, 483142.85408783901948482 6044747.99430864583700895, 483127.74420795019250363 6044736.3644003514200449))'),
-    loads('Polygon ((483162.60420556488679722 6044749.90797633398324251, 483167.29305910837138072 6044741.50208449736237526, 483158.54631337692262605 6044736.39747273270040751, 483164.02214775263564661 6044727.26683164667338133, 483160.10401825612643734 6044724.26727752014994621, 483158.94143492548028007 6044723.54596658423542976, 483156.44691042724298313 6044721.9793161153793335, 483152.05093409406254068 6044730.33950771857053041, 483148.83314704877557233 6044727.98296463023871183, 483143.6222503071767278 6044734.96569846104830503, 483162.60420556488679722 6044749.90797633398324251))'),
-    loads('Polygon ((483134.49167914234567434 6044719.08061139564961195, 483123.53526283032260835 6044711.08918826468288898, 483117.88398461748147383 6044718.7685501417145133, 483125.24604345660191029 6044724.59082455839961767, 483131.69380232668481767 6044728.94176229648292065, 483134.3939773467136547 6044730.82876554876565933, 483140.0452489098533988 6044723.14938258472830057, 483136.44334064348367974 6044720.53428473882377148, 483134.49167914234567434 6044719.08061139564961195))'),
-]
-
-fig = plt.figure(1, (12, 5))
+fig = plt.figure(1, (12, 10))
 
 #############################################################
 
-sub1 = fig.add_subplot(121)
-sub1.set_title('a) Building simplification', pad=10, family='sans-serif')
+sub1 = fig.add_subplot(221)
+sub1.set_title('a) Simplification', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
+
+sub2 = fig.add_subplot(222)
+sub2.set_title('b) Least square squaring', pad=10, family='sans-serif')
+sub2.axes.get_xaxis().set_visible(False)
+sub2.axes.get_yaxis().set_visible(False)
+
+sub3 = fig.add_subplot(223)
+sub3.set_title('c) Rectangle transformation', pad=10, family='sans-serif')
+sub3.axes.get_xaxis().set_visible(False)
+sub3.axes.get_yaxis().set_visible(False)
+
+sub4 = fig.add_subplot(224)
+sub4.set_title('d) Recursive regression', pad=10, family='sans-serif')
+sub4.axes.get_xaxis().set_visible(False)
+sub4.axes.get_yaxis().set_visible(False)
 
 for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
-
+    sub2.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
+    sub3.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
+    sub4.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
+    
+for building in buildings:
     generalized = c4.simplify_building(building, 5.0)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
-sub1.autoscale_view()
-
-sub2 = fig.add_subplot(122)
-sub2.set_title('b) Polygon squaring', pad=10, family='sans-serif')
-sub2.axes.get_xaxis().set_visible(False)
-sub2.axes.get_yaxis().set_visible(False)
-
-for building in polygons:
-    poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
-    sub2.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
-
-    squared = c4.square_polygon_ls(building)
-    poly = Path.make_compound_path(Path(numpy.asarray(squared.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in squared.interiors])
+    generalized = c4.square_polygon_ls(building)
+    poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
+    generalized = c4.rectangle_transformation(building, 0.7)
+    poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
+    sub3.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
+
+    generalized = c4.recursive_regression(building, 3)
+    poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
+    sub4.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
+
+sub1.autoscale_view()
 sub2.autoscale_view()
+sub3.autoscale_view()
+sub4.autoscale_view()
 plt.show()

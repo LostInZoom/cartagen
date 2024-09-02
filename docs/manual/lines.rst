@@ -6,12 +6,12 @@ Simplification
 
 Multiple algorithms for line simplification are available, including:
 
-- :func:`Douglas-Peucker <cartagen.douglas_peucker>`
-- :func:`Visvalingam-Whyatt <cartagen.visvalingam_whyatt>`
-- :func:`Raposo <cartagen.raposo>`
+- :func:`Douglas-Peucker <cartagen.douglas_peucker>` :footcite:p:`douglas:1973`
+- :func:`Visvalingam-Whyatt <cartagen.visvalingam_whyatt>` :footcite:p:`visvalingam:1993`
+- :func:`Raposo <cartagen.raposo>`  :footcite:p:`raposo:2013`
 
 Those line simplification algorithm are used for different purposes and their computational
-time differs. For example, Raposo :footcite:p:`raposo:2013` is mainly used to simplify
+time differs. For example, Raposo is mainly used to simplify
 natural lines such as rivers. You can read more about them in the API Reference section.
 
 .. plot:: code/manual/lines_simplification.py
@@ -21,9 +21,9 @@ natural lines such as rivers. You can read more about them in the API Reference 
 Smoothing
 ~~~~~~~~~
 
-For now, only one algorithm is available for line smoothing:
-
-- :func:`Gaussian smoothing <cartagen.gaussian_smoothing>`
+For now, only one algorithm is available for line smoothing, the
+:func:`Gaussian smoothing <cartagen.gaussian_smoothing>` :footcite:p:`babaud:1986` :footcite:p:`plazanet:1996`
+but this method is very powerful and can be tweaked ti best suit your needs.
 
 .. plot:: code/manual/lines_smoothing.py
 

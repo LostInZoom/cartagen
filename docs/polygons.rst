@@ -18,6 +18,16 @@ Buildings
     square_polygon_naive
     rectangle_transformation
     recursive_regression
+    
+Building blocks
+---------------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
     random_displacement
     morphological_amalgamation
     boffet_areas

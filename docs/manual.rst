@@ -29,24 +29,16 @@ a choice in your cartographic endeavors. Please keep in mind that **this is not 
 nor a full explanation of the generalisation process. We have designed several **Jupyter notebooks** to serve as learning
 material, they are accessible `here. <https://github.com/LostInZoom/cartagen-notebooks>`_
 
+.. _points_manual:
 .. include:: manual/points.rst
   
+.. _lines_manual:
 .. include:: manual/lines.rst
 
-Polygons
-========
+.. _polygons_manual:
+.. include:: manual/polygons.rst
 
-This library also contains algorithms that process any type of polygons,
-and others specific to some types of map polygons, such as buildings.
-This section contains only informations related to algorithms that process
-one polygon at a time, including:
 
-- :func:`Simplify building <cartagen.simplify_building>`
-- :func:`Square polygon  <cartagen.square_polygon_ls>`
-
-.. plot:: code/manual/simplification_buildings.py
-
-  Building simplification algorithms
 
 Groups of objects
 =================
@@ -111,8 +103,11 @@ Measures on map features
 Apply map generalisation complex processes
 ------------------------------------------
 
-AGENT model
-^^^^^^^^^^^
+.. _agent:
+
+AGENT
+^^^^^
+
 This user guide is not meant to fully explain the principles of the AGENT model, and how it works. If you are not familiar with the AGENT model, please read the scientific papers describing this model:
 - `<http://icaci.org/files/documents/ICC_proceedings/ICC2001/icc2001/file/f13041.pdf>`_
 - `<http://dx.doi.org/10.1016/b978-008045374-3/50016-8>`_
