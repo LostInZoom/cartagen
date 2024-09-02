@@ -2,10 +2,14 @@ import geopandas as gpd
 import numpy as np
 from shapely.geometry import Polygon
 
-def heatmap_kde(points, cell_size, radius, value=None, function='quartic'):
+def heatmap(points, cell_size, radius, method='quartic', column=None):
     """
-    Perform spatial smoothing with the kernel density estimation technique (KDE), 
-    also known as heatmap. This code is partially based on this script `<https://niitdigital.medium.com/how-to-create-a-heatmap-from-scratch-in-python-234f602e856e>`
+    Create a heatmap using the kernel density estimation technique (KDE).
+
+    This function performs a spatial smoothing with the kernel density
+    estimation technique (KDE), also known as heatmap.
+    This code is partially based on this script
+    `<https://niitdigital.medium.com/how-to-create-a-heatmap-from-scratch-in-python-234f602e856e>`
 
     For more information about KDE,
     here is a link to the related `wikipedia article
@@ -14,24 +18,32 @@ def heatmap_kde(points, cell_size, radius, value=None, function='quartic'):
     Parameters
     ----------
     points : GeoDataFrame of Point
-        The points used to calculates density. Has to be in projected CRS.
+        The points used to calculates density.
     cell_size : int
-      The size of the cell of the grid containing density values. Small size means smoother result,
-      but also higher computation time.
+        The size of the cell of the grid
+        containing density values.
+        Smaller size means smoother result,
+        but also higher computation time.
     radius : int
-      The radius used for the density calculation in each grid cells. 
-      For each centroid of grid cell, all the points within the radius are taken in account for density calculation 
-      Big radius means more generalized results.
-    value : str, optionnal 
-      The name of the attribute value of the point to use to weight the density value.
-    function : str, optionnal
-      The name of the smoothing function that calculates the density value of each point within the radius.
-      Each function impacts the way distance is important in the density calculation.
-      Default to 'quartic'. 
+        The radius used for the density calculation
+        in each grid cells. For each centroid
+        of grid cell, all the points within the
+        radius are taken in account for density calculation.
+        Higher radius means more generalized results.
+    method : str, optional
+        Name of the smoothing method that calculates
+        the density value of each point within the radius.
+        Each method impacts the way distance is
+        important in the density calculation.
+        Default to 'quartic'.
+    column : str, optional 
+        Name of the column of the
+        point to use to weight the density value.
+
     Returns
     -------
-    GeoDataFrame of polygons
-    The grid containing the values of density
+    grid : GeoDataFrame of Polygon
+        The grid containing the values of density
 
     See Also
     --------
@@ -67,7 +79,7 @@ def heatmap_kde(points, cell_size, radius, value=None, function='quartic'):
     points_y = list(points.geometry.y)
 
     #definition de la fonction de lissage par méthode des noyaux (quadratique)
-    if function == 'quartic':
+    if method == 'quartic':
         def kernel(d,radius):
             dn=d/radius
             P=(15/16)*(1-dn**2)**2
