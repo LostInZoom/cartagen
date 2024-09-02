@@ -26,5 +26,6 @@ Covering
     :nosignatures:
     :toctree: reference/
 
+    heatmap
     hull_delaunay
     hull_swinging_arm

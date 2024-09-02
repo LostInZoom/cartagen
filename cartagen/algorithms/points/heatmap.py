@@ -2,17 +2,16 @@ import geopandas as gpd
 import numpy as np
 from shapely.geometry import Polygon
 
-def heatmap(points, cell_size, radius, method='quartic', column=None):
+def heatmap(points, cell_size, radius, column=None, method='quartic'):
     """
     Create a heatmap using the kernel density estimation technique (KDE).
 
     This function performs a spatial smoothing with the kernel density
     estimation technique (KDE), also known as heatmap.
-    This code is partially based on this script
-    `<https://niitdigital.medium.com/how-to-create-a-heatmap-from-scratch-in-python-234f602e856e>`
-
+    This code is partially based on `this script.
+    <https://niitdigital.medium.com/how-to-create-a-heatmap-from-scratch-in-python-234f602e856e>`_
     For more information about KDE,
-    here is a link to the related `wikipedia article
+    here is a link to the related `Wikipedia article.
     <https://en.wikipedia.org/wiki/Kernel_density_estimation>`_
 
     Parameters
@@ -30,15 +29,15 @@ def heatmap(points, cell_size, radius, method='quartic', column=None):
         of grid cell, all the points within the
         radius are taken in account for density calculation.
         Higher radius means more generalized results.
+    column : str, optional 
+        Name of the column of the
+        point to use to weight the density value.
     method : str, optional
         Name of the smoothing method that calculates
         the density value of each point within the radius.
         Each method impacts the way distance is
         important in the density calculation.
         Default to 'quartic'.
-    column : str, optional 
-        Name of the column of the
-        point to use to weight the density value.
 
     Returns
     -------
@@ -69,8 +68,8 @@ def heatmap(points, cell_size, radius, method='quartic', column=None):
     centroids = polygons.centroid                
     
     #retrieving value attribute and store in a list
-    if value is not None:
-        lst_values = list(points[value])
+    if column is not None:
+        lst_values = list(points[column])
 
     #storing x and y value of points and centroid into lists
     centroids_x = list(centroids.x)
@@ -93,7 +92,7 @@ def heatmap(points, cell_size, radius, method='quartic', column=None):
             d = np.sqrt((centroids_x[i]-points_x[k])**2+(centroids_y[i]-points_y[k])**2)
             if d <= radius:
                 p= kernel(d,radius)
-                if value is None:
+                if column is None:
                     kde_value_list.append(p)
                 else: 
                     kde_value_list.append(p*lst_values[k])
