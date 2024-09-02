@@ -58,4 +58,4 @@ Changelog
 1.0rc1
 ======
 
-The first official beta pre-release of Cartagen.
+The first official beta pre-release of CartAGen.

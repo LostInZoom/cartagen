@@ -15,7 +15,7 @@ authors = [
     { name = "Azelle Courtial" },
 ]
 maintainers = [
-    { name = "Cartagen contributors" },
+    { name = "CartAGen contributors" },
 ]
 
 description = "Cartographic generalisation of spatial objects"

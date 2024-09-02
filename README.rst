@@ -1,4 +1,4 @@
-|logosub| Cartagen
+|logosub| CartAGen
 ##################
 
 .. |logosub| image:: docs/img/logo.svg
@@ -24,7 +24,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
 |
 
-**Cartagen** is an open source Python library dedicated to cartogaphic generalisation, published under
+**CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
 the `EUPL-1.2 <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
 It is a port of the `Java application, <https://github.com/IGNF/CartAGen>`_
 originally developed at IGN France.
@@ -33,10 +33,10 @@ It aims at providing a set of tools to generalise spatial data.
 Those tools constitutes the foundation on which you have to construct your own
 generalisation process. That being said, if you want to learn more about
 cartographic generalisation or simply want to familiarize yourself with
-the algorithms provided by Cartagen, some Jupyter notebooks are available
+the algorithms provided by CartAGen, some Jupyter notebooks are available
 `here. <https://github.com/LostInZoom/cartagen-notebooks>`_
 
-Cartagen relies on the usage of the `Shapely <https://github.com/shapely/shapely>`_ geometry objects
+CartAGen relies on the usage of the `Shapely <https://github.com/shapely/shapely>`_ geometry objects
 and `GeoPandas <https://github.com/geopandas/geopanda>`_ dataset objects.
 This approach is based on the idea those libraries are the most commonly used among the
 community and provide advantages as powerful spatial operations, measures, indexes, *etc*.
