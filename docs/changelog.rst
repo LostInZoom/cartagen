@@ -12,13 +12,13 @@ Changelog
 
   #. New covering algorithms to create convex and concave hull:
     
-     - :func:`hull_delaunay <cartagen.hull_delaunay>`
+     - :func:`hull_delaunay <cartagen.hull_delaunay>` (:user:`gtouya`)
      - :func:`hull_swinging_arm <cartagen.hull_swinging_arm>` :pr:`4` (:user:`Vpech77`)
 
   #. New :func:`reduce_labelgrid <cartagen.reduce_labelgrid>` function as a new point reduction method.
      :pr:`3` :pr:`6` (:user:`Vpech77`)
 
-  #. New :func:`strokes_roads <cartagen.strokes_roads>` function to detect strokes inside a road network.
+  #. New :func:`strokes_roads <cartagen.strokes_roads>` (:user:`ACourtial`) function to detect strokes inside a road network.
      This allows an easy strokes calculation by reducing the number of steps.
 
 - **Improvements**:
