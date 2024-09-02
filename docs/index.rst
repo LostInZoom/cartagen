@@ -88,8 +88,9 @@ Evaluate your generalised map
    :hidden:
 
    installation_py
-   changelog
    manual
+   changelog
+   contributors
    bibliography
 
 .. toctree::

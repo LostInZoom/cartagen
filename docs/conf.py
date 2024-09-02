@@ -68,8 +68,10 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx_remove_toctrees',
+    'sphinx.ext.extlinks',
     'sphinxcontrib.bibtex',
+    'sphinx_remove_toctrees',
+    'sphinx_contributors',
 ]
 
 intersphinx_mapping = {
@@ -77,6 +79,12 @@ intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
     'shapely': ('https://shapely.readthedocs.io/en/stable/', None),
     'geopandas': ('https://geopandas.org/en/stable/', None),
+}
+
+extlinks = {
+    "bug": ("https://github.com/LostInZoom/cartagen/issues/%s", "#%s"),
+    "pr": ("https://github.com/LostInZoom/cartagen/pull/%s", "#%s"),
+    "user": ("https://github.com/%s", "%s"),
 }
 
 napoleon_google_docstring = False

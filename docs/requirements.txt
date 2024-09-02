@@ -3,4 +3,4 @@ cartagen
 sphinx-book-theme
 sphinx-remove-toctrees
 sphinxcontrib-bibtex
-sphinx-readme
+sphinx-contributors
