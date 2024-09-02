@@ -1,8 +1,10 @@
 import geopandas as gpd
 import numpy as np
-from shapely.geometry import Polygon
+import shapely
+from shapely import set_precision
+from shapely.geometry import Polygon, MultiPolygon
 
-def heatmap(points, cell_size, radius, column=None, method='quartic'):
+def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None):
     """
     Create a heatmap using the kernel density estimation technique (KDE).
 
@@ -40,6 +42,9 @@ def heatmap(points, cell_size, radius, column=None, method='quartic'):
         Each method impacts the way distance is
         important in the density calculation.
         Default to 'quartic'.
+    clip : GeoDataFrame of Polygon, optional
+        Polygons to clip the resulting heatmap grid.
+        Be aware that it can return MultiPolygon.
 
     Returns
     -------
@@ -63,15 +68,14 @@ def heatmap(points, cell_size, radius, column=None, method='quartic'):
     ymin = points.total_bounds[1]
     ymax = points.total_bounds[3]
 
-
     cols = list(np.arange(xmin, xmax + cell_size, cell_size))
     rows = list(np.arange(ymin, ymax + cell_size, cell_size))
-            
+
     polygons = gpd.GeoSeries([Polygon([(x, y), (x + cell_size, y), (x + cell_size, y + cell_size), 
                         (x, y + cell_size)]) for x in cols[:-1] for y in rows[:-1]])
-
+    
     #retrieving grid cells centroid
-    centroids = polygons.centroid                
+    centroids = polygons.centroid
     
     #retrieving value attribute and store in a list
     if column is not None:
@@ -92,12 +96,12 @@ def heatmap(points, cell_size, radius, column=None, method='quartic'):
 
     #density calculation
     intensity_list = [] # list to store density value of each cell
-    for i in range(len(centroids)): 
+    for i in range(len(centroids)):
         kde_value_list = []
         for k in range(len(points_x)):
             d = np.sqrt((centroids_x[i]-points_x[k])**2+(centroids_y[i]-points_y[k])**2)
             if d <= radius:
-                p= kernel(d,radius)
+                p = kernel(d,radius)
                 if column is None:
                     kde_value_list.append(p)
                 else: 
@@ -105,6 +109,10 @@ def heatmap(points, cell_size, radius, column=None, method='quartic'):
 
         total_density = sum(kde_value_list)
         intensity_list.append(total_density)
-   
-    final_grid = gpd.GeoDataFrame({'geometry':polygons,'density':intensity_list})
-    return final_grid
+
+    final_grid = gpd.GeoDataFrame({'geometry': polygons,'density':intensity_list}, crs=points.crs)
+
+    if clip is not None:
+        return final_grid.clip(clip)
+    else:
+        return final_grid
