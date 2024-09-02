@@ -7,12 +7,14 @@ def heatmap(points, cell_size, radius, column=None, method='quartic'):
     Create a heatmap using the kernel density estimation technique (KDE).
 
     This function performs a spatial smoothing with the kernel density
-    estimation technique (KDE), also known as heatmap.
-    This code is partially based on `this script.
-    <https://niitdigital.medium.com/how-to-create-a-heatmap-from-scratch-in-python-234f602e856e>`_
+    estimation technique (KDE), also known as heatmap. More information
+    about heatmaps can be found in Wilkinson & Friendly. :footcite:p:`wilkinson:2009`
+    
     For more information about KDE,
     here is a link to the related `Wikipedia article.
     <https://en.wikipedia.org/wiki/Kernel_density_estimation>`_
+    This code is partially based on `this script.
+    <https://niitdigital.medium.com/how-to-create-a-heatmap-from-scratch-in-python-234f602e856e>`_
 
     Parameters
     ----------
@@ -50,6 +52,10 @@ def heatmap(points, cell_size, radius, column=None, method='quartic'):
         Reduce a set of points using a quadtree.
     reduce_labelgrid :
         Reduce a set of points using the Label Grid method.
+
+    References
+    ----------
+    .. footbibliography::
     """
     #create square grid 
     xmin = points.total_bounds[0]
