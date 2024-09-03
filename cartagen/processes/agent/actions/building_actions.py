@@ -1,6 +1,7 @@
 from cartagen.processes.agent.actions.generalisation_action import GeneralisationAction
 from cartagen.algorithms.buildings.simplification import simplify_building
 from cartagen.algorithms.buildings.squaring import Squarer
+from cartagen.utils.geometry.polygon import enclosing_rectangle
 from shapely import affinity
 from shapely.geometry import Polygon
 
@@ -31,7 +32,7 @@ class EnlargeToRectangleAction(GeneralisationAction):
     def compute(self):
         """Compute the action, i.e. triggers the algorithm."""
         geom = self.agent.feature['geometry']
-        ssr = geom.minimum_rotated_rectangle
+        ssr = enclosing_rectangle(geom, mode='input')
         factor = self.goal_area / ssr.area
         self.agent.feature['geometry'] = affinity.scale(ssr, xfact= factor, origin=ssr.centroid)
 
