@@ -1,3 +1,12 @@
+Enrich your data prior to map generalisation
+--------------------------------------------
+
+Since the beginning of research on the automation of map generalisation,
+the necessity for enrichment has been clear. There are properties,
+structures, which are implicit in the spatial arrangement of geometries in the map.
+These properties, structures are necessary to make the best decision when generalising the map,
+and this data enrichment step helps by making these properties, these structures explicit cartographic data.
+
 Stroke computation (for river networks)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -76,3 +85,11 @@ Figure 13. A river network with color depicting the Horton order : purple =1; ye
     
     The saved shapefile is made with segment belonging to a unique stroke merged in a geometries  the attributes of each geometries are an id (generated as a serial) and the comma-separated list of IDs of initial sections used to construct the stroke.
 
+GALBE
+~~~~~
+
+GALBE (Généralisation Adaptative du Linéaire Basée sur l'Empâtement - Adaptative Linear Generalisation based on Pastiness)
+is a process proposed by Mustière. :footcite:p:`mustiere:2001`
+It is specialised in sinuous roads generalisation and rely on the detection of the
+pastiness of a line, *i.e.* whether the line symbol overlaps itself.
+If the line symbol overlaps itself on on side or on two side, it applies different generalisation algorithms.

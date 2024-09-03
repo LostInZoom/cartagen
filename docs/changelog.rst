@@ -34,6 +34,10 @@ Changelog
 
   #. :func:`gaussian_smoothing <cartagen.gaussian_smoothing>` can now treat polygons.
 
+  #. AGENT rectangle transformation now depends on the minimum rotated rectangle that shares at least
+     one edge with the original rectangle. This allows the resulting rectangle to be more aligned
+     with the original building.
+
 - **Bug fixes**:
 
   #. Fixed the :func:`morphological_amalgamation <cartagen.morphological_amalgamation>` issues function caused by:
