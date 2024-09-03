@@ -23,7 +23,7 @@ Smoothing
 
 For now, only one algorithm is available for line smoothing, the
 :func:`Gaussian smoothing <cartagen.gaussian_smoothing>` :footcite:p:`babaud:1986` :footcite:p:`plazanet:1996`
-but this method is very powerful and can be tweaked ti best suit your needs.
+but this method is very powerful and can be tweaked to best suit your needs.
 
 .. plot:: code/manual/lines_smoothing.py
 
