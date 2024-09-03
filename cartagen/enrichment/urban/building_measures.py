@@ -7,6 +7,11 @@ from shapely.geometry import MultiPolygon, MultiPoint, Polygon
 from math import pi
 
 def building_min_width(building):
+    """
+    Returns the minimum width inside a building. The minimum width is the minimum distance between
+    two edges of the buildings that are not adjacent. 
+    The measure was proposed during the AGENT project. 'building' should be a shapely ''Polygon''.
+    """
     min_width = building.length
     segments = get_segment_list(building)
     # loop on the segments in the list
