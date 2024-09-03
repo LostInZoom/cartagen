@@ -1,2 +1,1 @@
-from cartagen.utils.math.morphology import *
-from cartagen.utils.math.vector import *
+from cartagen.utils.math.morphology import close_polygon, open_polygon

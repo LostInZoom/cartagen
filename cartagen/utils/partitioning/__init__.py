@@ -1,2 +1,1 @@
-from cartagen.utils.partitioning.network import *
-from cartagen.utils.partitioning.quadtree import *
+from cartagen.utils.partitioning.network import network_faces, partition_networks
