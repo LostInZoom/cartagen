@@ -15,6 +15,12 @@ def random_displacement(
 
     Displace the provided buildings if they overlap each other
     or are closer than the width value to the provided networks.
+    This method is not deterministic, at each iteration, the algorithm
+    select a random angle and a random distance to displace the polygon
+    and see if it improves the overlapping issues. Running twice the
+    algorithm returns two different solutions.
+    This algorithm is succinctly presented in Wabiński *et al.*
+    :footcite:p:`wabinski:2022`
 
     Parameters
     ----------
@@ -46,6 +52,10 @@ def random_displacement(
     --------
     network_faces:
         Calculates the faces of one or multiple networks.
+
+    References
+    ----------
+    .. footbibliography::
     """
 
     POLYGONS = polygons.to_dict('records')
