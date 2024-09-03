@@ -40,3 +40,7 @@ nav.bd-links li > a:hover {
 .search-button-field:hover { 
     border: none;
 }
+
+figure figcaption p {
+    text-align: center;
+}
