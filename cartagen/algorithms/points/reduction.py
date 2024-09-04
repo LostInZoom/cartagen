@@ -389,13 +389,13 @@ def reduce_labelgrid(
     if mode == 'selection' and column is None:
         raise Exception('Selection mode requires an attribute.')
 
-    if column not in list(points):
-        raise Exception('Column {0} not in the provided GeoDataFrame.'.format(column))
+    # if column not in list(points):  #-> always raise exception when column not provided
+    #     raise Exception('Column {0} not in the provided GeoDataFrame.'.format(column))
 
     if column is not None and mode == 'simplification':
         warnings.warn("Warning: There is no need to indicate a column name in simplification mode.")
 
-    lg = LabelGrid(points, width, height, shape, mode, column)
+    lg = LabelGrid(points, width, height, shape, mode, column, column_type)
     lg.set_point_label_grid()
     result = lg.getPointResults()
     if grid:
@@ -417,7 +417,7 @@ class LabelGrid():
     Cartography and Geographic Information.
     """
     
-    def __init__(self, points, width, height, shape='square', mode='simplification', column=None):
+    def __init__(self, points, width, height, shape='square', mode='simplification', column=None,column_type=None):
         """
         Construct all the necessary attributes for the LabelGrid object.
 
@@ -433,6 +433,7 @@ class LabelGrid():
             Form of a cell. The default is 'square'.
         """
         self.__column = column
+        self.__column_type = column_type
         self.__width = width
         self.__height = height
         self.__shape = shape
@@ -561,9 +562,15 @@ class LabelGrid():
                 p = lst_all_value[c]
                 entry = { "count": len(p) }
                 if self.__column is not None:
-                    entry["total"] = p[self.__column].sum()
+                    if self.__column_type == 'stock':
+                        entry["sum"] = p[self.__column].sum()
+                    elif self.__column_type == 'ratio':
+                        entry["mean"] = p[self.__column].mean()
+                    else:
+                        raise Exception('Wrong column_type. Pick whether ratio or stock.') 
                 entry["geometry"] = centroid
-                aggregation.append(entry)
+                if len(p) > 0: #only keep centroid of cells that contains points
+                    aggregation.append(entry)
             self.__points_res = gpd.GeoDataFrame(aggregation)
 
     def getPointResults(self):
