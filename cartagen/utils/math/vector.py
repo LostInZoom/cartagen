@@ -77,8 +77,12 @@ class Vector2D:
         """
         Calculate the angle with the provided vector.
         """
+        value = self.scalar_product(vector) / (self.get_norm() * vector.get_norm())
+        if value < -1 or value > 1:
+            value = round(value)
+
         if not (self.get_norm() * vector.get_norm()) == 0:
-            angle = np.arccos(self.scalar_product(vector) / (self.get_norm() * vector.get_norm()))
+            angle = np.arccos(value)
             if not np.isnan(angle):
                 return angle
         return 0
