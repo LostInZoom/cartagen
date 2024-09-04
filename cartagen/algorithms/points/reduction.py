@@ -323,7 +323,10 @@ def reduce_quadtree(points, depth, mode='simplification', column=None, quadtree=
     else:
         return output
 
-def reduce_labelgrid(points, width, height, shape='square', mode='simplification', column=None, grid=False):
+def reduce_labelgrid(
+        points, width, height,
+        shape='square', mode='simplification',
+        column=None, column_type=None, grid=False):
     """
     Reduce a set of points using the Label Grid method.
 
@@ -355,8 +358,12 @@ def reduce_labelgrid(points, width, height, shape='square', mode='simplification
 
     column : str, optional
         Name of the column to use.
+    column_type : str, optional
+        Type of attribute value ('ratio' or 'stock'), used for the aggregation
+        (stock will give sum, and ratio will give mean).
     grid : bool, optional
-        If set to True, returns a tuple with the points and the grid.
+        If set to True, returns a tuple with the points and the grid where each cells
+        contains the count of point aggregated (and the sum/mean if attribute value is provided).
 
     Returns
     -------
@@ -392,11 +399,10 @@ def reduce_labelgrid(points, width, height, shape='square', mode='simplification
     lg.set_point_label_grid()
     result = lg.getPointResults()
     if grid:
-        rgrid = lg.getGrid()
+        rgrid = lg.getGridResults()
         return result, rgrid
     else:
         return result
-
 """
 Created on Sun Jun 16 22:40:42 2024.
 
@@ -568,6 +574,54 @@ class LabelGrid():
         """Get the grid."""
         return self.__grid
     
+    def getGridResults(self):
+        """Set the attributes points_res and grid of the LabelGrid object."""
+        self.__grid = self.__createGrid()
+        
+        lst_in_value = [self.__points.loc[cell.contains(self.__points['geometry'])] 
+                        for cell in self.__grid['geometry']]
+
+        lst_inter_value = [self.__points.loc[cell.touches(self.__points['geometry'])] 
+                           for cell in self.__grid['geometry']]
+        
+        lst_all_value = [lst_inter_value[i] 
+                         if lst_in_value[i].empty 
+                         else pd.concat([lst_in_value[i],lst_inter_value[i]]) 
+                         for i in range(len(lst_in_value))]
+        
+
+        if self.__mode == 'simplification':
+            raise Exception('simplification mode not available when grid_as_result activated')
+
+        elif self.__mode == 'selection':
+            ind = [(e.nlargest(1, self.__column).index[0],cell_geom) for cell_geom, e in zip(self.__grid.geometry, lst_all_value) if not e.empty ]
+            selected = [self.__points.iloc[i] for i in range(len(ind))]
+            cells = []
+            for i in range(len(ind)):
+                cells.append(ind[i][1])
+            geom = gpd.GeoSeries(cells)
+    
+            self.__points_res = gpd.GeoDataFrame(selected, geometry=geom)
+            
+        elif self.__mode == 'aggregation':
+            aggregation = []
+            for c, centroid in enumerate(self.__grid.geometry):
+                p = lst_all_value[c]
+                entry = { "count": len(p) }
+                if self.__column is not None:
+                    if self.__column_type == 'stock':
+                        entry["sum"] = p[self.__column].sum()
+                    elif self.__column_type == 'ratio':
+                        entry["mean"] = p[self.__column].mean()
+                    else:
+                        raise Exception('Wrong column_type. Pick whether ratio or stock.') 
+                entry["geometry"] = centroid
+                if len(p) > 0: #only keep centroid of cells that contains points
+                    aggregation.append(entry)
+            self.__points_res = gpd.GeoDataFrame(aggregation)
+        
+        return self.__points_res
+
     def draw(self):
         """Draw the grid with the points given and the grid with point results."""
         fig, ax1 = plt.subplots()
