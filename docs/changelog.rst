@@ -8,6 +8,8 @@ Changelog
 
 - **New features**:
 
+  #. New function to square polygons: :func:`square_polygon_naive <cartagen.square_polygon_naive>` (:user:`jberli`)
+
   #. New function for heatmap creation: :func:`heatmap <cartagen.heatmap>` :pr:`8` (:user:`gowestmen`)
 
   #. New covering algorithms to create convex and concave hull:
@@ -16,7 +18,7 @@ Changelog
      - :func:`hull_swinging_arm <cartagen.hull_swinging_arm>` :pr:`4` (:user:`Vpech77`)
 
   #. New :func:`reduce_labelgrid <cartagen.reduce_labelgrid>` function as a new point reduction method.
-     :pr:`3` :pr:`6` (:user:`Vpech77`)
+     :pr:`3` :pr:`6` (:user:`Vpech77`) :pr:`9` (:user:`gowestmen`)
 
   #. New :func:`strokes_roads <cartagen.strokes_roads>` (:user:`ACourtial`) function to detect strokes inside a road network.
      This allows an easy strokes calculation by reducing the number of steps.
