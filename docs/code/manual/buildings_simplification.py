@@ -18,43 +18,37 @@ buildings = [
     loads('POLYGON ((483127.7442079502 6044736.364400351, 483114.73178073147 6044726.713422463, 483105.54601464357 6044745.896783458, 483126.6894739062 6044760.172891552, 483131.85256515 6044752.511167733, 483120.79268554156 6044744.870537457, 483124.5139267647 6044739.651446626, 483130.0753720944 6044743.617047335, 483128.97353314667 6044745.52951407, 483138.9880076486 6044753.2448412115, 483142.854087839 6044747.994308646, 483127.7442079502 6044736.364400351))'), 
 ]
 
-fig = plt.figure(1, (12, 10))
+fig = plt.figure(1, (12, 4))
 
 #############################################################
 
-sub1 = fig.add_subplot(221)
+sub1 = fig.add_subplot(131)
 sub1.set_title('a) Simplification', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-sub2 = fig.add_subplot(222)
-sub2.set_title('b) Least square squaring', pad=10, family='sans-serif')
+sub2 = fig.add_subplot(132)
+sub2.set_title('b) Recursive regression', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-sub3 = fig.add_subplot(223)
+sub3 = fig.add_subplot(133)
 sub3.set_title('c) Rectangle transformation', pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)
-
-sub4 = fig.add_subplot(224)
-sub4.set_title('d) Recursive regression', pad=10, family='sans-serif')
-sub4.axes.get_xaxis().set_visible(False)
-sub4.axes.get_yaxis().set_visible(False)
 
 for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
     sub2.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
     sub3.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
-    sub4.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
     
 for building in buildings:
     generalized = c4.simplify_building(building, 5.0)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
-    generalized = c4.square_polygon_ls(building)
+    generalized = c4.recursive_regression(building, 3)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
@@ -62,12 +56,7 @@ for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub3.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
-    generalized = c4.recursive_regression(building, 3)
-    poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
-    sub4.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
-
 sub1.autoscale_view()
 sub2.autoscale_view()
 sub3.autoscale_view()
-sub4.autoscale_view()
 plt.show()

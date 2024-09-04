@@ -14,10 +14,10 @@ Buildings
     :toctree: reference/
 
     simplify_building
-    square_polygon_ls
-    square_polygon_naive
-    rectangle_transformation
     recursive_regression
+    rectangle_transformation
+    square_polygon_naive
+    square_polygon_ls
     
 Building blocks
 ---------------

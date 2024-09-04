@@ -99,8 +99,6 @@ def polygon_concavity(polygon):
     hull = shapely.convex_hull(polygon)
     return polygon.area / hull.area
 
-from cartagen.utils.debug import plot_debug
-
 def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     """
     Construct an enclosing rectangle from a polygon.
@@ -392,10 +390,12 @@ def orientation(polygon, method='mbr'):
     method : str, optional
         The method to calculate the orientation:
 
-        - **'mbr'** calculate the orientation
+        - **'primary'** calculates the orientation of the
+          longest side of the provided polygon.
+        - **'mbr'** calculates the orientation
           of the long side of the minimum rotated bounding rectangle.
-        - **'mtr'** calculate the orientation
-          of the long side of the minimum rotated touching rectangle.
+        - **'mbtr'** calculates the orientation
+          of the long side of the minimum rotated bounding touching rectangle.
           It is the same as the mbr but the rectangle and the polygon
           must have at least one side in common.
         - **'swo'** or statistical weighted orientation described in
@@ -420,12 +420,14 @@ def orientation(polygon, method='mbr'):
     """
 
     # Check the method
-    if method in ['mbr', 'mtr']:
-        # Calculate mbr or mtr
+    if method in ['mbr', 'mbtr', 'primary']:
+        # Calculate mbr or mbtr
         if method == 'mbr':
             mbr = enclosing_rectangle(polygon, mode='hull')
-        elif method == 'mtr':
+        elif method == 'mbtr':
             mbr = enclosing_rectangle(polygon, mode='input')
+        elif method == 'primary':
+            mbr = polygon
 
         # list its vertexes
         coords = list(mbr.boundary.coords)
@@ -445,34 +447,38 @@ def orientation(polygon, method='mbr'):
         return angle_2_pts(Point(longest[0]), Point(longest[1]))
     
     else:
-        # Get the list of vertexes
-        coords = list(polygon.boundary.coords)
+        if method == 'swo':
+            # list its vertexes
+            coords = list(polygon.boundary.coords)
 
-        first = None
-        second = None
-        # Loop through each vertex
-        for v1 in coords:
-            # Loop again through each vertex
-            for v2 in coords:
-                # Calculate the distance between both
-                distance = shapely.distance(Point(v1), Point(v2))
-                # If first is None, assign it to current
-                if first is None:
-                    first = ((v1, v2), distance)
-                else:
-                    # If the current distance is more than the first
-                    if distance > first[1]:
-                        # Set the first as the second
-                        second = first
-                        # Update the first
+            first = None
+            second = None
+            # Loop through each vertex
+            for v1 in coords:
+                # Loop again through each vertex
+                for v2 in coords:
+                    # Calculate the distance between both
+                    distance = shapely.distance(Point(v1), Point(v2))
+                    # If first is None, assign it to current
+                    if first is None:
                         first = ((v1, v2), distance)
+                    else:
+                        # If the current distance is more than the first
+                        if distance > first[1]:
+                            # Set the first as the second
+                            second = first
+                            # Update the first
+                            first = ((v1, v2), distance)
 
-        # Get the distance of the longest axis and second longest axis
-        la = first[1]
-        sa = second[1]
-        # Get the orientation of those axis
-        lao = angle_2_pts(Point(first[0][0]), Point(first[0][1]))
-        sao = angle_2_pts(Point(second[0][0]), Point(second[0][1]))
+            # Get the distance of the longest axis and second longest axis
+            la = first[1]
+            sa = second[1]
+            # Get the orientation of those axis
+            lao = angle_2_pts(Point(first[0][0]), Point(first[0][1]))
+            sao = angle_2_pts(Point(second[0][0]), Point(second[0][1]))
 
-        # Return the swo
-        return (la * lao + sa * sao) / (la + sa)
+            # Return the swo
+            return (la * lao + sa * sao) / (la + sa)
+
+        else:
+            raise Exception('{0} method not supported.'.format(method))

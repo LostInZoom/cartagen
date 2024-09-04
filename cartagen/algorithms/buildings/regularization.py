@@ -6,6 +6,7 @@ from shapely.geometry.polygon import orient
 import matplotlib.pyplot as plt
 
 from cartagen.utils.geometry.angle import angle_2_pts
+from cartagen.utils.math.vector import Vector2D
 from cartagen.utils.geometry.polygon import enclosing_rectangle, orientation
 from cartagen.algorithms.buildings.squaring import square_polygon_naive
 
@@ -28,7 +29,7 @@ def rectangle_transformation(polygon, factor=1.0, method='mbr'):
         The method to calculate the rectangle:
 
         - **'mbr'** calculate the minimum rotated bounding rectangle.
-        - **'mtr'** calculate minimum rotated touching rectangle.
+        - **'mbtr'** calculate minimum rotated bounding touching rectangle.
           It is the same as the mbr but the rectangle and the polygon
           must have at least one side in common.
 
@@ -51,7 +52,7 @@ def rectangle_transformation(polygon, factor=1.0, method='mbr'):
     """
     if method == 'mbr':
         mbr = enclosing_rectangle(polygon, mode='hull')
-    elif method == 'mtr':
+    elif method == 'mbtr':
         mbr = enclosing_rectangle(polygon, mode='input')
     else:
         raise Exception('Selected method does not exists: {0}'.format(method))
@@ -423,7 +424,7 @@ def recursive_regression(polygon, sigma):
     # Rotate the polygon back its original position
     return shapely.affinity.rotate(unrotated, original_angle, origin=mbr_coords[0], use_radians=True)
 
-def feature_edge_reconstruction(polygon):
+def feature_edge_reconstruction(polygon, length=20, orient='swo', angle_tolerance=20, correct_tolerance=0.6):
     """
     Regularize a polygon using feature edge reconstruction.
 
@@ -433,10 +434,31 @@ def feature_edge_reconstruction(polygon):
     ----------
     .. footbibliography::
     """
-    # # Calculate the orientation using SWO
-    # swo = orientation(polygon, 'swo')
+    # Naively square the polygon
+    squared = square_polygon_naive(polygon, orient, angle_tolerance, correct_tolerance)
 
-    squared = square_polygon_naive(polygon)
+    o = orientation(polygon, orient)
+    vo = Vector2D.from_angle(o, 1)
+
+    coords = squared.exterior.coords
+    edges = [ (coords[i], coords[i + 1]) for i in range(0, len(coords) - 1) ]
+    # Calculate the average edge length
+    lengths = [ LineString([e[0], e[1]]).length for e in edges ]
+    average = np.mean(lengths)
+
+    feature_edges = []
+    # Loop through edges
+    for i in range(0, len(edges)):
+        # If its length is above the average length, it is a feature edge
+        if lengths[i] > average:
+            feature_edges.append(i)
+            continue
+            
+        e = edges[i]
+        angle = angle_2_pts(Point(e[0]), Point(e[1]))
+
+        # if abs(np.pi/2 - abs(angle)) <= correct_tolerance:
+        #     print(np.rad2deg(angle))
 
     # # Get a list of the vertex
     # coords = list(polygon.boundary.coords)

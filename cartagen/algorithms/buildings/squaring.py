@@ -1,29 +1,53 @@
 # This is an implementation of the least squares based squaring algorithm proposed by Lokhat & Touya (https://hal.science/hal-02147792)
 import numpy as np
 from shapely.geometry import Polygon, LineString, Point
+from shapely.affinity import rotate
 
 from cartagen.utils.geometry.polygon import orientation
 from cartagen.utils.math.vector import Vector2D
-from cartagen.utils.geometry.angle import angle_2_pts
+from cartagen.utils.geometry.angle import angle_2_pts, angle_3_pts
 
 from cartagen.utils.debug import plot_debug
 
-def square_polygon_naive(polygon, method='swo', tolerance=10.0):
+def square_polygon_naive(polygon, orient='primary', angle_tolerance=8.0, correct_tolerance=0.6, remove_flat=True):
     """
     Squares a polygon according to its orientation.
 
     This method, described in Touya, :footcite:p:`touya:2016` first
     calculates the orientation of the polygon. Sides are then
-    made horizontal or vertical accordingly.
+    corrected depending on the angles formed at the vertexes and
+    on their alignment regarding the calculated orientation.
 
     Parameters
     ----------
     polygon : Polygon
         The polygon to square.
-    method : str, optional
-        The method to calculate the orientation.
-    tolerance : float, optional
-        Tolerance in degrees to consider an angle to be right or flat.
+    orient : str, optional
+        The method to calculate the orientation. Be aware that the orientation
+        of the polygon defines how the sides are corrected.
+
+        - **'primary'** calculates the orientation of the
+          longest side of the provided polygon.
+        - **'mbr'** calculates the orientation
+          of the long side of the minimum rotated bounding rectangle.
+        - **'mbtr'** calculates the orientation
+          of the long side of the minimum rotated bounding touching rectangle.
+          It is the same as the mbr but the rectangle and the polygon
+          must have at least one side in common.
+        - **'swo'** or statistical weighted orientation described in
+          Duchêne, :footcite:p:`duchene:2003` calculates
+          the orientation of a polygon using the statistical weighted orientation.
+          This method relies on the length and orientation of the longest and
+          second longest segment between two vertexes of the polygon.
+
+    angle_tolerance : float, optional
+        Tolerance in degrees to square the considered angle.
+    correct_tolerance : float, optional
+        Tolerance in degrees to consider the angle to be already flat or right.
+    remove_flat : bool, optional
+        If set to True, vertexes with an angle detected or corrected as flat
+        are removed. Thus, the resulting polygon can have less vertexes than
+        the provided one.
 
     Returns
     -------
@@ -45,58 +69,169 @@ def square_polygon_naive(polygon, method='swo', tolerance=10.0):
     >>> polygon = Polygon([(0, 0), (0, 1), (1.1, 1), (1, 0)])
     >>> square_polygon_naive(polygon)
     """
-    return polygon
-    # # Get the surrounding vectors
-    # def __get_vectors(i, vectors):
-    #     v1 = i if i == 0
-    #     int v1 = i == 0 ? vecs.length - 1 : i - 1;
-    # int v2 = i;
-    # return new int[] { v1, v2 };
-
-    #     return v1, v2
+    angle_tolerance = angle_tolerance * np.pi / 180
+    correct_tolerance = correct_tolerance * np.pi / 180
 
     # Calculate the orientation using SWO
-    swo = orientation(polygon, method=method)
-    # Get the list of coordinates
-    coords = list(polygon.boundary.coords)#[:-1]
+    o = orientation(polygon, orient)
+    vo = Vector2D.from_angle(o, 1)
 
-    # Create a list of vectors
-    vectors = [ Vector2D.from_points(Point(coords[i]), Point(coords[i + 1])) for i in range(0, len(coords) - 1) ]
+    points = list(polygon.exterior.coords)[:-1]
+    nb_edges = len(points) - 1
 
-    angles = [ np.pi - vectors[-1].angle(vectors[0]) ] + [ np.pi - vectors[i].angle(vectors[i + 1]) for i in range(0, len(coords) - 2) ]
+    vecs, angles, align = [None] * nb_edges, [None] * nb_edges, [None] * nb_edges
 
-#     angles[i + 1] = Math.PI - vecs[i].angleVecteur(vecs[i + 1]).getValeur();
+    primary_axe = 0
+    norm_max = 0
 
-#     angles = []
-#     aligns = []
+    for i in range(0, nb_edges):
+        vector = Vector2D.from_points(Point(points[i]), Point(points[(i + 1) % nb_edges]))
+        vecs[i] = vector
 
-    for i in range(0, len(angles) - 1):
-        # p = Point(coords[i][0], coords[i][1])
-        # v1 = vectors[-1] if i == 0 else vectors[i - 1]
-        # v2 = vectors[i]
-        # angle = np.pi - v1.angle(v2)
-        # # align = 
-        # angles.append(angle)
+        norm = vector.get_norm()
+        if norm > norm_max:
+            norm_max = norm
+            primary_axe = i
+
+    def __get_vecs_around(i):
+        v1 = (len(vecs) - 1) if i == 0 else (i - 1)
+        v2 = i
+        return v1, v2
+    
+    def __get_point_to_move(vertice, vect_to_move):
+        if vect_to_move == vertice:
+            return (vertice + 1) % nb_edges
+        if vertice == 0:
+            return nb_edges - 1
+        return vertice - 1
+    
+    def __update():
+        for i in range(0, nb_edges):
+            vecs[i] = Vector2D.from_points(Point(points[i]), Point(points[(i + 1) % nb_edges]))
+        angles[0] = np.pi - vecs[-1].angle(vecs[0])
+        for i in range(0, len(vecs) - 1):
+            angles[i + 1] = np.pi - vecs[i].angle(vecs[i + 1])
+            align[i] = abs(vecs[i].product(vo))
+        align[len(align) - 1] = abs(vecs[len(align) - 1].product(vo))
+    
+    def __signed_angle(v1, v2):
+        return np.arctan2(v2.y, v2.x) - np.arctan2(v1.y, v1.x)
+
+    def __rotate_vec(deg, vec_to_move, vec_fixed, i):
+        vsquared = None
+        if deg == 90:
+            vsquared = Vector2D.from_point(Point(-vecs[vec_fixed].y, vecs[vec_fixed].x))
+            vsquared.normalize()
+            vsquared = vsquared.const_product(vecs[vec_to_move].get_norm())
+            if vec_to_move == i:
+                if vsquared.scalar_product(vecs[vec_to_move]) < 0:
+                    vsquared = vsquared.const_product(-1)
+            else:
+                if vsquared.scalar_product(vecs[vec_to_move]) > 0:
+                    vsquared = vsquared.const_product(-1)
+            return vsquared
+        elif deg == 45:
+            vp = vecs[vec_fixed]
+            v1, v2 = vec_to_move, vec_fixed
+            if vec_to_move == i:
+                vp = vecs[vec_fixed].const_product(-1)
+                v1, v2 = vec_fixed, vec_to_move
+                if __signed_angle(vecs[v1], vecs[v2]) < 0:
+                    x = 0.7071067811865476 * (vp.x - vp.y)
+                    y = 0.7071067811865476 * (vp.x + vp.y)
+                    vsquared = Vector2D.from_point(Point(x, y))
+                else:
+                    x = 0.7071067811865476 * (vp.x + vp.y)
+                    y = 0.7071067811865476 * (-1 * vp.x + vp.y)
+                    vsquared = Vector2D.from_point(Point(x, y))
+            else:
+                if __signed_angle(vecs[v1], vecs[v2]) > 0:
+                    x = 0.7071067811865476 * (vp.x - vp.y)
+                    y = 0.7071067811865476 * (vp.x + vp.y)
+                    vsquared = Vector2D.from_point(Point(x, y))
+                else:
+                    x = 0.7071067811865476 * (vp.x + vp.y)
+                    y = 0.7071067811865476 * (-1 * vp.x + vp.y)
+                    vsquared = Vector2D.from_point(Point(x, y))
+            return vsquared
+        elif deg == 0:
+            vp = vecs[vec_fixed]
+            if vec_to_move != i:
+                vpn = vecs[vec_fixed].const_product(-1)
+                vp = Vector2D.from_point(vpn.x, vpn.y).normalize()
+
+            vpn = vp.const_product(-1)
+            vp = Vector2D.from_point(vpn.x, vpn.y).normalize().const_product(vecs[vec_to_move].norm())
+            return vp
+        return vsquared
+    
+    angles[0] = np.pi - vecs[-1].angle(vecs[0])
+    for i in range(0, len(vecs) - 1):
+        angles[i + 1] = np.pi - vecs[i].angle(vecs[i + 1])
+        align[i] = abs(vecs[i].product(vo))
+    align[len(align) - 1] = abs(vecs[len(align) - 1].product(vo))
+
+    for i in range(0, len(angles)):
+        if abs(np.pi - angles[i]) <= angle_tolerance and abs(np.pi - angles[i]) > correct_tolerance:
+            v = __get_vecs_around(i)
+            vv = vecs[v[0]].add(vecs[v[1]])
+            vv.normalize()
+            norm = vecs[v[0]].get_norm() * np.cos(vecs[v[0]].angle(vv))
+            vsquared = vv.const_product(norm)
+            points[i] = (points[v[0]][0] + vsquared.x, points[v[0]][1] + vsquared.y)
+            __update()
+
+    for i in range(0, len(angles)):
+        if abs(np.pi/2 - angles[i]) <= angle_tolerance and abs(np.pi/2 - angles[i]) > correct_tolerance:
+            v = __get_vecs_around(i)
+            vec_to_move, vec_fixed = v[0], v[1]
+            if align[vec_to_move] < align[vec_fixed]:
+                vec_to_move, vec_fixed = v[1], v[0]
+            
+            point_to_move = __get_point_to_move(i, vec_to_move)
+            angle_before = v[0]
+
+            angle_prec_right = True if abs(angles[angle_before] - np.pi / 2) < correct_tolerance else False
+            if angle_prec_right and vec_to_move == point_to_move:
+                continue
+
+            vsquared = __rotate_vec(90, vec_to_move, vec_fixed, i)
+            points[point_to_move] = (points[i][0] + vsquared.x, points[i][1] + vsquared.y)
+            __update()
         
-        # # Get the surrounding vectors
-        # v1, v2 = __get_vectors(i, coords)
-        # # Calculate the angle formed by both vectors
-        # angle = v1.angle(v2)
-        # angles.append(angle)
+        elif abs(np.pi/4 - angles[i]) <= angle_tolerance and abs(np.pi/4 - angles[i]) > 0.01:
+            v = __get_vecs_around(i)
+            vec_to_move, vec_fixed = v[0], v[1]
+            if align[vec_to_move] < align[vec_fixed]:
+                vec_to_move, vec_fixed = v[1], v[0]
+            
+            point_to_move = __get_point_to_move(i, vec_to_move)
+            angle_before = v[0]
+            angle_after = (i + 1) % nb_edges
 
-        difference = 180 - abs(np.rad2deg(angles[i]))
+            angle_before_isright = abs(angles[angle_before] - angles[angle_before]) < correct_tolerance
+            angle_after_isright = abs(angles[angle_after] - angles[angle_after]) < correct_tolerance
 
-        if difference < tolerance and difference != 0:
-            add = v1.add(v2)
-            add.normalize()
-            norm = v1.get_norm() * np.cos(v1.angle(add))
-            squared = add.const_product(norm)
-            projected = Point(p.x + squared.x, p.y + squared.y)
+            if angle_before_isright and angle_after_isright:
+                continue
 
-            plot_debug(polygon, p)
+            vsquared = __rotate_vec(45, vec_to_move, vec_fixed, i)
+            points[point_to_move] = (points[i][0] + vsquared.x, points[i][1] + vsquared.y)
+            __update()
+    
+    result = []
+    removed = []
+    if remove_flat:
+        for i in range(0, len(points)):
+            angle = angles[i % nb_edges]
+            if abs(np.pi - angle) > correct_tolerance:
+                result.append(points[i])
+            else:
+                removed.append(points[i])
+    else:
+        result = points
 
-            break
-
+    return Polygon(result)
 
 def square_polygon_ls(
         polygon, max_iteration=1000, norm_tolerance=0.05,
