@@ -1,7 +1,7 @@
 # this file define the Segment class, which representation a mathematical segment
 
 from shapely.geometry import Point, LineString
-from .angle import *
+from cartagen.utils.geometry.angle import angle_3_pts
 import math
 import numpy as np
 

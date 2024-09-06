@@ -1,9 +1,8 @@
-import networkx as nx
-import numpy as np
-import shapely, geopandas
+import shapely
 from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, unary_union
-from cartagen.utils.geometry import *
+
+from cartagen.utils.geometry.angle import angle_3_pts, angle_to_zero_pi
 
 class Crossroad:
     """

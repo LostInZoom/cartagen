@@ -1,8 +1,6 @@
-import shapely
 import geopandas as gpd
 import numpy as np
-from cartagen.utils.partitioning import *
-from cartagen.utils.network import *
+from cartagen.utils.partitioning.network import network_faces
 
 def detect_roundabouts(roads, area_threshold=40000, miller_index=0.95):
     """

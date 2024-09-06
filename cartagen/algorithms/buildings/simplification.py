@@ -1,7 +1,6 @@
-# this file contains building simplification algorithms
 from math import atan2, pi, sqrt
 from shapely.geometry import Polygon, Point, LinearRing
-from cartagen.utils.geometry.segment import get_segment_list_polygon, Segment
+from cartagen.utils.geometry.segment import get_segment_list_polygon
 
 def simplify_building(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180):
     """

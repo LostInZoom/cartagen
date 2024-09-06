@@ -1,16 +1,11 @@
 import shapely
 import numpy as np
 from shapely import Point, Polygon, LineString
-from shapely.geometry.polygon import orient
-
-import matplotlib.pyplot as plt
 
 from cartagen.utils.geometry.angle import angle_2_pts
 from cartagen.utils.math.vector import Vector2D
 from cartagen.utils.geometry.polygon import enclosing_rectangle, orientation
 from cartagen.algorithms.buildings.squaring import square_polygon_naive
-
-from cartagen.utils.debug import plot_debug
 
 def rectangle_transformation(polygon, factor=1.0, method='mbr'):
     """
@@ -468,5 +463,3 @@ def feature_edge_reconstruction(polygon, length=20, orient='swo', angle_toleranc
     #     if i < len(coords) - 1:
     #         v2 = coords[i + 1]
     #         edges.append(LineString([v1, v2]))
-
-    # plot_debug(edges[0], edges[-1])

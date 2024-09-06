@@ -1,14 +1,14 @@
 import shapely
-import numpy
 import geopandas as gpd
 import networkx as nx
 from shapely.ops import unary_union, linemerge
 
 from cartagen.utils.geometry.distances import group_intersecting
-from cartagen.utils.geometry.line import get_line_middle_point, merge_linestrings, resample_line, gaussian_smoothing, split_line_at_point
-from cartagen.utils.network.graph import *
-
-from cartagen.utils.debug import plot_debug
+from cartagen.utils.geometry.line import (
+    get_line_middle_point, merge_linestrings,
+    resample_line, gaussian_smoothing
+)
+from cartagen.utils.network.graph import create_graph
 
 def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structural=None):
     """

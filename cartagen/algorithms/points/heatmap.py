@@ -1,8 +1,6 @@
 import geopandas as gpd
 import numpy as np
-import shapely
-from shapely import set_precision
-from shapely.geometry import Polygon, MultiPolygon
+from shapely.geometry import Polygon
 
 def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None):
     """

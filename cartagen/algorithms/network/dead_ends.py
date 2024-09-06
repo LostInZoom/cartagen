@@ -1,6 +1,6 @@
 import itertools
 
-import networkx, shapely
+import networkx
 import geopandas as gpd
 
 def eliminate_dead_ends(roads, length=0, keep_longest=True):

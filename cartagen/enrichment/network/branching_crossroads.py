@@ -1,10 +1,9 @@
 import shapely
 import geopandas as gpd
 import numpy as np
-from shapely.ops import unary_union, linemerge
-from cartagen.utils.partitioning import *
-from cartagen.utils.network import *
-from cartagen.utils.geometry.distances import *
+from cartagen.utils.partitioning.network import network_faces
+from cartagen.utils.network.roads import Crossroad
+from cartagen.utils.geometry.distances import distance_area
 
 def detect_branching_crossroads(roads, roundabouts=None,
         area_threshold=2500, maximum_distance_area=0.5, 

@@ -1,11 +1,8 @@
-from functools import reduce
-import operator
-import math
 import shapely
 import numpy as np
 from shapely import Point, LineString, Polygon
 
-from cartagen.utils.geometry.angle import angle_2_pts, angle_3_pts
+from cartagen.utils.geometry.angle import angle_2_pts
 from cartagen.utils.math.vector import Vector2D
 
 def polygon_compactness(polygon):

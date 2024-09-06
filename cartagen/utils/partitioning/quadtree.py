@@ -1,6 +1,4 @@
-# this file contains a data structure useful for several point set operations: the PointSetQuadTree, proposed by Bereuter & Weibel (2012)
-import numpy as np
-from shapely.geometry import Polygon, Point, LineString
+from shapely.geometry import Polygon, LineString
 
 class PointSetQuadTree():
 

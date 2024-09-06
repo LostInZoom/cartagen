@@ -1,9 +1,10 @@
 import geopandas as gpd
+import numpy as np
 import shapely
-from shapely.ops import unary_union, linemerge
 
-from cartagen.utils.network import *
-from cartagen.utils.geometry.line import *
+from cartagen.utils.network.roads import Crossroad
+from cartagen.utils.geometry.line import split_line_at_point
+from cartagen.utils.geometry.angle import angle_between_2lines
 
 def collapse_branching_crossroads(roads, crossroads, maximum_area=None):
     """

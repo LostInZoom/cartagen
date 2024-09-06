@@ -1,10 +1,12 @@
+import math
+from shapely import Point
+import numpy as np
+
 from cartagen.processes.agent.constraints.abstract import GeneralisationConstraint
 from cartagen.processes.agent.actions.generalisation_action import DeletionAction
 from cartagen.processes.agent.actions.building_actions import EnlargementAction, EnlargeToRectangleAction, SimplificationAction, SquaringAction
-from cartagen.utils.geometry.segment import *
+from cartagen.utils.geometry.segment import get_segment_list
 from cartagen.utils.geometry.line import geometry_flatten, geometry_len
-import math
-import numpy as np
 
 class BuildingSizeConstraint(GeneralisationConstraint):
     """

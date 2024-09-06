@@ -1,7 +1,7 @@
 from evaluation.constraint_monitors.constraint_monitor import ConstraintMonitor
 from shapely.geometry import Point, Polygon
 from evaluation.constraint_satisfaction import ConstraintSatisfaction
-from util import geometric_algorithms
+from cartagen.utils.geometry.line import get_shortest_edge_length
 
 class ObjectGranularityMonitor(ConstraintMonitor):
 
@@ -60,9 +60,9 @@ class ObjectGranularityMonitor(ConstraintMonitor):
         vertex_density = 0.0
         min_length = 0.0
         if (self.object.geom_type == "Polygon"):
-            minLength = geometric_algorithms.get_shortest_edge_length(self.object.exterior)
+            minLength = get_shortest_edge_length(self.object.exterior)
         elif(self.object.geom_type == "LineString"):
-            minLength = geometric_algorithms.get_shortest_edge_length(self.object)
+            minLength = get_shortest_edge_length(self.object)
         
         nb_vertices = len(self.object.coords)
         length = self.object.length

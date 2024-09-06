@@ -1,8 +1,7 @@
 import shapely
-import geopandas as gpd
+from shapely.ops import nearest_points
 
-from cartagen.utils.geometry.dilation import *
-from cartagen.utils.geometry.line import *
+from cartagen.utils.geometry.dilation import offset_line, merge_connected_parts, reconstruct_line
 
 def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
     """

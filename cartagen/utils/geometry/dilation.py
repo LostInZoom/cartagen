@@ -1,10 +1,5 @@
 import numpy as np
-import math
 import shapely
-
-import geopandas as gpd
-
-from cartagen.utils.geometry.line import *
 
 def dilate_line(line, offset, cap_style='round', quad_segs=8):
     """

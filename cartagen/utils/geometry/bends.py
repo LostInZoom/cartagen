@@ -1,10 +1,9 @@
 import numpy as np
 
 from shapely import Point, LineString
-from shapely.ops import nearest_points
 
-from cartagen.utils.geometry.angle import *
-from cartagen.utils.geometry.line import *
+from cartagen.utils.geometry.angle import get_curvature
+from cartagen.utils.geometry.line import gaussian_smoothing, get_bend_side, inflexion_points
 
 class Bend:
     """

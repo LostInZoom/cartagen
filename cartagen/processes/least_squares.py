@@ -1,9 +1,8 @@
-# This is an implementation of the least squares method proposed by Lars E. Harrie (1999)
 from collections import Counter
-import shapely, pprint, geopandas, math
+import shapely
+import geopandas as gpd
 import numpy as np
 from cartagen.utils.partitioning.network import partition_networks
-np.set_printoptions(suppress=True)
 
 class ConstraintMethod:
     """
@@ -1153,7 +1152,7 @@ class ConstraintMethod:
                     'geometry' : shapely.Point(self.__points[p])
                 }) 
                 shape_id += 1         
-        return geopandas.GeoDataFrame(pointslist, crs=3857)
+        return gpd.GeoDataFrame(pointslist, crs=3857)
 
     def get_nodes_conflicts(self):
         """
@@ -1170,7 +1169,7 @@ class ConstraintMethod:
             })
 
         if len(lines) > 0:
-            return geopandas.GeoDataFrame(lines, crs=3857)
+            return gpd.GeoDataFrame(lines, crs=3857)
         else:
             return None
 
@@ -1193,7 +1192,7 @@ class ConstraintMethod:
             })
 
         if len(lines) > 0:
-            return geopandas.GeoDataFrame(lines, crs=3857)
+            return gpd.GeoDataFrame(lines, crs=3857)
         else:
             return None
         

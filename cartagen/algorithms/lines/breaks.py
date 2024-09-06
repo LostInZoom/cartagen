@@ -1,10 +1,8 @@
-import geopandas as gpd
-import shapely, numpy, networkx
+import shapely, networkx
 
-from cartagen.utils.geometry.angle import *
-from cartagen.utils.geometry.dilation import *
-from cartagen.utils.geometry.line import *
-from cartagen.utils.geometry.skeletonization import *
+from cartagen.utils.geometry.dilation import dilate_line, offset_line, merge_connected_parts, reconstruct_line
+from cartagen.utils.geometry.line import gaussian_smoothing, get_bend_side, merge_linestrings
+from cartagen.utils.geometry.skeletonization import SkeletonTIN
 
 def max_break(line, offset, exaggeration=1.0):
     """
@@ -44,7 +42,6 @@ def max_break(line, offset, exaggeration=1.0):
     >>> max_break(line, 1.0)
     <LINESTRING (-0.707 0.707, 2.293 3.707, 2.426 3.819...)>
     """
-
     # Get the side of the bend
     side = get_bend_side(line)
 
@@ -188,9 +185,10 @@ def min_break(line, offset, sigma=30, sample=None):
 
             # Recreate links as pairs of nodes
             links = []
-            for i in range(0, len(path) - 1):
-                # Append the tuple of coordinates of start and end nodes
-                links.append((nodes[path[i]], nodes[path[i + 1]]))
+            if path is not None:
+                for i in range(0, len(path) - 1):
+                    # Append the tuple of coordinates of start and end nodes
+                    links.append((nodes[path[i]], nodes[path[i + 1]]))
 
             skeleton = None
             # Loop through lines of the network

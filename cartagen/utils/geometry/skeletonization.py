@@ -2,9 +2,7 @@ import shapely, itertools
 import numpy as np
 from shapely.geometry import LineString
 from copy import deepcopy
-from cartagen.utils.geometry.line import *
-
-from cartagen.utils.debug import plot_debug
+from cartagen.utils.geometry.line import gaussian_smoothing, get_segment_center, merge_linestrings
 
 def skeletonize_natural(polygon, threshold_range=(0.7, 1.4)):
     """
@@ -491,8 +489,6 @@ class SkeletonTIN:
                 for skline in network:
                     if shapely.intersects(skline, entry):
                         inside = skline
-
-                # print(plot_debug(self.incoming))
 
                 # Update the geometry of the incoming line by merging it with the intersecting skeleton line
                 blended[outindex]['geometry'] = merge_linestrings(outside, inside)

@@ -1,10 +1,8 @@
 # This is an implementation of the random building displacement algorithm
-import random, math, numpy
+import random, math
 import geopandas as gpd
 import shapely
 from cartagen.utils.partitioning.network import partition_networks
-
-from cartagen.utils.debug import plot_debug
 
 def random_displacement(
         polygons, networks=None, polygon_distance=10.0, network_distance=10.0,

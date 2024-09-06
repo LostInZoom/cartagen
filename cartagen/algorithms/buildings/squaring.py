@@ -1,13 +1,9 @@
 # This is an implementation of the least squares based squaring algorithm proposed by Lokhat & Touya (https://hal.science/hal-02147792)
 import numpy as np
-from shapely.geometry import Polygon, LineString, Point
-from shapely.affinity import rotate
+from shapely.geometry import Polygon, Point
 
 from cartagen.utils.geometry.polygon import orientation
 from cartagen.utils.math.vector import Vector2D
-from cartagen.utils.geometry.angle import angle_2_pts, angle_3_pts
-
-from cartagen.utils.debug import plot_debug
 
 def square_polygon_naive(polygon, orient='primary', angle_tolerance=8.0, correct_tolerance=0.6, remove_flat=True):
     """

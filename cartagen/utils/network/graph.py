@@ -1,8 +1,12 @@
 import networkx as nx
 
 def make_planar():
+    """TODO: Make a functino to create a planar road network"""
+
+
+def longest_path(graph):
     """
-    
+    Get the longest path of the graph.
     """
 
 def create_graph(roads, cost=None):
@@ -68,8 +72,3 @@ def create_graph(roads, cost=None):
         graph.nodes[node]['coords'] = nodes[node]
 
     return graph
-
-def longest_path(graph):
-    """
-    Get the longest path of the graph.
-    """

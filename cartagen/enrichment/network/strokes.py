@@ -1,7 +1,6 @@
 import math
 from itertools import combinations
-import numpy as np
-from shapely.geometry import LineString, Point, MultiLineString
+from shapely.geometry import Point, MultiLineString
 from shapely import ops
 import geopandas as gpd
 import networkx as nx

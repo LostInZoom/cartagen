@@ -4,7 +4,7 @@ import geopandas as gpd
 from shapely.ops import split, nearest_points, snap, transform
 from shapely.geometry import LineString, Point, Polygon, MultiPoint
 
-from cartagen.utils.geometry.angle import *
+from cartagen.utils.geometry.angle import angle_3_pts
 from cartagen.utils.partitioning.tessellation import HexagonalTessellation
 from cartagen.utils.partitioning import partition_grid
 
@@ -306,8 +306,6 @@ def li_openshaw(line, cell_size):
     >>> c4.li_openshaw(line, 1)
     <LINESTRING (0 0, 0.5 0.5, 2 0, 5 3)>
     """
-    from cartagen.utils.debug import plot_debug
-
     vertexes = [ Point(x) for x in list(line.coords) ]
 
     gdf = gpd.GeoDataFrame(geometry=vertexes)
@@ -437,7 +435,7 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
     
     # Compute gaussian coefficients
     c2 = -1.0 / (2.0 * sigma * sigma)
-    c1 = 1.0 / (sigma * np.sqrt(2.0 * pi))
+    c1 = 1.0 / (sigma * np.sqrt(2.0 * np.pi))
 
     # Compute the gaussian weights and their sum
     weights = []
@@ -565,7 +563,7 @@ def get_bend_side(line):
     else:
         return 'left'
 
-def get_shortest_edge_length(geom: LineString):
+def get_shortest_edge_length(geom):
     min_length = float('inf')
     segments = get_linestring_segments(geom)
     for segment in segments:
@@ -576,7 +574,7 @@ def get_shortest_edge_length(geom: LineString):
 
     return min_length
 
-def get_linestring_segments(line: LineString):
+def get_linestring_segments(line):
     segments = []
     prev_coord = line.coords[0]
     for coord in line.coords[1:]:
@@ -609,9 +607,6 @@ def polygons_3d_to_2d(polygons):
           interiors.append(array_to_2d(interior.coords))
        polygons_2d.append(Polygon(coords_2d,interiors))
     return polygons_2d
-
-def densify_line(line):
-    """"""
 
 def resample_line(line, step, keep_vertices=False):
     """
@@ -809,14 +804,6 @@ def get_segment_center(segment):
 
     x1, y1, x2, y2 = c[0][0], c[0][1], c[1][0], c[1][1]
     return shapely.Point([(x1 + x2) / 2, (y1 + y2) / 2])
-
-def project_point_on_line(point, line):
-    """
-    Project a point on a line. Return the projected point.
-    """
-    dist = line.project(point)
-    # Create the point projected on the line.
-    return shapely.Point(list(line.interpolate(dist).coords))
 
 def merge_linestrings(line1, line2):
     """

@@ -1,7 +1,7 @@
 from cartagen.processes.agent.agents.abstract_agents import MesoAgent
 from shapely.ops import unary_union
-from cartagen.enrichment.urban.building_measures import *
-from cartagen.enrichment.urban.block_measures import *
+from cartagen.enrichment.urban.building_measures import block_triangulation
+from cartagen.enrichment.urban.block_measures import mean_building_overlap_rate
 
 class BlockAgent(MesoAgent):
     """

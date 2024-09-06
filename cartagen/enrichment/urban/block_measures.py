@@ -1,4 +1,3 @@
-
 from shapely.ops import unary_union
 
 def measure_block_density(block, buildings, roads):

@@ -1,11 +1,11 @@
 import shapely, numpy
 import geopandas as gpd
 
-from cartagen.utils.attributes import *
-from cartagen.utils.geometry import *
-from cartagen.utils.network import *
-
-from cartagen.utils.debug import plot_debug
+from cartagen.utils.attributes import attributes_from_longest
+from cartagen.utils.network.roads import Crossroad
+from cartagen.utils.network.faces import NetworkFace
+from cartagen.utils.geometry.skeletonization import SkeletonTIN
+from cartagen.utils.geometry.line import extend_line_with_point, merge_linestrings
 
 def collapse_dual_carriageways(roads, carriageways, sigma=None, propagate_attributes=None):
     """

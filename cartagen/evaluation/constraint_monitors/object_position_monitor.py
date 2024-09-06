@@ -1,5 +1,5 @@
 from evaluation.constraint_monitors.constraint_monitor import ConstraintMonitor
-from shapely.geometry import Point, Polygon, BaseGeometry
+from shapely.geometry import Point, BaseGeometry
 from evaluation.constraint_satisfaction import ConstraintSatisfaction
 
 class BuildingPositionMonitor(ConstraintMonitor):

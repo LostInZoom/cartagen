@@ -2,7 +2,6 @@ import geopandas as gpd
 import shapely
 
 from cartagen.utils.geometry.line import extend_line_with_point
-from cartagen.utils.network import *
 
 def collapse_roundabouts(roads, roundabouts, crossroads=None, maximum_diameter=None):
     """

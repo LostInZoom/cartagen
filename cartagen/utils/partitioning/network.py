@@ -1,6 +1,5 @@
 import shapely
 from shapely.ops import linemerge, unary_union, polygonize
-from cartagen.utils.geometry import extent
 
 def network_faces(*networks, convex_hull=True):
     """

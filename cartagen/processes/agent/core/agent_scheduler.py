@@ -1,5 +1,3 @@
-from cartagen.processes.agent import *
-
 def run_agents(agents, lifecycle='basic', store_states=False, verbose=0):
     """
     Execute the generalisation process on the given agents.

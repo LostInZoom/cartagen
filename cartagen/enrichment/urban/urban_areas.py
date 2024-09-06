@@ -1,5 +1,5 @@
 from shapely.geometry import Polygon
-from cartagen.utils.math import morphology
+from cartagen.utils.math.morphology import close_multipolygon
 from shapely.ops import unary_union
 
 def boffet_areas(buildings, buffer, erosion, simplification_distance=2.0):
@@ -49,7 +49,7 @@ def boffet_areas(buildings, buffer, erosion, simplification_distance=2.0):
         buflist += [building.buffer(buffer)]
     dilation = unary_union(buflist)
     simplified = dilation.simplify(simplification_distance)
-    closed = morphology.close_multipolygon(simplified, erosion)
+    closed = close_multipolygon(simplified, erosion)
     if(closed is None):
         return []
     simplified = closed.simplify(simplification_distance)

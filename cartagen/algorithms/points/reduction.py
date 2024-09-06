@@ -1,16 +1,10 @@
-# This file contains point set reduction algorithms, following the classification of point set operators from Bereuter & Weibel (2013).
-# A reduction means that there is still a set of points as output of the algorithm, but fewer points.
-
-from shapely.geometry import MultiPoint, Point, Polygon
-from shapely.ops import nearest_points
+from shapely.geometry import MultiPoint, Polygon
 from cartagen.utils.partitioning.quadtree import PointSetQuadTree
 from cartagen.utils.partitioning.tessellation import tessellate
 import warnings
 import random
 import pandas as pd
 import geopandas as gpd
-import shapely
-import numpy as np
 import matplotlib.pyplot as plt
 
 # @gtouya

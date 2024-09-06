@@ -1,6 +1,6 @@
 import shapely
 import geopandas as gpd
-from cartagen.utils.partitioning import *
+from cartagen.utils.partitioning.network import network_faces
 from cartagen.utils.network import *
 
 def detect_dead_ends(roads, outside_faces=False):

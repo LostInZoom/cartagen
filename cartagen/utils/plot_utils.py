@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, RegularPolygon
 from matplotlib.path import Path
 from matplotlib.projections.polar import PolarAxes

@@ -1,8 +1,5 @@
-# this file contains algorithms of morphological maths, i.e. derivative of dilation and erosion of lines and polygons
 from shapely.geometry import Point, Polygon, MultiPolygon
 from shapely.ops import unary_union
-
-from cartagen.utils.debug import plot_debug
 
 def close_polygon(polygon, size, quad_segs=1):
     """
@@ -186,19 +183,3 @@ def erosion_no_hole(polygon, buffer_size, quad_segs=1):
             rings.append(poly)
     
     return MultiPolygon(rings)
-
-# if __name__ == '__main__':
-#     from shapely.wkt import loads
-#     from shapely.geometry import Polygon, LineString
-#     import matplotlib.pyplot as plt
-#     import geopandas as gpd
-
-#     polygon1 = Polygon([(0,0),(0,100),(50,150),(100,100),(100,0),(0,0)])
-
-#     eroded = erosion_no_hole(polygon1,10)
-#     p1 = gpd.GeoSeries(polygon1)
-#     p2 = gpd.GeoSeries(eroded)
-#     base = p1.plot()
-#     p2.plot(ax=base, color='red')
-#     plt.show()
-#     print(eroded)

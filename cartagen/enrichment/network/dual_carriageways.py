@@ -1,9 +1,8 @@
 import geopandas as gpd
-import numpy as np
 import shapely
 
-from cartagen.utils.partitioning import *
-from cartagen.utils.network import *
+from cartagen.utils.partitioning.network import network_faces
+from cartagen.utils.network.faces import NetworkFace
 
 def detect_dual_carriageways(
         roads, importance=None, value=None,

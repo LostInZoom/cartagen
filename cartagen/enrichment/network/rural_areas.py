@@ -1,10 +1,9 @@
 from random import sample
-
 import shapely
 import geopandas as gpd
 import networkx as nx
 
-from cartagen.utils.network.graph import *
+from cartagen.utils.network.graph import create_graph
 
 def rural_betweeness(roads, sample_size=10, threshold=0, cost=None):
     """

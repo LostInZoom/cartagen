@@ -1,7 +1,5 @@
 import numpy as np
-import shapely, geopandas
-
-from cartagen.utils.geometry.polygon import *
+import shapely
 
 class NetworkFace:
     """

@@ -2,10 +2,10 @@ import numpy as np
 import shapely
 from shapely import LineString, Point
 
-from cartagen.utils.math.vector import *
-from cartagen.utils.geometry.bends import *
-from cartagen.utils.geometry.line import *
-from cartagen.utils.geometry.segment import *
+from cartagen.utils.math.vector import Vector2D
+from cartagen.utils.geometry.bends import BendSerie
+from cartagen.utils.geometry.line import extend_line_by_length, get_line_middle_point, merge_linestrings
+from cartagen.utils.geometry.segment import Segment
 
 def accordion(line, width, sigma=30, sample=None):
     """

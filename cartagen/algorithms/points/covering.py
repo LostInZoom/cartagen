@@ -3,9 +3,9 @@ import numpy as np
 import shapely
 from shapely.geometry import LineString, Polygon, Point, MultiPoint
 from shapely.ops import triangulate, unary_union
-from shapely import contains, length
+from shapely import contains
 import matplotlib.pyplot as plt
-from cartagen.utils.geometry.segment import *
+from cartagen.utils.geometry.segment import get_segment_list
 
 def hull_delaunay(points, length):
     """
@@ -240,17 +240,17 @@ def hull_swinging_arm(points, length, direction='ccw'):
         -------
         Float
         """
-        def angle_3_pts(point1, point2, point3):
-            angle1 = angle_2_pts(point2, point1)
-            angle2 = angle_2_pts(point2, point3)
+        def angle_three_pts(point1, point2, point3):
+            angle1 = angle_two_pts(point2, point1)
+            angle2 = angle_two_pts(point2, point3)
             return (angle2 - angle1)%(2*np.pi)
 
-        def angle_2_pts(point1, point2):
+        def angle_two_pts(point1, point2):
             x = point2.x - point1.x
             y = point2.y - point1.y
             return np.arctan2(y, x)
         
-        angle_deg = angle_3_pts(pt00, pt0, pt)*180/np.pi
+        angle_deg = angle_three_pts(pt00, pt0, pt)*180/np.pi
         if direction == 'cw':
             angle_deg = 360-angle_deg
         if angle_deg == 0:

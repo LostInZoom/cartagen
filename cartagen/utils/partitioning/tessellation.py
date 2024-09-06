@@ -3,8 +3,6 @@ import numpy as np
 from shapely.geometry import Point, Polygon
 from shapely.strtree import STRtree
 
-from cartagen.utils.debug import plot_debug
-
 def partition_grid(objects, width, height=None, shape='square'):
     """
     Partition objects using a grid of a given shape.
