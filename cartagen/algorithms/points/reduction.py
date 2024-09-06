@@ -4,6 +4,7 @@
 from shapely.geometry import MultiPoint, Point, Polygon
 from shapely.ops import nearest_points
 from cartagen.utils.partitioning.quadtree import PointSetQuadTree
+from cartagen.utils.partitioning.tessellation import tessellate
 import warnings
 import random
 import pandas as pd
@@ -441,83 +442,11 @@ class LabelGrid():
         self.__grid = None
         self.__crs = points.crs
 
-    def __create_hexagonalCell(self, coords_min, coords_max):
-        """
-        Create a grid of hexagonal cells.
-
-        Parameters
-        ----------
-        coords_min : tuple
-            Coordinates of the bottom left cell first point.
-        coords_max : tuple
-            Coordinates of the top right cell last point.
-
-        Returns
-        -------
-        polygons : GeoDataFrame
-            Contains hexagonal polygon objects.
-        """
-        xstep = self.__width*3
-        ystep = self.__width*2
-        cols = list(np.arange(coords_min[0], coords_max[0]+xstep, xstep))
-        rows = list(np.arange(coords_min[1], coords_max[1]+ystep, ystep))
-        
-        polygons = [Polygon([(x, y), 
-                             (x + self.__width, y),
-                             (x+self.__width*3/2, y+self.__width),
-                             (x + self.__width, y+2*self.__width),
-                             (x, y+2*self.__width),
-                             (x-self.__width/2, y+self.__width)]) 
-                    for x in cols[:-1] for y in rows[:-1]]
-        return polygons
-
     def __createGrid(self):
         """
         Create the grid of the label grid.
-
-        Returns
-        -------
-        GeoDataFrame
-            Contains the grid polygons.
-
         """
-        xmin, ymin, xmax, ymax = self.__points.total_bounds
-        polygons = None
-        
-        if self.__shape == 'square':
-            cols = list(np.arange(xmin, xmax + self.__width, self.__width))
-            rows = list(np.arange(ymin, ymax + self.__height, self.__height))
-        
-            polygons = [Polygon([(x, y), 
-                                 (x + self.__width, y), 
-                                 (x + self.__width, y + self.__height), 
-                                 (x, y + self.__height)]) 
-                        for x in cols[:-1] for y in rows[:-1]]
-            
-        if self.__shape == 'diamond':
-            cols = list(np.arange(xmin, xmax + self.__width*2, self.__width))
-            rows = list(np.arange(ymin-self.__width, ymax + self.__width, self.__width))
-            
-            polygons = [Polygon([(x, y), 
-                                 (x + self.__width / 2, y + self.__width / 2), 
-                                 (x, y + self.__width), 
-                                 (x - self.__width / 2, y + self.__width / 2)]) 
-                        for x in cols[:-1] for y in rows[:-1]]
-            
-        if self.__shape == 'hexagonal':
-
-            odd_coords_min = (xmin-self.__width, ymin-self.__width)
-            odd_coords_max = (xmax+self.__width, ymax)
-            
-            odd_poly = self.__create_hexagonalCell(odd_coords_min, odd_coords_max)
-            
-            not_odd_coords_min = (odd_coords_min[0]+3/2*self.__width, odd_coords_min[1]-self.__width)
-            not_odd_coords_max = (odd_coords_max[0], odd_coords_max[1]+self.__width)
-            
-            not_odd_poly = self.__create_hexagonalCell(not_odd_coords_min, not_odd_coords_max)
-            
-            polygons = odd_poly + not_odd_poly
-            
+        polygons = tessellate(self.__points.total_bounds, self.__width, self.__height, self.__shape)
         return gpd.GeoDataFrame({'geometry': polygons}, crs=self.__crs)
 
     def set_point_label_grid(self):

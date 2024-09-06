@@ -99,6 +99,8 @@ def partition_networks(objects, *networks):
     --------
     network_faces :
         Calculates the faces of one or multiple networks.
+    partition_grid :
+        Partition objects using a grid of a given shape.
 
     Examples
     --------
@@ -139,7 +141,7 @@ def partition_networks(objects, *networks):
         # Make sure it truly intersects before adding
         for i in intersects:
             if shapely.intersects(centroids[i], face):
-                indexes.append(i)
+                indexes.append(int(i))
 
         # If objects are intersecting the considered network face
         if len(indexes) > 0:

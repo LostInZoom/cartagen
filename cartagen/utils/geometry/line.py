@@ -1,10 +1,12 @@
 import numpy as np
 import shapely
+import geopandas as gpd
 from shapely.ops import split, nearest_points, snap, transform
 from shapely.geometry import LineString, Point, Polygon, MultiPoint
 
 from cartagen.utils.geometry.angle import *
-from cartagen.utils.tessellation.hexagonal import *
+from cartagen.utils.partitioning.tessellation import HexagonalTessellation
+from cartagen.utils.partitioning import partition_grid
 
 def douglas_peucker(line, threshold, preserve_topology=True):
     """
@@ -29,7 +31,8 @@ def douglas_peucker(line, threshold, preserve_topology=True):
     threshold : float
         The distance thresholdto remove the vertex from the line.
     preserve_topology : bool, optional
-        If set to True, the algorithm will prevent invalid geometries from being created (checking for collapses, ring-intersections, etc).
+        If set to True, the algorithm will prevent invalid geometries
+        from being created (checking for collapses, ring-intersections, etc).
         The trade-off is computational expensivity.
 
     Returns
@@ -42,6 +45,8 @@ def douglas_peucker(line, threshold, preserve_topology=True):
         Area-based line simplification.
     raposo :
         Hexagon-based line simplification.
+    li_openshaw :
+        Square grid-based line simplification.
 
     References
     ----------
@@ -86,6 +91,8 @@ def visvalingam_whyatt(line, area_tolerance):
         Distance-based line simplification.
     raposo :
         Hexagon-based line simplification.
+    li_openshaw :
+        Square grid-based line simplification.
 
     References
     ----------
@@ -178,6 +185,8 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
         Distance-based line simplification.
     visvalingam_whyatt :
         Area-based line simplification.
+    li_openshaw :
+        Square grid-based line simplification.
 
     Notes
     -----
@@ -259,12 +268,71 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     # print(final_coords)
     return LineString(final_coords)
 
-# Li-Openshaw simplification algorithm (1993). The simplification factor is the size of the regular grid applied on the line
-def __li_openshaw_simplification(line, cell_size):
-    # TODO: li openshaw line simplification
-    return line
+def li_openshaw(line, cell_size):
+    """
+    Regular grid-based line simplification.
 
-from cartagen.utils.debug import plot_debug    
+    This algorithm proposed by Li & Openshaw :footcite:p:`li:1993` simplifies lines based on a
+    regular square grid. It first divide the line vertexes into groups partionned by a regular
+    grid, then each group of vertexes is replaced by their centroid.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to simplify.
+    cell_size : float
+        The size of the regular grid used to divide the line.
+
+    Returns
+    -------
+    LineString   
+
+    See Also
+    --------
+    douglas_peucker :
+        Distance-based line simplification.
+    visvalingam_whyatt :
+        Area-based line simplification.
+    raposo :
+        Hexagon-based line simplification.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
+    >>> c4.li_openshaw(line, 1)
+    <LINESTRING (0 0, 0.5 0.5, 2 0, 5 3)>
+    """
+    from cartagen.utils.debug import plot_debug
+
+    vertexes = [ Point(x) for x in list(line.coords) ]
+
+    gdf = gpd.GeoDataFrame(geometry=vertexes)
+    groups, squares = partition_grid(gdf, cell_size)
+
+    simplified = []
+    previous = None
+    for i in range(0, len(vertexes)):
+        index = None
+        for gi, j in enumerate(groups):
+            if i in j:
+                index = gi
+        
+        if index is not None and index != previous:
+            group = groups[index]
+            centroid = shapely.centroid(MultiPoint([ vertexes[v] for v in group ]))
+            simplified.append(centroid)
+            previous = index
+
+    if vertexes[0] != simplified[0]:
+        simplified.insert(0, vertexes[0])
+    if vertexes[-1] != simplified[-1]:
+        simplified.append(vertexes[-1])
+
+    return LineString(simplified)
 
 def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
     """
