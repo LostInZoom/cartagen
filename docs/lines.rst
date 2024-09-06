@@ -16,6 +16,7 @@ Simplification
     douglas_peucker
     visvalingam_whyatt
     raposo
+    li_openshaw
 
 Smoothing
 ---------

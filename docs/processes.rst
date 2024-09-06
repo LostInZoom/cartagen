@@ -7,6 +7,9 @@ Processes
 AGENT
 -----
 
+Agents
+~~~~~~
+
 .. currentmodule:: cartagen
 
 .. autosummary::
@@ -15,7 +18,17 @@ AGENT
 
     run_agents
     BuildingAgent
+    BlockAgent
+
+Constraints
+~~~~~~~~~~~
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
     BuildingSizeConstraint
     BuildingGranularityConstraint
     BuildingSquarenessConstraint
-    BlockAgent

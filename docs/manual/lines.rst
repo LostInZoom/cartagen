@@ -11,8 +11,11 @@ Multiple algorithms for line simplification are available, including:
 - :func:`Raposo <cartagen.raposo>`  :footcite:p:`raposo:2013`
 
 Those line simplification algorithm are used for different purposes and their computational
-time differs. For example, Raposo is mainly used to simplify
-natural lines such as rivers. You can read more about them in the API Reference section.
+time differs. For example, Douglas-Peucker and Visvalingam-Whyatt are often used to
+simplify roads or surfaces borders such as forests.
+On the other hand, Raposo and Li-Openshaw are usually applied to simplify
+natural lines like the hydrographic network.
+You can read more about them in the API Reference section.
 
 .. plot:: code/manual/lines_simplification.py
   
