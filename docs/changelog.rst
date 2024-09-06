@@ -8,19 +8,26 @@ Changelog
 
 - **New features**:
 
-  #. New function to square polygons: :func:`square_polygon_naive <cartagen.square_polygon_naive>` (:user:`jberli`)
+  #. Added :func:`li_openshaw <cartagen.li_openshaw>` to simplify lines. (:user:`jberli`)
 
-  #. New function for heatmap creation: :func:`heatmap <cartagen.heatmap>` :pr:`8` (:user:`gowestmen`)
+  #. Added :func:`square_polygon_naive <cartagen.square_polygon_naive>` to square polygons. (:user:`jberli`)
+
+  #. Added :func:`heatmap <cartagen.heatmap>` creation. :pr:`8` (:user:`gowestmen`)
 
   #. New covering algorithms to create convex and concave hull:
     
      - :func:`hull_delaunay <cartagen.hull_delaunay>` (:user:`gtouya`)
      - :func:`hull_swinging_arm <cartagen.hull_swinging_arm>` :pr:`4` (:user:`Vpech77`)
 
-  #. New :func:`reduce_labelgrid <cartagen.reduce_labelgrid>` function as a new point reduction method.
+  #. Added :func:`reduce_labelgrid <cartagen.reduce_labelgrid>` function as a new point reduction method.
      :pr:`3` :pr:`6` (:user:`Vpech77`) :pr:`9` (:user:`gowestmen`)
+   
+  #. Added :func:`tesselate <cartagen.tesselate>` to create a tesselation of a given shape. This method
+     has been taken from :pr:`3` :pr:`6` (:user:`Vpech77`) and wrapped inside a new function.
 
-  #. New :func:`strokes_roads <cartagen.strokes_roads>` (:user:`ACourtial`) function to detect strokes inside a road network.
+  #. Added :func:`partition_grid <cartagen.partition_grid>` to partition objects using the new tessellations.
+
+  #. Added :func:`strokes_roads <cartagen.strokes_roads>` (:user:`ACourtial`) function to detect strokes inside a road network.
      This allows an easy strokes calculation by reducing the number of steps.
 
 - **Improvements**:
