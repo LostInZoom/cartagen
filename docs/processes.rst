@@ -32,3 +32,14 @@ Constraints
     BuildingSizeConstraint
     BuildingGranularityConstraint
     BuildingSquarenessConstraint
+
+Least-square constraints-based method
+-------------------------------------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    Constraint
