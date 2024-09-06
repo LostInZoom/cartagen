@@ -25,7 +25,7 @@ Changelog
   #. Added :func:`reduce_labelgrid <cartagen.reduce_labelgrid>` function as a new point reduction method.
      :pr:`3` :pr:`6` (:user:`Vpech77`) :pr:`9` (:user:`gowestmen`)
    
-  #. Added :func:`tesselate <cartagen.tesselate>` to create a tesselation of a given shape. This method
+  #. Added :func:`tessellate <cartagen.tessellate>` to create a tesselation of a given shape. This method
      has been taken from :pr:`3` :pr:`6` (:user:`Vpech77`) and wrapped inside a new function.
 
   #. Added :func:`partition_grid <cartagen.partition_grid>` to partition objects using the new tessellations.
