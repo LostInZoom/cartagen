@@ -505,11 +505,13 @@ class LabelGrid():
     
     def getGrid(self):
         """Get the grid."""
-        if self.__mode == 'aggregation' and self.__column is not None:
+        if self.__mode == 'aggregation':
             grid = self.__grid.to_dict('records')
             for p, point in self.__points_res.iterrows():
-                grid[point['cell']]['sum'] = point['sum']
-                grid[point['cell']]['mean'] = point['mean']
+                grid[point['cell']]['count'] = point['count']
+                if self.__column is not None:
+                    grid[point['cell']]['sum'] = point['sum']
+                    grid[point['cell']]['mean'] = point['mean']
             self.__grid = gpd.GeoDataFrame(grid, crs=self.__crs)
         return self.__grid
 
