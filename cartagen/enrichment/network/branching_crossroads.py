@@ -105,26 +105,26 @@ def is_branching_crossroad(polygon, roads, tree,
     Return True or False whether the given polygon is a branching crossroad or not depending on the given parameters.
     Parameters
     ----------
-    polygon : shapely Polygon.
+    polygon : Polygon
         The geometry of the network face to check.
     roads : geopandas GeoDataFrame of LineStrings.
         The road network to analyze.
-    tree : shapely STRtree.
+    tree : STRtree
         A shapely spatial index calculated on all provided roads.
     area_threshold : int optional.
         The area (in square meters) above which the object is not considered a branching crossroads.
         The default value is set to 2500.
-    maximum_distance_area : float optional.
+    maximum_distance_area : float, optional
         The maximum distance area between the actual polygon and the triangle formed by the 3 nodes connecting the junction to the rest of the network.
         The default value is set to 0.5.
-    roundabouts : geopandas GeoDataFrame of Polygons optional
+    roundabouts : GeoDataFrame of Polygon
         The polygons representing the network faces considered as roundabouts.
         If provided, it offers a better detection of branching crossroads.
         The default value is set to None.
-    allow_middle_node : boolean optional
+    allow_middle_node : bool, optional
         If set to True, allow 4 nodes to form the crossroads, but each must have a degree of 3 and the 'middle' node must have an angle of 180°.
         Default value set to False.
-    allow_single_4degree_node : boolean optional
+    allow_single_4degree_node : bool, optional
         If set to True, allow one and only one node to have a degree of 4.
         Default value set to False.
     """
