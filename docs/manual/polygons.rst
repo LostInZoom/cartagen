@@ -35,7 +35,7 @@ reduce the complexity of the buildings while the recursive regression can be
 quite destructive and is mainly used to correct buildings automatically created
 from aerial or satellite imagery. On the other hand, the rectangle
 transformation is mostly used inside more complex algorithms, such as AGENT
-as a possible branch inside a decision tree
+as a possible branch inside a decision tree.
 
 Building blocks
 ~~~~~~~~~~~~~~~
