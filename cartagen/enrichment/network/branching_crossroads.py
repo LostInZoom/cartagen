@@ -102,16 +102,20 @@ def is_branching_crossroad(polygon, roads, tree,
         allow_single_4degree_node=True
     ):
     """
-    Return True or False whether the given polygon is a branching crossroad or not depending on the given parameters.
+    Detect if the provided network face is a branching crossroad.
+
+    Return True or False whether the given polygon is a
+    branching crossroad or not depending on the given parameters.
+
     Parameters
     ----------
     polygon : Polygon
         The geometry of the network face to check.
-    roads : geopandas GeoDataFrame of LineStrings.
+    roads : GeoDataFrame of LineString
         The road network to analyze.
-    tree : STRtree
+    tree : STRTree
         A shapely spatial index calculated on all provided roads.
-    area_threshold : int optional.
+    area_threshold : int, optional
         The area (in square meters) above which the object is not considered a branching crossroads.
         The default value is set to 2500.
     maximum_distance_area : float, optional
