@@ -73,13 +73,11 @@ river = Path.make_compound_path(Path(numpy.asarray(riverbuffer.exterior.coords)[
         *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in riverbuffer.interiors])
 sub1.add_patch(PathPatch(river, facecolor="lightsteelblue", edgecolor='none'))
 
-buffered = []
 unioned = unary_union([ r.buffer(netwidth) for r in roads ])
 road = Path.make_compound_path(Path(numpy.asarray(unioned.exterior.coords)[:, :2]),
     *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in unioned.interiors])
 sub1.add_patch(PathPatch(road, facecolor="black", edgecolor='none'))
 
-buffered = []
 unioned = unary_union([ r.buffer(netwidth - 2) for r in roads ])
 road = Path.make_compound_path(Path(numpy.asarray(unioned.exterior.coords)[:, :2]),
     *[Path(numpy.asarray(ring.coords)[:, :2]) for ring in unioned.interiors])

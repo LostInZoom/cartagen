@@ -29,6 +29,11 @@ a choice in your cartographic endeavors. Please keep in mind that **this is not 
 nor a full explanation of the generalisation process. We have designed several **Jupyter notebooks** to serve as learning
 material, they are accessible `here. <https://github.com/LostInZoom/cartagen-notebooks>`_
 
+This user manual also assumes you have a certain knowledge of the Python libraries `Shapely <https://github.com/shapely/shapely>`_
+and `GeoPandas <https://github.com/geopandas/geopanda>`_ as CartAGen relies on those data format and geometry types.
+Furthermore, please ensure you are working with projected geographic data as the vast majority of
+generalisation tools provided by this library relies on spatial operations.
+
 .. _points_manual:
 .. include:: manual/points.rst
   

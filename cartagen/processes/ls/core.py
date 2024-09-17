@@ -4,34 +4,42 @@ import geopandas as gpd
 import numpy as np
 from cartagen.utils.partitioning.network import partition_networks
 
-class ConstraintMethod:
+class LeastSquaresMethod:
     """
-    Initialize constraint method object
+    Generalise cartographic features using the method of least squares.
+
+    This method was proposed by :footcite:p:`harrie:1999` and uses the method
+    of least squares to move the vertexes of every features (points, lines and polygons)
+    keeping the provided constraints as satisfied as possible.
+
     Parameters
     ----------
-    max_iteration : int optional
+    max_iteration : int, optional
         This is the maximum number of iteration before breaking the loop. If constraints and weights are correctly set,
         the norm tolerance threshold should be reached before the maximum number of iteration.
-        Default value is set to 1000.
-    norm_tolerance : float optional
-        The threshold below which the norm of the resulting point matrix is acceptable enough to break the iteration loop.
-        The default value is set to 0.05.
-    same_object_conflicts : boolean optional
-        Set if shapes of the same object have spatial conflicts.
-        The default value is set to True.
-    crossing_node_threshold : int optional
-        When two lines intersects, define the number of nodes from the intersection on wich spatial conflicts between those two lines doesn't apply.
-        The default value is set to 7.
-    verbose : boolean optional
-        For debugging purposes, choose to print some key values while the constraint method is calculated.
-        Default set to False.
+    norm_tolerance : float, optional
+        The threshold below which the norm of the resulting matrix is acceptable enough to break the iteration loop.
+    intra_conflicts : bool, optional
+        If set to True, the features of the same GeoDataFrame can be spatially conflicting.
+    crossing_node_threshold : int, optional
+        When two vertexes from different line intersects, define the number of vertexes connected on both sides from the
+        intersection on wich spatial conflicts between those two lines doesn't apply. Setting this value to 0 will not
+        preserve line intersections.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Notes
+    -----
+    A more in-depth overview of this method of generalisation is available inside
+    the user manual of the documentation.
     """
-    def __init__(self, max_iteration=1000, norm_tolerance=0.05, same_object_conflicts=True, crossing_node_threshold=7, verbose=False):
+    def __init__(self, max_iteration=1000, norm_tolerance=0.05, intra_conflicts=True, crossing_node_threshold=7):
         self.MAX_ITER = max_iteration
         self.NORM_TOLERANCE = norm_tolerance
-        self.SAME_OBJECT_CONFLICTS = same_object_conflicts
+        self.INTRA_CONFLICTS = intra_conflicts
         self.CROSSING_NODE_THRESHOLD = crossing_node_threshold
-        self.VERBOSE = verbose
 
         self.__ALLOWED_CONSTRAINTS = {
             'Point': ['movement'],
@@ -40,8 +48,8 @@ class ConstraintMethod:
         }
 
         # Create dummy arrays for distances and conflicts weights
-        self.__DISTANCES = np.ndarray((0, 0))
-        self.__CONFLICTS = np.ndarray((0, 0))
+        self.distances = np.ndarray((0, 0))
+        self.spatial_weights = np.ndarray((0, 0))
         
         # List of future objects added to the generalisation
         self.__OBJECTS = []
@@ -68,20 +76,38 @@ class ConstraintMethod:
 
     def add(self, *objects, **weights):
         """
-        Add one or multiple geographic object for preparation before the generalisation. If multiple objects are provided, they must have the same geometry type.
+        Add features before generalisation. This method adds one or multiple objects
+        to the generalisation along with their associated weights.
+        If multiple objects are provided, they must have the same geometry type.
+
         Parameters
         ----------
-        object : **Geopandas**, *GeoSerie*.
-            One or multiple GeoSerie of geographic objects, can be points, lines or polygons (if multigeometry are provided, they will be exploded).
+        object : GeoDataFrame
+            One or multiple GeoDataFrame of geographic objects, can be Point, LineString or Polygon (if MultiGeometry are provided, they will be exploded).
             If multiple objects are provided, they must be the same geometry type because the same constraints will be applied.
-        weights : **int**, *optional*.
-            Specify a weight value for a specific constraint. Possible weights:
-            movement : **int**.
-                If an object is able to move, specify the weight of the movement constraint.
-            stiffness : **int**.
-                If a polygon or a line is able to move but is not flexible, specify the weight of the stiffness constraint. A point cannot have a stiffness constraint.
-            curvature : **int**.
-                If a polygon or line is flexible, specify the weight of the curvature constraint. A point cannot have a curvature constraint.
+        weights : int, optional
+            Specify a constraint with its weight. Possible weights:
+
+            - movement : Specify the weight of the movement constraint.
+            - stiffness : Specify the weight of the stiffness constraint.
+            - curvature : Specify the weight of the curvature constraint.
+
+            .. list-table::
+                :widths: 20 30 50
+                :header-rows: 1
+
+                * - Constraint
+                  - Geometry type
+                  - Impact
+                * - movement
+                  - Point, LineString, Polygon
+                  - The object should move as little as possible
+                * - stiffness
+                  - LineString, Polygon
+                  - The internal geometry should be invariant, `i.e.` the vertexes movement within the same object will try not to move closer or away from each other.
+                * - curvature
+                  - LineString, Polygon
+                  - The curvature of a line or a polygon border should not change, `i.e.` the angle formed by two connected segments will try not to change.
         """
 
         geometry = None
@@ -146,15 +172,28 @@ class ConstraintMethod:
 
     def add_spatial_conflicts(self, distances, spatial_weights):
         """
-        Defines spatial conflict between pairs of geographic objects previously added.
+        Defines spatial conflict between pairs of geographic objects.
+
+        Once geographic objects has been added, this method is used to set up
+        spatial conflicts between each of them.
+
         Parameters
         ----------
-        distances : **Numpy**, *ndarray*.
-            A numpy ndarray of dimension (x, x) where x is the number of objects added to the constraint method object before generalisation.
-            Value at index (i, j) must be the same as the value at index (j, i) and represents the distance between geographic objects added
-            in the order they were added. 
-        spatial_weights : **Numpy**, *ndarray*.
-            Same as the distances matrix but the values represent the weight of the spatial conflict of the two considered objects.
+        distances : ndarray
+            A numpy ndarray of dimension (n, n) where n is the number of
+            objects added to the constraint method in
+            the same order they has been added.
+            For example, if 3 objects are provided, a numpy ndarray
+            of a (3, 3) shape must be provided, such as:
+
+            .. code-block:: Python
+
+                [[25. 28. 30.]
+                 [28. 15. 20.]
+                 [30. 20. 18.]]
+
+        spatial_weights : ndarray
+            Same as the distances matrix but the values represent the weight of the spatial conflict of the two objects.
         """
 
         # Retrieve the number of objects
@@ -186,13 +225,24 @@ class ConstraintMethod:
                         "Please follow the documentation to set up spatial conflicts.")
 
         # If nothing has failed, stores both matrices
-        self.__DISTANCES = distances
-        self.__CONFLICTS = spatial_weights
+        self.distances = distances
+        self.spatial_weights = spatial_weights
 
-
-    def generalize(self, network_partitioning=False):
+    def generalize(self, *network_partitioning):
         """
-        Launch the constraint generalisation on the added objects.
+        Launch the constraint generalisation on the objects.
+
+        Parameters
+        ----------
+        network_partitioning : GeoDataFrame of LineString
+            One or multiple line that represents the network used
+            to partition the data.
+        
+        Returns
+        -------
+        generalized : list of GeoDataFrame
+            A list containing the generalized objects.
+            This list contains the same number of provided objects in order.
         """
         # Checks if objects are present
         if len(self.__OBJECTS) < 1:
@@ -218,8 +268,8 @@ class ConstraintMethod:
 
             # Calculate the norm
             norm = np.linalg.norm(dx, ord=np.inf)
-            if self.VERBOSE:
-                print(norm)
+            # if self.VERBOSE:
+            #     print(norm)
             # Break the loop if the norm is below the tolerance threshold
             if norm < self.NORM_TOLERANCE:
                 break
@@ -1011,7 +1061,7 @@ class ConstraintMethod:
                                 add_node_to_node([p, p2, min_dist, pdist2, weight])
 
         # Check if the considered point is spatially conflicting with other points
-        def check_conflicts(shape, p, oid, sid, pid):
+        def check_conflicts(shape, p, oid, sid):
             geomtype = self.__OBJECTS[oid].geometry[sid].geom_type
             point = shapely.Point(points[p])
             # Loop through all objects
@@ -1029,12 +1079,12 @@ class ConstraintMethod:
                             continue
                         if sid1 == sid:
                             continue
-                        if self.SAME_OBJECT_CONFLICTS == False:
+                        if self.INTRA_CONFLICTS == False:
                             continue
                     # Getting the weight of the spatial conflict constraint from the matrix
-                    weight = self.__CONFLICTS[oid][oid1]
+                    weight = self.spatial_weights[oid][oid1]
                     # Getting the distance value from the distances matrix
-                    min_dist = self.__DISTANCES[oid][oid1]
+                    min_dist = self.distances[oid][oid1]
                     # Setting a distance equal to 1.5 times the min distance to retrieve conflicting objects
                     # Setting conflict_dist = min_dist doesn't take the 1.5 time conflicting entities
                     conflict_dist = 1.5 * min_dist
@@ -1054,9 +1104,9 @@ class ConstraintMethod:
             # Loop through all shapes
             for sid, s in enumerate(o):
                 # Loop through all points
-                for pid, p in enumerate(s):
+                for p in s:
                     # Check conflicts with other points
-                    check_conflicts(s, p, oid, sid, pid)
+                    check_conflicts(s, p, oid, sid)
 
         threshold = self.CROSSING_NODE_THRESHOLD
 
@@ -1137,9 +1187,13 @@ class ConstraintMethod:
                     self.__RESULTS[oid].loc[sid, 'geometry'] = geometry
         return self.__OBJECTS
 
-    def get_nodes(self):
+    def get_vertexes(self):
         """
-        Return the full list of nodes as a GeoDataFrame.
+        Returns the full list of vertexes.
+
+        Returns
+        -------
+        GeoDataFrame of Point
         """
         pointslist = []
         shape_id = 0
@@ -1147,17 +1201,21 @@ class ConstraintMethod:
             for s in o:
                 for p in s:
                     pointslist.append({
-                    'id' : p,
-                    'object' : shape_id,
-                    'geometry' : shapely.Point(self.__points[p])
-                }) 
+                        'id' : p,
+                        'object' : shape_id,
+                        'geometry' : shapely.Point(self.__points[p])
+                    }) 
                 shape_id += 1         
-        return gpd.GeoDataFrame(pointslist, crs=3857)
+        return gpd.GeoDataFrame(pointslist)
 
-    def get_nodes_conflicts(self):
+    def get_vertexes_conflicts(self):
         """
-        Return all the nodes to nodes conflicts as a LineString between the two nodes.
-        Return a GeoDataFrame.
+        Returns all the vertex to vertex conflicts as a
+        LineString between the two nodes.
+        
+        Returns
+        -------
+        GeoDataFrame of LineString
         """
         lines = []
         for i, node in enumerate(self.__constraints['nodes']):
@@ -1175,8 +1233,12 @@ class ConstraintMethod:
 
     def get_links_conflicts(self):
         """
-        Return all the nodes to links conflicts as a LineString between the node and the projection of this node on the conflicting line.
-        Return a GeoDataFrame.
+        Returns all the vertex to links conflicts as a LineString between
+        the vertex and the projection of this vertex on the conflicting segment.
+
+        Returns
+        -------
+        GeoDataFrame of LineString
         """
         lines = []
         for lid, link in enumerate(self.__constraints['links']):
@@ -1198,6 +1260,11 @@ class ConstraintMethod:
         
     def get_objects_number(self):
         """
-        Return the number of objects added to the generalisation algorithm.
+        Returns the number of objects
+        added to the generalisation algorithm.
+
+        Returns
+        -------
+        int
         """
         return len(self.__OBJECTS)

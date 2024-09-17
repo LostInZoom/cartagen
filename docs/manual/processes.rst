@@ -22,57 +22,16 @@ Micro-agents
 Micro-agents are the simpler kind of agents as they aim at generalising single
 cartographic features without consideration for their surroundings.
 
-- Before you can initiate the AGENT process, you must first prepare the data:
+Assuming the variable :code:`buildings` is a GeoDataFrame of Polygon, we
+need to loop through buildings and add them as individual agent before
+generalisation:
 
-.. plot::
-    :nofigs:
-    :context: reset
-    :include-source: True
-    :show-source-link: False
+.. code-block:: Python
 
-    import geopandas as gpd
     import cartagen as c4
-    from shapely.wkt import loads
-
-    # Given the following buildings
-    buildings = [
-        loads('Polygon ((395038.7 6272970.9, 395030.4 6272984, 395025.3 6272982, 395023.2 6272983.7, 395020 6272981.3, 395016.9 6272985.9, 395021.8 6272990.7, 395020.6 6272993.7, 395024.7 6272997.2, 395028.5 6272994.5, 395032.8 6272988.2, 395038.1 6272991.6, 395044.9 6272979.1, 395047.1 6272980.4, 395049.5 6272976.8, 395038.7 6272970.9))'),
-        loads('Polygon ((394999.5 6272975, 395006.7 6272962.4, 395010.6 6272957.5, 394996.6 6272944.4, 394991 6272949, 394999.2 6272956.3, 394996.1 6272959.7, 394998.3 6272961.3, 394992 6272969.4, 394999.5 6272975))'),
-        loads('Polygon ((395007.3 6272975.8, 395013.2 6272981, 395021.2 6272969.6, 395024.2 6272971.9, 395031 6272963.8, 395020.8 6272957.4, 395007.3 6272975.8))'),
-        loads('Polygon ((395082.3 6272967.4, 395089.9 6272958, 395071.9 6272945.9, 395068.4 6272950.6, 395066 6272949, 395056.3 6272962, 395058.5 6272963.5, 395056.40000000002328306 6272966.8, 395059.4 6272969.9, 395056.9 6272972.6, 395054.5 6272968.3, 395049.6 6272973.4, 395058.4 6272981.6, 395073.6 6272962.5, 395082.3 6272967.4))')
-    ]
-
-    # Create a GeoDataFrame from the buildings
-    gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(buildings))
-
-- Then, for every building inside the GeoDataFrame, we can create an agent along with
-  constraints that will guide the generalisation process.
-
-.. list-table:: Building micro constraints
-    :widths: 50 20 50
-    :header-rows: 1
-
-    * - name
-      - property
-      - actions
-    * - BuildingSizeConstraint
-      - area
-      - enlarge, delete
-    * - BuildingGranularityConstraint
-      - granularity
-      - simplify, simplify to rectangle
-    * - BuildingSquarenessConstraint
-      - squareness
-      - squaring
-
-.. plot::
-    :nofigs:
-    :context:
-    :include-source: True
-    :show-source-link: False
-
+	
     agents = []
-    for i, building in gdf.iterrows():
+    for i, building in buildings.iterrows():
         # Create the agent
         agent = c4.BuildingAgent(building)
 
@@ -91,29 +50,181 @@ cartographic features without consideration for their surroundings.
         agent.constraints.append(granularity)
         agents.append(agent)
     
-    c4.run_agents(agents)    
+    c4.run_agents(agents)
 
-.. plot::
-    :caption: Resulting generalisation using the micro-agents
-    :context:
+Below is a table representing the different constraints available for the building generalisation
+using AGENT along with their associated actions.
 
-    import numpy
-    from matplotlib import pyplot as plt
-    from matplotlib.path import Path
-    from matplotlib.patches import PathPatch
+.. list-table:: Building micro constraints
+    :widths: 50 20 50
+    :header-rows: 1
 
-    fig = plt.figure(1, (10, 6))
-    sub1 = fig.add_subplot(111)
-    sub1.axes.get_xaxis().set_visible(False)
-    sub1.axes.get_yaxis().set_visible(False)
+    * - Name
+      - Property
+      - Actions
+    * - BuildingSizeConstraint
+      - area
+      - enlarge, delete
+    * - BuildingGranularityConstraint
+      - granularity
+      - simplify, simplify to rectangle
+    * - BuildingSquarenessConstraint
+      - squareness
+      - squaring
 
-    for b in buildings:
-        poly = Path.make_compound_path(Path(numpy.asarray(b.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in b.interiors])
-        sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
+.. plot:: code/manual/process_agent_micro.py
 
-    for b in gdf.geometry:
-        poly = Path.make_compound_path(Path(numpy.asarray(b.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in b.interiors])
-        sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red'))
+	Resulting generalisation using the micro-agents
+
+Least squares-based method
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CartAGen also propose a generalisation method based on the method of least squares. This
+method was proposed by Harrie :footcite:p:`harrie:1999` and relies on the least squares regression
+to displace every vertexes of every provided objects (points, lines and polygons). Those vertexes
+can move but they need to respect user-provided constraints.
+In practice, it iteratively tries to resolve matrice equations until a threshold norm
+is reached keeping every constraints as satisfied as possible.
+
+Setup
+-----
+
+As en example, let's start with a set of three geographic objects (example in the image below), namely
+some buildings (in gray), a simple road network (in red) and a river (in blue).
+
+Let's consider those objects are too close to each other at the scale we want
+to represent them. We can start by instanciating the least squares method class with default parameters:
+
+.. code-block:: Python
+
+    ls = cartagen.LeastSquaresMethod()
+
+Constraints
+-----------
+
+But we also want to specify constraints to maintain some control over the movement of vertexes.
+Using the following table, we can specify different constraints for the different objects:
+
+.. list-table:: Constraints description used by the method of least squares
+    :widths: 20 30 50
+    :header-rows: 1
+
+    * - Constraint
+      - Geometry type
+      - Impact
+    * - movement
+      - Point, LineString, Polygon
+      - The object should move as little as possible
+    * - stiffness
+      - LineString, Polygon
+      - The internal geometry should be invariant, `i.e.` the vertexes movement within the same object
+        will try not to move closer or away from each other.
+    * - curvature
+      - LineString, Polygon
+      - The curvature of a line or a polygon border should not change, `i.e.` the angle formed by
+        two connected segments will try not to change.
+
+Having that in mind, we can add the different objects with the constraints properly set. The numbers represent the weight of the
+constraint. A higher value means the constraint will be more respected during generalisation. So, in the following
+example, the buildings have a high stiffness which means there shape will tend to stay the same:
+
+.. code-block:: Python
+
+    ls.add(buildings, movement=2, stiffness=10)
+    ls.add(roads, movement=2, curvature=5)
+    ls.add(rivers, movement=2, curvature=5)
+
+Spatial relationships
+---------------------
+
+We decided to let users more freedom when setting the spatial conflict constraints. Thus, we can decide
+the distance and weight of spatial conflicts between each pair of objects we already added.
+So, we need to provide two matrices: one for the distances between pairs of objects, one for the
+weight of those spatial constraints.
+
+First, we retrieve the number of objects added for generalisation. This should be 3: buildings, roads, rivers:
+
+.. code-block:: Python
+
+    d = ls.get_objects_number()
+
+We can then create two numpy arrays of the right shape:
+
+.. code-block:: Python
+
+    distances = np.zeros((d, d))
+    spatial_weights = np.zeros((d, d))
+
+We then can populate the new arrays with default distance and weight values:
+
+.. code-block:: Python
+
+    for i in range(d):
+        for j in range(d):
+            distances[i][j] = 20
+            spatial_weights[i][j] = 5
+
+Those two arrays represent the spatial conflicts and the weight of those conflicts between each pairs of objects. So, by setting a default distance,
+we will force objects to have at least 20 meters between each other.
+
+But maybe we want to allow buildings to be closer to each other and further away from the rivers.
+To change those distances, we can use :code:`ls.distances[n][m]` where :code:`n` and :code:`m` are
+respectively the index of the pair of object we want to modify in the order we added them.
+Let's say we want buildings to be at least at 25 meters from each other, 28 meters from the roads and 30 meters
+from the rivers, we can do:
+
+.. code-block:: Python
+
+    distances[0][0] = 25
+    distances[0][1] = 28
+    distances[0][2] = 30
+
+The :code:`distances` variable now return:
+
+.. code-block:: Python
+
+    [[25. 28. 30.]
+     [20. 20. 20.]
+     [20. 20. 20.]]
+
+And if we want to increase the weight of the spatial conflict between the roads and the rivers, we can change it
+this way:
+
+.. code-block:: Python
+
+    spatial_weights[1][2] = 8
+
+The :code:`spatial_weights` variable now return:
+
+.. code-block:: Python
+
+    [[5. 5. 5.]
+     [5. 5. 8.]
+     [5. 5. 5.]]
+
+Finally, we can add the spatial relationships to the least squares method:
+
+.. code-block:: Python
+
+    ls.add_spatial_conflicts(distances, spatial_weights)
+
+Results
+-------
+
+Finally, we can launch the generalisation that will return a tuple with as many as objects we added:
+
+.. code-block:: Python
+
+    buildings, roads, rivers = ls.generalise()
+
+.. plot:: code/manual/process_ls_original.py
     
-    sub1.autoscale_view()
-    plt.show()
+    Geographic objects before generalisation
+
+.. plot:: code/manual/process_ls_conflicts.py
+    
+    Spatial conflicts detected
+
+.. plot:: code/manual/process_ls_results.py
+    
+    Results of the generalisation

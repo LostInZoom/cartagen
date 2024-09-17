@@ -3,8 +3,25 @@
 Changelog
 #########
 
-1.0.0 - unreleased
-==================
+1.0.0 - Official release
+========================
+
+- **New features**:
+
+  #. Exposed three new functions used inside the network enrichment functions:
+
+     - :func:`is_roundabout <cartagen.is_roundabout>`
+     - :func:`is_branching_crossroad <cartagen.is_branching_crossroad>`
+     - :func:`is_dual_carriageway <cartagen.is_dual_carriageway>`
+
+- **Improvements**:
+
+  #. All undocumented/unwanted functions are now hidden.
+
+  #. Removed all circular import inside the library.
+
+  #. Renamed :class:`Constraint <cartagen.LeastSquaresMethod>` to :class:`LeastSquaresMethod <cartagen.LeastSquaresMethod>`
+     to better reflect if usage and enhanced its documentation.
 
 1.0rc2
 ======
