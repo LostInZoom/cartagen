@@ -35,6 +35,9 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
    <br>
    <br>
 
+   <div style="display: flex; justify-content: center;">
+   <div style="margin: 0 10px 0 10px;">
+
 .. image:: img/github.svg
    :alt: Repo GitHub
    :target: https://github.com/LostInZoom/cartagen
@@ -42,6 +45,28 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
 .. raw:: html
 
+   </div>
+   <div style="margin: 0 10px 0 10px;">
+
+.. image:: img/qgis.svg
+   :alt: Repo GitHub
+   :target: https://github.com/LostInZoom/cartagen-qgis
+   :height: 40px
+
+.. raw:: html
+
+   </div>
+   <div style="margin: 0 10px 0 10px;">
+
+.. image:: img/jupyter.svg
+   :alt: Repo GitHub
+   :target: https://github.com/LostInZoom/cartagen-notebooks
+   :height: 40px
+
+.. raw:: html
+
+   </div>
+   </div>
    </div>
 
 |
@@ -87,9 +112,10 @@ Evaluate your generalised map
    :caption: User Guide
    :hidden:
 
-   installation_py
+   installation
    manual
    changelog
+   qgis
    contributors
    bibliography
 
@@ -104,9 +130,3 @@ Evaluate your generalised map
    bends
    processes
    tools
-
-.. toctree::
-   :caption: Plugin QGIS
-   :hidden:
-
-   installation_qgis

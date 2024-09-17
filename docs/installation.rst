@@ -1,4 +1,4 @@
-.. _installation_py:
+.. _installation:
 
 ============
 Installation

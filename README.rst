@@ -12,6 +12,10 @@
    :alt: PyPI - Version
    :target: https://pypi.org/project/cartagen/
 
+.. image:: https://img.shields.io/badge/QGIS-Plugin-306998?style=flat-square
+   :alt: QGIS plugin
+   :target: https://github.com/LostInZoom/cartagen-qgis/
+
 .. image:: https://img.shields.io/github/last-commit/LostInZoom/cartagen?color=ffd43b&style=flat-square
    :alt: GitHub last commit
    :target: https://github.com/LostInZoom/cartagen/commits/main/
