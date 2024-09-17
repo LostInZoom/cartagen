@@ -59,10 +59,6 @@ ls.add_spatial_conflicts(distances, spatial_weights)
 
 gbuildings, groads, grivers = ls.generalize()
 
-nodes = ls.get_nodes()
-nodetonode = ls.get_nodes_conflicts()
-nodetolink = ls.get_links_conflicts()
-
 fig = plt.figure(1, (10, 6))
 
 sub1 = fig.add_subplot(111)
