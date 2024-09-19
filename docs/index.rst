@@ -116,7 +116,7 @@ Evaluate your generalised map
    manual
    changelog
    qgis
-   contributors
+   contribution
    bibliography
 
 .. toctree::
