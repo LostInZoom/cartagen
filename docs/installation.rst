@@ -4,7 +4,7 @@
 Installation
 ============
 
-CartAGen is available on `PyPI <https://pypi.org/>`_ under the name ``cartagen``.
+CartAGen is available on `PyPI. <https://pypi.org/project/cartagen/>`_
 
 Simply run::
 

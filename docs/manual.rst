@@ -30,7 +30,7 @@ nor a full explanation of the generalisation process. We have designed several *
 material, they are accessible `here. <https://github.com/LostInZoom/cartagen-notebooks>`_
 
 This user manual also assumes you have a certain knowledge of the Python libraries `Shapely <https://github.com/shapely/shapely>`_
-and `GeoPandas <https://github.com/geopandas/geopanda>`_ as CartAGen relies on those data format and geometry types.
+and `GeoPandas <https://github.com/geopandas/geopandas>`_ as CartAGen relies on those data format and geometry types.
 Furthermore, please ensure you are working with projected geographic data as the vast majority of
 generalisation tools provided by this library relies on spatial operations.
 
@@ -42,6 +42,9 @@ generalisation tools provided by this library relies on spatial operations.
 
 .. _polygons_manual:
 .. include:: manual/polygons.rst
+
+.. _networks_manual:
+.. include:: manual/networks.rst
 
 .. _processes_manual:
 .. include:: manual/processes.rst

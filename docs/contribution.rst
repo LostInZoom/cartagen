@@ -70,14 +70,13 @@ following template:
       See Also
       --------
       algorithm2 :
-         The short description of a related algorithm.
+         The short description of the related algorithm.
 
       Notes
       -----
       Notes to user using your algorithm if needed.
 
-      # Add the references section if you have :footcite:p:`name:date` inside the description.
-
+      # Add the references section only if you have :footcite:p:`name:date` inside the description.
       References
       ----------
       .. footbibliography::
@@ -85,6 +84,8 @@ following template:
 
 Contributors
 ============
+
+And if you contribute, you'll appear here!
 
 .. contributors:: LostInZoom/cartagen
     :avatars:
