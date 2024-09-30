@@ -75,5 +75,4 @@ This can be done using the algorithm to calculate
 
 .. plot:: code/manual/buildings_boffet.py
 
-    Morphological amalgamation of buildings into building
-    blocks with a small gaussian smoothing applied to the result
+    Boffet areas with a small gaussian smoothing applied to the result
