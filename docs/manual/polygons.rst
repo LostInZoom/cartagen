@@ -8,15 +8,15 @@ CartAGen also contains algorithms that process any type of polygons,
 and others specific to some types of map polygons, such as buildings.
 This section contains only informations related to algorithms that process
 one polygon at a time. If your buildings seems to be adapted to your current
-scale, you still can run a squaring algorithm to correct angles that are almost
-flat or right, or even almost 45°, using:
+scale, you can still run a squaring algorithm to correct angles that are almost
+flat, right, or at 45 degrees, using:
 
 - :func:`Least square squaring  <cartagen.square_polygon_ls>` :footcite:p:`touya:2016`
 - :func:`Naive squaring  <cartagen.square_polygon_naive>` :footcite:p:`touya:2016`
 
 .. plot:: code/manual/buildings_squaring.py
 
-    Building generalisation algorithms
+    Building squaring algorithms
 
 If you want to modify further the geometry of the building, you can use more
 drastic algorithms, such as:
@@ -30,8 +30,8 @@ drastic algorithms, such as:
     Building generalisation algorithms
 
 As you can see on the image above, those different algorithms can be used to
-address different issues. For example, the building simplification is used to
-reduce the complexity of the buildings while the recursive regression can be
+address different issues. The building simplification is used to
+reduce the complexity of the buildings. The recursive regression can be
 quite destructive and is mainly used to correct buildings automatically created
 from aerial or satellite imagery. On the other hand, the rectangle
 transformation is mostly used inside more complex algorithms, such as AGENT
