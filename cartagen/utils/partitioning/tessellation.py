@@ -33,7 +33,7 @@ def partition_grid(objects, width, height=None, shape='square'):
 
     See Also
     --------
-    tesselate :
+    tessellate :
         Create a tessellation of cells of a given shape.
     partition_networks :
         Partition objects using one or multiple networks.
