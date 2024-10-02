@@ -85,11 +85,34 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
     points_x = list(points.geometry.x)
     points_y = list(points.geometry.y)
 
-    #definition de la fonction de lissage par méthode des noyaux (quadratique)
+    #defining kernel functions
     if method == 'quartic':
         def kernel(d,radius):
             dn=d/radius
             P=(15/16)*(1-dn**2)**2
+            return P
+    
+    elif method == 'epanechnikov':
+        def kernel(d,radius):
+            dn=d/radius
+            P=(3/4)*(1-dn**2)
+            return P
+
+    elif method == 'gaussian':
+        def kernel(d,radius):
+            dn=d/radius
+            P=(1/np.sqrt(2 * np.pi))*np.exp(-dn**2 / 2)
+            return P
+    
+    elif method == 'uniform':
+        def kernel(d,radius):
+            P=1/2 
+            return P
+
+    elif method == 'triangular':
+        def kernel(d,radius):
+            dn=d/radius
+            P=1-abs(dn)
             return P
 
     #density calculation
