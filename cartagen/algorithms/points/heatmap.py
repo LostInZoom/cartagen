@@ -35,11 +35,9 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
         Name of the column of the
         point to use to weight the density value.
     method : str, optional
-        Name of the smoothing method that calculates
-        the density value of each point within the radius.
-        Each method impacts the way distance is
-        important in the density calculation.
-        Default to 'quartic'.
+        Name of the smoothing method that calculates the density value of each point within the radius.
+        Each method impacts the way distance is important in the density calculation.
+        Possible values: **'quartic'**, **'epanechnikov'**, **'gaussian'**, **'uniform'**, **'triangular'**
     clip : GeoDataFrame of Polygon, optional
         Polygons to clip the resulting heatmap grid.
         Be aware that it can return MultiPolygon.
@@ -87,30 +85,30 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
 
     #defining kernel functions
     if method == 'quartic':
-        def kernel(d,radius):
+        def kernel(d, radius):
             dn=d/radius
             P=(15/16)*(1-dn**2)**2
             return P
     
     elif method == 'epanechnikov':
-        def kernel(d,radius):
+        def kernel(d, radius):
             dn=d/radius
             P=(3/4)*(1-dn**2)
             return P
 
     elif method == 'gaussian':
-        def kernel(d,radius):
+        def kernel(d, radius):
             dn=d/radius
             P=(1/np.sqrt(2 * np.pi))*np.exp(-dn**2 / 2)
             return P
     
     elif method == 'uniform':
-        def kernel(d,radius):
+        def kernel(d, radius):
             P=1/2 
             return P
 
     elif method == 'triangular':
-        def kernel(d,radius):
+        def kernel(d, radius):
             dn=d/radius
             P=1-abs(dn)
             return P
