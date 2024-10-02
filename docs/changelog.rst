@@ -3,6 +3,14 @@
 Changelog
 #########
 
+1.0.1 - next release
+====================
+
+- **New features**:
+
+  #. Added new kernel methods for the :func:`heatmap <cartagen.heatmap>` function:
+     epanechnikov, gaussian, uniform and triangular. :pr:`12` (:user:`gowestmen`)
+
 1.0.0 - Official release
 ========================
 
