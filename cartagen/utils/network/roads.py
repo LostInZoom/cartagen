@@ -20,8 +20,12 @@ class Crossroad:
 
         # Fully dissolve and node the subnetwork
         unioned = unary_union(self.original_geoms)
-        # Merge all contiguous lines
-        merged = linemerge(unioned)
+
+        if unioned.geom_type != 'MultiLineString':
+            merged = unioned
+        else:
+            # Merge all contiguous lines
+            merged = linemerge(unioned)
 
         self.network = []
         if merged.geom_type == 'LineString':
