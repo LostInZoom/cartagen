@@ -3,8 +3,11 @@
 Changelog
 #########
 
-1.0.1 - next release
+1.0.2 - next release
 ====================
+
+1.0.1
+=====
 
 - **New features**:
 
