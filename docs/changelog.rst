@@ -11,8 +11,20 @@ Changelog
   #. Added new kernel methods for the :func:`heatmap <cartagen.heatmap>` function:
      epanechnikov, gaussian, uniform and triangular. :pr:`12` (:user:`gowestmen`)
 
-1.0.0 - Official release
-========================
+- **Improvements**:
+
+  #. Renamed :func:`detect_pastiness <cartagen.coalescence_splitting>` to
+     :func:`coalescence_splitting <cartagen.coalescence_splitting>` to better
+     reflect the usage and litterature.
+
+- **Bug fixes**:
+
+  #. Fixed an issue in the :func:`collapse_branching_crossroads <cartagen.collapse_branching_crossroads>`
+     function where :func:`linemerge() <shapely.ops.linemerge>` could input a LineString instead of
+     a MultiLineString.
+
+1.0.0
+=====
 
 - **New features**:
 

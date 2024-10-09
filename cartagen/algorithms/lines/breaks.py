@@ -8,7 +8,7 @@ def max_break(line, offset, exaggeration=1.0):
     """
     Spread a road bend and keep its shape.
 
-    This algorithm was proposed by  Mustière. :footcite:p:`mustiere:2001`
+    This algorithm was proposed by  Mustière. :footcite:p:`mustiere:2001-a` :footcite:p:`mustiere:2001-b`
     It first finds the side of the road bend and
     dilates the line on its exterior side.
 
@@ -27,8 +27,8 @@ def max_break(line, offset, exaggeration=1.0):
 
     See Also
     --------
-    detect_pastiness :
-        Detect the pastiness of a series of bends.
+    coalescence_splitting :
+        Splits a line into parts when coalescence is detected.
     min_break :
         Spread a road bend and minimize its extent.
 
@@ -58,7 +58,7 @@ def min_break(line, offset, sigma=30, sample=None):
     """
     Spread a road bend and minimize its extent.
 
-    This algorithm was proposed by  Mustière. :footcite:p:`mustiere:2001`
+    This algorithm was proposed by  Mustière. :footcite:p:`mustiere:2001-a` :footcite:p:`mustiere:2001-b`
     It mimics the cartographic technique of overlapping the internal border of the bend.
 
     It creates a polygon from the linestring by closing it at it extremities,
@@ -81,8 +81,8 @@ def min_break(line, offset, sigma=30, sample=None):
 
     See Also
     --------
-    detect_pastiness :
-        Detect the pastiness of a series of bends.
+    coalescence_splitting :
+        Splits a line into parts when coalescence is detected.
     max_break :
         Spread a road bend and keep its shape.
     gaussian_smoothing :

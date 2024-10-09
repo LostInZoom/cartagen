@@ -3,20 +3,20 @@ from shapely.ops import nearest_points
 
 from cartagen.utils.geometry.dilation import offset_line, merge_connected_parts, reconstruct_line
 
-def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
+def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
     """
-    Detect the pastiness of a series of bends.
+    Splits a line into parts when coalescence is detected.
 
-    This algorithm proposed by Mustière :footcite:p:`mustiere:2001`
-    subdivide the provided line into multiple chunks, thus modifying the geometry,
-    it is not a data enrichment function stricto sensu.
+    This algorithm proposed by Mustière :footcite:p:`mustiere:2001-a` :footcite:p:`mustiere:2001-b`
+    subdivides the provided line into multiple parts with either
+    no coalescence, or coalescence on one side, or coalescence on both sides. 
 
     Parameters
     ----------
     line : LineString
         The line to detect the pastiness from.
     tolerance : float
-        The width of the offset used to detect the pastiness.
+        The width of the offset used to detect the coalescence.
     cap_style : str, optional
         The type of caps at the start and end of the provided line.
         Possible values are 'round' or 'flat'.
@@ -27,15 +27,15 @@ def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
     Returns
     -------
     list of dict
-        The line subdivided into chunks depending of the paste.
+        The line subdivided into parts depending of the coalescence.
         
         Dict keys are as following:
 
-        - *'paste'* represents the number of conflicts, it can be:
+        - *'coalescence'* represents the number of conflicts, it can be:
 
-          * *0* when no conflicts are detected.
-          * *1* when a conflict exists on one side only.
-          * *2* when conflicts are on both side of the line).
+          * *0* when no coalescence is detected.
+          * *1* when a coalescence exists on one side only.
+          * *2* when coalescence are on both side of the line).
 
         - *'geometry'* is the geometry of the line section.
 
@@ -105,7 +105,7 @@ def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
             # If the projected point is different from the vertex
             if c != cl:
                 # Add the distance as an attribute of the dict
-                e['distance'] = shapely.distance(shapely.Point(cl), shapely.Point(c))
+                e['distance'] = float(shapely.distance(shapely.Point(cl), shapely.Point(c)))
                 e['coords'] = c
             
             return e
@@ -135,7 +135,7 @@ def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
         # that are not hole conflicts.
         done = []
 
-        # Storage for holes and pastes
+        # Storage for holes and coalescence
         conflicts = []
 
         # Loop through breaking points
@@ -194,8 +194,8 @@ def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
             # If the distance is above 1.7 times the width of the symbol
             if maxdist > (1.7 * abs(tolerance)):
                 # Here, it is a strict pastiness conflict
-                p1 = __create_conflict(breaks, i, 1, coords, 'paste', 'start')
-                p2 = __create_conflict(breaks, i, 2, coords, 'paste', 'end')
+                p1 = __create_conflict(breaks, i, 1, coords, 'coalescence', 'start')
+                p2 = __create_conflict(breaks, i, 2, coords, 'coalescence', 'end')
 
                 conflicts.extend([p1, p2])
 
@@ -258,11 +258,11 @@ def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
 
                 if 'coords' in o:
                     current.append(o['coords'])
-                    result.append({ 'paste': state, 'geometry': shapely.LineString(current) })
+                    result.append({ 'coalescence': state, 'geometry': shapely.LineString(current) })
                     n = o['coords']
                 else:
                     if len(current) > 0:
-                        result.append({ 'paste': state, 'geometry': shapely.LineString(current) })
+                        result.append({ 'coalescence': state, 'geometry': shapely.LineString(current) })
                     n = c
                 
                 current = [n]
@@ -272,6 +272,6 @@ def detect_pastiness(line, tolerance, cap_style='round', quad_segs=8):
                 else:
                     state -= 1
 
-    result.append({ 'paste': state, 'geometry': shapely.LineString(current) })
+    result.append({ 'coalescence': state, 'geometry': shapely.LineString(current) })
 
     return result

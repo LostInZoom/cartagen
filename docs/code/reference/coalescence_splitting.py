@@ -23,7 +23,7 @@ sub1.set_title('a) Tolerance = {0}'.format(tolerance), pad=10, family='sans-seri
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-lines = c4.detect_pastiness(line, tolerance)
+lines = c4.coalescence_splitting(line, tolerance)
 right = c4.dilate_line(line, tolerance, cap_style='flat')
 left = c4.dilate_line(line, -tolerance, cap_style='flat')
 both = right + left
@@ -34,7 +34,7 @@ for b in both:
 
 for i, l in enumerate(lines):
     path3 = Path(numpy.asarray(l['geometry'].coords)[:, :2])
-    sub1.add_patch(PathPatch(path3, facecolor="none", edgecolor='red', linewidth=width[l['paste']]))
+    sub1.add_patch(PathPatch(path3, facecolor="none", edgecolor='red', linewidth=width[l['coalescence']]))
 
 sub1.autoscale_view()
 
@@ -47,7 +47,7 @@ sub2.set_title('b) Tolerance = {0}'.format(tolerance), pad=10, family='sans-seri
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-lines = c4.detect_pastiness(line, tolerance)
+lines = c4.coalescence_splitting(line, tolerance)
 right = c4.dilate_line(line, tolerance, cap_style='flat')
 left = c4.dilate_line(line, -tolerance, cap_style='flat')
 both = right + left
@@ -58,7 +58,7 @@ for b in both:
 
 for i, l in enumerate(lines):
     path3 = Path(numpy.asarray(l['geometry'].coords)[:, :2])
-    sub2.add_patch(PathPatch(path3, facecolor="none", edgecolor='red', linewidth=width[l['paste']]))
+    sub2.add_patch(PathPatch(path3, facecolor="none", edgecolor='red', linewidth=width[l['coalescence']]))
 
 sub2.autoscale_view()
 
@@ -71,7 +71,7 @@ sub3.set_title('c) Tolerance = {0}'.format(tolerance), pad=10, family='sans-seri
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)
 
-lines = c4.detect_pastiness(line, tolerance)
+lines = c4.coalescence_splitting(line, tolerance)
 right = c4.dilate_line(line, tolerance, cap_style='flat')
 left = c4.dilate_line(line, -tolerance, cap_style='flat')
 both = right + left
@@ -82,7 +82,7 @@ for b in both:
 
 for i, l in enumerate(lines):
     path3 = Path(numpy.asarray(l['geometry'].coords)[:, :2])
-    sub3.add_patch(PathPatch(path3, facecolor="none", edgecolor='red', linewidth=width[l['paste']]))
+    sub3.add_patch(PathPatch(path3, facecolor="none", edgecolor='red', linewidth=width[l['coalescence']]))
 
 sub3.autoscale_view()
 

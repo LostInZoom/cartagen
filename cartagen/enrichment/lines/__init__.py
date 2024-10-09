@@ -1,1 +1,0 @@
-from cartagen.enrichment.lines.pastiness import detect_pastiness

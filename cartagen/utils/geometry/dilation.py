@@ -5,7 +5,7 @@ def dilate_line(line, offset, cap_style='round', quad_segs=8):
     """
     Dilate a line on one side.
 
-    This algorithm proposed by Mustière :footcite:p:`mustiere:2001` dilates
+    This algorithm proposed by Mustière :footcite:p:`mustiere:2001-a` dilates
     a line on one side by a given distance in meters. It is the basis of many
     mountain roads generalisation algorithm.
     

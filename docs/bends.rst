@@ -10,7 +10,7 @@ Bends and bend series
     :nosignatures:
     :toctree: reference/
 
-    detect_pastiness
+    coalescence_splitting
     max_break
     min_break
     accordion

@@ -14,7 +14,7 @@ lines = []
 left, right = None, None
 for n in net:
     geom = n['geometry']
-    lines = c4.detect_pastiness(geom, tolerance)
+    lines = c4.coalescence_splitting(geom, tolerance)
     right = { 'geometry': shapely.dilate_line(geom, tolerance) }
     left = { 'geometry': shapely.dilate_line(geom, -tolerance) }
 
@@ -24,7 +24,7 @@ original = lgpd.plot(color='gray', linewidth=1)
 rgpd.plot(ax=original, color='gray', linewidth=1)
 for line in lines:
     paste = gpd.GeoDataFrame([line], crs=network.crs)
-    paste.plot(ax=original, color='red', linewidth=width[line['paste']])
+    paste.plot(ax=original, color='red', linewidth=width[line['coalescence']])
 
 original.axes.get_xaxis().set_visible(False)
 original.axes.get_yaxis().set_visible(False)
