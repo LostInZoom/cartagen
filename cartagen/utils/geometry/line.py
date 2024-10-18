@@ -312,14 +312,14 @@ def li_openshaw(line, cell_size):
     groups, squares = partition_grid(gdf, cell_size)
 
     simplified = []
-    previous = None
+    gi_alrd_done = []
     for i in range(0, len(vertexes)):
         index = None
         for gi, j in enumerate(groups):
             if i in j:
                 index = gi
         
-        if index is not None and index != previous:
+        if index is not None and index not in gi_alrd_done:
             group = groups[index]
             centroid = shapely.centroid(MultiPoint([ vertexes[v] for v in group ]))
             simplified.append(centroid)
