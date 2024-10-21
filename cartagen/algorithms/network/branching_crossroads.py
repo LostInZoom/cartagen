@@ -212,13 +212,14 @@ def __collapse(branching, mains, minor):
             main_road = main
     else:
         main_road = mains[0]
+
+    # Retrieve the geometry of the concerned main road and minor road
+    main_geom = branching.network[main_road]
+    minor_geom = branching.network[minor]
     
     # Retrieve start and end point of the minor road
-    start = shapely.Point(branching.network[minor].coords[0])
-    end = shapely.Point(branching.network[minor].coords[-1])
-
-    # Retrieve the geometry of the concerned main road
-    main_geom = branching.network[main_road]
+    start = shapely.Point(minor_geom.coords[0])
+    end = shapely.Point(minor_geom.coords[-1])
 
     startdist = shapely.distance(start, main_geom)
     enddist = shapely.distance(end, main_geom)

@@ -791,7 +791,10 @@ def split_line_at_point(line, point):
     for s in splitted.geoms:
         lines.append(s)
 
-    return lines[0], lines[1]
+    if len(lines) < 2:
+        return None
+    else:
+        return lines[0], lines[1]
 
 def get_segment_center(segment):
     """
