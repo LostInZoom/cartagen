@@ -3,7 +3,6 @@ import numpy as np
 import shapely
 
 from cartagen.utils.network.roads import Crossroad
-from cartagen.utils.geometry.line import split_line_at_point
 from cartagen.utils.geometry.angle import angle_between_2lines
 
 def collapse_branching_crossroads(roads, crossroads, maximum_area=None):
@@ -171,8 +170,11 @@ def __collapse(branching, mains, minor):
 
     # Create the new minor road extension inside the branching crossroad
     def create_minor_extension(point, main_road):
+        from cartagen.utils.debug import plot_debug
+
         # Calculate the distance between the starting point of the main road and the projection of the point on the road.
-        dist = main_road.project(point)
+        dist = main_road.project(point) 
+
         # Create the point projected on the main road.
         intersection = shapely.Point(list(main_road.interpolate(dist).coords))
 
@@ -187,8 +189,26 @@ def __collapse(branching, mains, minor):
             new_minor = shapely.LineString([point, intersection])
         # Case if the projected point is along the main road
         else:
-            # Split the main road at the given point
-            main1, main2 = split_line_at_point(main_road, point)
+            # Split the main road at the intersection point
+            main1, main2 = [], [ intersection ]
+            # Loop through the main road vertexes
+            for vertex in list(main_road.coords):
+                p = shapely.Point(vertex)
+                d = main_road.project(p)
+                # If the distance of the vertex from the line start is below the distance of
+                # the intersection point
+                if d < dist:
+                    # Add it to the first part
+                    main1.append(p)
+                else:
+                    # Add it to the second part
+                    main2.append(p)
+
+            # Add the intersection to the end of the first part
+            main1.append(intersection)
+            # Create the line objects
+            main1, main2 = shapely.LineString(main1), shapely.LineString(main2)
+
             new_main.extend([main1, main2])
             new_minor = shapely.LineString([point, main2.coords[0]])
 

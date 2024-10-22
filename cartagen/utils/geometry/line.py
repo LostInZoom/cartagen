@@ -777,25 +777,6 @@ def get_line_middle_point(line):
     """
     return line.interpolate(line.length / 2)
 
-        
-def split_line_at_point(line, point):
-    """
-    Split a line at a given point along this line.
-    Return the two new linestrings.
-    Return None if the line and the point doesn't intersect.
-    """
-    projected = nearest_points(point, line)[1]
-    splitted = split(snap(line, projected, 0.0001), projected)
-
-    lines = []
-    for s in splitted.geoms:
-        lines.append(s)
-
-    if len(lines) < 2:
-        return None
-    else:
-        return lines[0], lines[1]
-
 def get_segment_center(segment):
     """
     Return the center of the given shapely segment (a linestring with only two vertices) as a shapely Point.
