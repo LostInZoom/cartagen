@@ -1,10 +1,25 @@
 .. _changelog:
 
+Roadmap
+#######
+
 Changelog
 #########
 
 1.0.2 - next release
 ====================
+
+- **Improvements**:
+
+  #. :func:`network_faces <cartagen.network_faces>` now returns a list of geometry instead
+     of a GeometrySequence.
+
+- **Bug fixes**:
+
+  #. Fixed an issue in :func:`li_openshaw <cartagen.li_openshaw>`. :pr:`14` (:user:`gowestmen`)
+
+  #. Fixed an issue in :func:`collapse_branching_crossroads <cartagen.collapse_branching_crossroads>`
+     when splitting a line by a point which causes problems of floating points in Shapely.
 
 1.0.1
 =====

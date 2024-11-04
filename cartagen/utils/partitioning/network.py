@@ -44,11 +44,11 @@ def network_faces(*networks, convex_hull=True):
 
     network = []
     for i, n in enumerate(networks):
-        for object in n:
-            if object.geom_type == 'LineString':
-                network.append(object)
-            elif object.geom_type == 'MultiLineString':
-                for line in object.geoms:
+        for o in n:
+            if o.geom_type == 'LineString':
+                network.append(o)
+            elif o.geom_type == 'MultiLineString':
+                for line in o.geoms:
                     network.append(line)
 
     if convex_hull:
@@ -64,7 +64,7 @@ def network_faces(*networks, convex_hull=True):
     # Merge all contiguous lines
     network = linemerge(network)
     # Return a list of polygons representing the faces of the network
-    return polygonize(network)
+    return list(polygonize(network))
 
 # Returns a tuple with objects and faces polygons
 # TODO: Manage centroids that happens to be on the edges of the networks faces

@@ -16,17 +16,21 @@ fig = plt.figure(1, (12, 4))
 #############################################################
 
 sub1 = fig.add_subplot(121)
-sub1.set_title("a) offset=50 cap_style='round'", pad=10, family='sans-serif')
+sub1.set_title("a) offset=28, cap_style='round'", pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-offset = c4.dilate_line(line, 50, cap_style='round')
+left, right = c4.dilate_line(line, 28, cap_style='round')
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
 sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 
-for l in offset:
+for l in left:
     path2 = Path(numpy.asarray(l.coords)[:, :2])
+    sub1.add_patch(PathPatch(path2, facecolor="none", edgecolor='blue', linewidth=1))
+
+for r in right:
+    path2 = Path(numpy.asarray(r.coords)[:, :2])
     sub1.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 
 sub1.autoscale_view()
@@ -34,17 +38,21 @@ sub1.autoscale_view()
 #############################################################
 
 sub2 = fig.add_subplot(122)
-sub2.set_title("a) offset=-50 cap_style='flat'", pad=10, family='sans-serif')
+sub2.set_title("a) offset=50, cap_style='flat'", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-offset = c4.dilate_line(line, -50, cap_style='flat')
+left, right = c4.dilate_line(line, 50, cap_style='flat')
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
 sub2.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 
-for l in offset:
+for l in left:
     path2 = Path(numpy.asarray(l.coords)[:, :2])
+    sub2.add_patch(PathPatch(path2, facecolor="none", edgecolor='blue', linewidth=1))
+
+for r in right:
+    path2 = Path(numpy.asarray(r.coords)[:, :2])
     sub2.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 
 sub2.autoscale_view()

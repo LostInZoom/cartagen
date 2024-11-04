@@ -1,6 +1,6 @@
 import shapely, networkx
 
-from cartagen.utils.geometry.dilation import dilate_line, offset_line, merge_connected_parts, reconstruct_line
+from cartagen.utils.geometry.dilation import dilate_line, offset_line, reconstruct_line
 from cartagen.utils.geometry.line import gaussian_smoothing, get_bend_side, merge_linestrings
 from cartagen.utils.geometry.skeletonization import SkeletonTIN
 
@@ -42,17 +42,17 @@ def max_break(line, offset, exaggeration=1.0):
     >>> max_break(line, 1.0)
     <LINESTRING (-0.707 0.707, 2.293 3.707, 2.426 3.819...)>
     """
+    # Dilate the bend
+    left, right = dilate_line(line, offset*exaggeration, cap_style='flat', quad_segs=8)
+
     # Get the side of the bend
     side = get_bend_side(line)
 
     # Change the offset in case of left sided bend
     if side == 'left':
-        offset = -offset
-
-    # Dilate the bend
-    dilated = dilate_line(line, offset*exaggeration, cap_style='flat', quad_segs=8)
-    
-    return dilated[0]
+        return left[0]
+    else:
+        return right[0]
 
 def min_break(line, offset, sigma=30, sample=None):
     """
@@ -98,22 +98,6 @@ def min_break(line, offset, sigma=30, sample=None):
     >>> min_break(line, 1.0)
     <LINESTRING (5 0, 5 1, 5 2, 4.97 2.347, 4.879 2.684...)>
     """
-
-    # Create the offset of the skeleton
-    def __offset(line, offset):
-        # Calculate the offset points along the line
-        groups = offset_line(line, offset)
-
-        # Remove the circle projection from the first node
-        groups[0]['projected'] = groups[0]['projected'][-1:]
-
-        # Reconstruct the line into parts
-        parts, breaks = reconstruct_line(groups, line, offset)
-
-        # Merge parts that have a common set of coordinates
-        groups = merge_connected_parts(parts)
-
-        return groups
 
     # Get the nodes of the linestring
     coordinates = list(line.coords)
@@ -223,8 +207,15 @@ def min_break(line, offset, sigma=30, sample=None):
         newline = gaussian_smoothing(newline, sigma, sample)
 
         # Calculate the offset points along the skeleton
-        left = list(__offset(newline, -offset)[0].coords)
-        right = list(__offset(newline, offset)[0].coords)
+        groups1 = offset_line(newline, offset)
+        groups2 = offset_line(newline, -offset)
+
+        # Remove the circle projection from the first node
+        groups1[0]['projected'] = groups1[0]['projected'][-1:]
+        groups2[0]['projected'] = groups2[0]['projected'][-1:]
+
+        line1, line2 = reconstruct_line(groups1, groups2, newline, offset)
+        left, right = list(line1[0][0].coords), list(line2[0][0].coords)
 
         # Reverse the order on the right side
         right.reverse()

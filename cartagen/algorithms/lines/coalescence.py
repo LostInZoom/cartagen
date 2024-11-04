@@ -1,7 +1,8 @@
 import shapely
 from shapely.ops import nearest_points
 
-from cartagen.utils.geometry.dilation import offset_line, merge_connected_parts, reconstruct_line
+from cartagen.utils.debug import plot_debug
+from cartagen.utils.geometry.dilation import offset_line, reconstruct_line
 
 def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
     """
@@ -44,7 +45,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
     .. footbibliography::
     """
     # Handle individual sides
-    def __treat_side(line, tolerance, cap_style, quad_segs):
+    def __treat_side(line, tolerance, coords, side):
         # Prepare the break points
         def __prepare_breaks(breaks, coords, lines, oline):
             # Project the point on a segment or a vertex
@@ -110,16 +111,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
             
             return e
 
-        coords = list(line.coords)
-
-        # Calculate the offset points along the line
-        groups = offset_line(line, tolerance, cap_style, quad_segs)
-
-        # Reconstruct the line into parts
-        parts, breaks = reconstruct_line(groups, line, tolerance)
-
-        # Merge parts that have a common set of coordinates
-        groups = merge_connected_parts(parts)
+        groups, breaks = side[0], side[1]
 
         # Prepare lines
         lines = __prepare_lines(groups)
@@ -229,9 +221,18 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
         
         return lines
 
+    coords = list(line.coords)
+
+    # Calculate the offset points along the line
+    groups1 = offset_line(line, tolerance, cap_style, quad_segs)
+    groups2 = offset_line(line, -tolerance, cap_style, quad_segs)
+
+    # Reconstruct the line into parts
+    left, right = reconstruct_line(groups1, groups2, line, tolerance)
+
     # Calculate conflicts on both sides of the line
-    lconflicts = __treat_side(line, tolerance, cap_style, quad_segs)
-    rconflicts = __treat_side(line, -tolerance, cap_style, quad_segs)
+    lconflicts = __treat_side(line, tolerance, coords, left)
+    rconflicts = __treat_side(line, -tolerance, coords, right)
 
     # Sort the conflicts by node number and distance from the node
     conflicts = sorted(rconflicts + lconflicts, key=lambda s: (s['node'], s['distance']))
