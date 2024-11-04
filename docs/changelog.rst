@@ -14,6 +14,11 @@ Changelog
   #. :func:`network_faces <cartagen.network_faces>` now returns a list of geometry instead
      of a GeometrySequence.
 
+  #. Fixed some inconsistencies within the :func:`dilate_line <cartagen.dilate_line>` function
+     that caused some random issues caused by the precision of the vertexes coordinates.
+     Now, the function never relies on distances, this is much quicker. Furthermore, wrapped
+     line extremities are now accounted for.
+
 - **Bug fixes**:
 
   #. Fixed an issue in :func:`li_openshaw <cartagen.li_openshaw>`. :pr:`14` (:user:`gowestmen`)
