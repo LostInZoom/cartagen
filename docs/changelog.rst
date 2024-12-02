@@ -3,11 +3,23 @@
 Roadmap
 #######
 
+In this section, you can see which new features, improvements or bug fixes will be available in the next release.
+You can also take a look on the `issue section of the GitHub repository <https://github.com/LostInZoom/cartagen/issues>`_
+to have a look on what we currently are working on. Feel free to propose some features you would want in CartAGen as well !
+
 Changelog
 #########
 
 1.0.2 - next release
 ====================
+
+- **New features**:
+
+  #. Added a new :func:`make_planar <cartagen.make_planar>` function that creates a planar
+     network from a provided network and keeps a link between input and output.
+
+  #. Added a new :func:`strokes_rivers <cartagen.strokes_rivers>` function that generate strokes
+     on river networks.
 
 - **Improvements**:
 
@@ -15,9 +27,25 @@ Changelog
      of a GeometrySequence.
 
   #. Fixed some inconsistencies within the :func:`dilate_line <cartagen.dilate_line>` function
-     that caused some random issues caused by the precision of the vertexes coordinates.
+     that caused random issues with the precision of the vertexes coordinates.
      Now, the function never relies on distances, this is much quicker. Furthermore, wrapped
      line extremities are now accounted for.
+
+  #. The point reduction algorithms now returns the full set of provided points
+     with a boolean attribute to know if it was selected. This, of course, is not the case
+     in aggregation mode. Furthermore, point reduction algorithms have been divided into
+     multiple algorithms in order to be more obvious, easy to use. Read more about that
+     on their respective reference page:
+
+     - :func:`kmeans_selection <cartagen.kmeans_selection>`
+     - :func:`kmeans_simplification <cartagen.kmeans_simplification>`
+     - :func:`kmeans_aggregation <cartagen.kmeans_aggregation>`
+     - :func:`labelgrid_selection <cartagen.labelgrid_selection>`
+     - :func:`labelgrid_simplification <cartagen.labelgrid_simplification>`
+     - :func:`labelgrid_aggregation <cartagen.labelgrid_aggregation>`
+     - :func:`quadtree_selection <cartagen.quadtree_selection>`
+     - :func:`quadtree_simplification <cartagen.quadtree_simplification>`
+     - :func:`quadtree_aggregation <cartagen.quadtree_aggregation>`
 
 - **Bug fixes**:
 
