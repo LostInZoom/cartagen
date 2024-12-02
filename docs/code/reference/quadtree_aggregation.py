@@ -55,11 +55,11 @@ for l in g1.geometry(depth1):
     path = Path(numpy.asarray(l.coords)[:, :2])
     sub1.add_patch(PathPatch(path, facecolor="none", edgecolor='gray', linewidth=.5))
 
-for l in g2.geometry(depth1):
+for l in g2.geometry(depth2):
     path = Path(numpy.asarray(l.coords)[:, :2])
     sub2.add_patch(PathPatch(path, facecolor="none", edgecolor='gray', linewidth=.5))
 
-for l in g3.geometry(depth2):
+for l in g3.geometry(depth3):
     path = Path(numpy.asarray(l.coords)[:, :2])
     sub3.add_patch(PathPatch(path, facecolor="none", edgecolor='gray', linewidth=.5))
 
