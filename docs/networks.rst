@@ -17,9 +17,20 @@ Detection
     detect_branching_crossroads
     detect_dual_carriageways
     detect_dead_ends
+
+Continuity
+----------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
     rural_betweeness
     rural_traffic
     strokes_roads
+    strokes_rivers
 
 Collapsing
 ----------
@@ -45,3 +56,4 @@ Tools
     :toctree: reference/
 
     network_faces
+    make_planar

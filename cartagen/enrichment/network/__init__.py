@@ -3,4 +3,4 @@ from cartagen.enrichment.network.dead_ends import detect_dead_ends
 from cartagen.enrichment.network.dual_carriageways import detect_dual_carriageways, is_dual_carriageway
 from cartagen.enrichment.network.roundabouts import detect_roundabouts, is_roundabout
 from cartagen.enrichment.network.rural_areas import rural_betweeness, rural_traffic
-from cartagen.enrichment.network.strokes import strokes_roads
+from cartagen.enrichment.network.strokes import strokes_roads, strokes_rivers
