@@ -37,7 +37,7 @@ sub1.autoscale_view()
 # #############################################################
 
 sub2 = fig.add_subplot(122)
-sub2.set_title("a) offset=10 cap_style='flat'", pad=10, family='sans-serif')
+sub2.set_title("b) offset=10 cap_style='flat'", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
