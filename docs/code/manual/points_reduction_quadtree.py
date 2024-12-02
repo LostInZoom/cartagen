@@ -21,7 +21,7 @@ for l in land.geometry:
     poly = Path.make_compound_path(Path(numpy.asarray(l.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in l.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
 
-reduced, quadtree = c4.reduce_quadtree(cities, 3, 'selection', 'pop_max', True)
+reduced, quadtree = c4.quadtree_selection(cities, 3, 'pop_max', True)
 
 lines = quadtree.geometry(3)
 

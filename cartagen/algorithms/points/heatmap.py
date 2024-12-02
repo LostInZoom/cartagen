@@ -47,13 +47,6 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
     grid : GeoDataFrame of Polygon
         The grid containing the values of density
 
-    See Also
-    --------
-    reduce_quadtree :
-        Reduce a set of points using a quadtree.
-    reduce_labelgrid :
-        Reduce a set of points using the Label Grid method.
-
     References
     ----------
     .. footbibliography::

@@ -21,7 +21,7 @@ for l in land.geometry:
     poly = Path.make_compound_path(Path(numpy.asarray(l.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in l.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
 
-reduced = c4.reduce_kmeans(cities, 0.1, 'selection', 'pop_max')
+reduced = c4.kmeans_selection(cities, 0.1, 'pop_max')
 
 for r in reduced.to_dict('records'):
     geom = r['geometry']

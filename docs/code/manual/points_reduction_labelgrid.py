@@ -21,7 +21,7 @@ for l in land.geometry:
     poly = Path.make_compound_path(Path(numpy.asarray(l.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in l.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
 
-reduced, grid = c4.reduce_labelgrid(cities, 500000, 500000, 'hexagonal', 'selection', 'pop_min', grid=True)
+reduced, grid = c4.labelgrid_selection(cities, 500000, 500000, 'pop_min', 'hexagonal', grid=True)
 
 for g in grid.to_dict('records'):
     path = Path(numpy.asarray(g['geometry'].boundary.coords)[:, :2])
