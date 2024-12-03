@@ -1,3 +1,5 @@
+.. _index:
+
 .. raw:: html
 
    <div align="center">
@@ -6,6 +8,17 @@
    :alt: CartAGen - Generalise cartographic objects using advanced algorithms
    :align: center
    :width: 150px
+
+.. raw:: html
+
+   <div style="height: 0; visibility: hidden;">
+
+CartAGen
+========
+
+.. raw:: html
+
+   </div>
 
 .. raw:: html
 
@@ -90,23 +103,46 @@ community and provide advantages as powerful spatial operations, measures, index
 It is recommended for users to have an understanding of those libraries as CartAGen heavily
 relies on them.
 
-Apply map generalisation operations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. raw:: html
 
-.. image:: img/buiding_simplification.png
+   <div align="center">
+
+Apply map generalisation operations
+-----------------------------------
+
+.. plot:: code/index/operation_simplify.py
+   :show-source-link: False
+
+.. plot:: code/index/operation_recursive.py
+   :show-source-link: False
+
+.. plot:: code/index/operation_blocks.py
+   :show-source-link: False
 
 Orchestrate multiple algorithms
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
-.. image:: img/agents_micro.png
+.. plot:: code/index/orchestration_network.py
+   :show-source-link: False
+
+.. plot:: code/index/orchestration_agent.py
+   :show-source-link: False
 
 Enrich your cartographic data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
-.. image:: img/boffet_urban_areas.png
+.. plot:: code/index/enrichment_boffet.py
+   :show-source-link: False
 
-Evaluate your generalised map
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. plot:: code/index/enrichment_roads.py
+   :show-source-link: False
+
+.. plot:: code/index/enrichment_rivers.py
+   :show-source-link: False
+
+.. raw:: html
+
+   </div>
 
 .. toctree::
    :caption: User Guide

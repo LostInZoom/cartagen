@@ -104,6 +104,8 @@ plot_rcparams = {
     'savefig.bbox': "tight"
 }
 
+plot_html_show_formats = False
+
 html_favicon = 'img/logo.svg'
 
 numpydoc_show_class_members = False
