@@ -22,7 +22,7 @@ o1, g1 = c4.labelgrid_simplification(gdf, 5, 5, 'square', grid=True)
 o2, g2 = c4.labelgrid_simplification(gdf, 5, 5, 'diamond', grid=True)
 o3, g3 = c4.labelgrid_simplification(gdf, 5, 5, 'hexagonal', grid=True)
 
-fig = plt.figure(1, (8, 26))
+fig = plt.figure(1, (8, 12))
 
 sub1 = fig.add_subplot(311)
 sub1.set_aspect('equal')

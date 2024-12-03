@@ -23,7 +23,7 @@ o1 = c4.kmeans_simplification(gdf, ratio1)
 o2 = c4.kmeans_simplification(gdf, ratio2)
 o3 = c4.kmeans_simplification(gdf, ratio3)
 
-fig = plt.figure(1, (8, 26))
+fig = plt.figure(1, (8, 12))
 
 sub1 = fig.add_subplot(311)
 sub1.set_aspect('equal')

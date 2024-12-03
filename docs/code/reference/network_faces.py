@@ -79,11 +79,13 @@ lines = [
 fig = plt.figure(1, (6, 12))
 
 sub1 = fig.add_subplot(211)
+sub1.set_aspect('equal')
 sub1.set_title('a) convex_hull = True', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
 sub2 = fig.add_subplot(212)
+sub2.set_aspect('equal')
 sub2.set_title('b) convex_hull = False', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)

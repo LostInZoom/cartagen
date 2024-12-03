@@ -18,6 +18,7 @@ width = { 0: 1, 1: 3, 2: 5 }
 tolerance = 50
 
 sub1 = fig.add_subplot(311)
+sub1.set_aspect('equal')
 sub1.set_title('a) Tolerance = {0}'.format(tolerance), pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
@@ -44,6 +45,7 @@ sub1.autoscale_view()
 tolerance = 100
 
 sub2 = fig.add_subplot(312)
+sub2.set_aspect('equal')
 sub2.set_title('b) Tolerance = {0}'.format(tolerance), pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
@@ -70,6 +72,7 @@ sub2.autoscale_view()
 tolerance = 250
 
 sub3 = fig.add_subplot(313)
+sub3.set_aspect('equal')
 sub3.set_title('c) Tolerance = {0}'.format(tolerance), pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)

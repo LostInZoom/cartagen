@@ -4,7 +4,7 @@
 Points
 ======
 
-Selection
+Reduction
 ---------
 
 .. currentmodule:: cartagen
@@ -14,34 +14,14 @@ Selection
     :toctree: reference/
 
     kmeans_selection
-    labelgrid_selection
-    quadtree_selection
-
-Simplification
---------------
-
-.. currentmodule:: cartagen
-
-.. autosummary::
-    :nosignatures:
-    :toctree: reference/
-
     kmeans_simplification
-    labelgrid_simplification
-    quadtree_simplification
-
-Aggregation
------------
-
-.. currentmodule:: cartagen
-
-.. autosummary::
-    :nosignatures:
-    :toctree: reference/
-
     kmeans_aggregation
+    labelgrid_selection
+    labelgrid_simplification
     labelgrid_aggregation
-    quadtree_aggregation
+    quadtree_selection
+    quadtree_simplification
+    quadtree_aggregation    
 
 Covering
 --------

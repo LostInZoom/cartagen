@@ -25,7 +25,7 @@ o1, g1 = c4.quadtree_aggregation(gdf, depth1, 'value', True)
 o2, g2 = c4.quadtree_aggregation(gdf, depth2, 'value', True)
 o3, g3 = c4.quadtree_aggregation(gdf, depth3, 'value', True)
 
-fig = plt.figure(1, (8, 26))
+fig = plt.figure(1, (8, 12))
 
 sub1 = fig.add_subplot(311)
 sub1.set_aspect('equal')

@@ -19,6 +19,7 @@ f, axs = plt.subplots(2, 1, figsize=(12, 12), gridspec_kw={'height_ratios': [1, 
 #############################################################
 
 axs[0].set_title('densify=10.0 sigma=5.0', pad=10, family='sans-serif')
+axs[0].set_aspect('equal')
 axs[0].axes.get_xaxis().set_visible(False)
 axs[0].axes.get_yaxis().set_visible(False)
 
@@ -47,6 +48,7 @@ structural = [
 ]
 
 axs[1].set_title('densify=10.0 sigma=5.0 with structural point', pad=10, family='sans-serif')
+axs[1].set_aspect('equal')
 axs[1].axes.get_xaxis().set_visible(False)
 axs[1].axes.get_yaxis().set_visible(False)
 

@@ -58,6 +58,7 @@ displaced = c4.random_displacement(buildings_gdf, networks=[roads_gdf, rivers_gd
 
 fig = plt.figure(1, (8, 8))
 sub1 = fig.add_subplot(111)
+sub1.set_aspect('equal')
 text = 'polygon_distance=10 (represented by the dashed line at 5 meters around displaced buildings)\nnetwork_distance=15 (represented by the width of 15m around the network)'
 fig.text(0.05, 0.05, text, fontsize=12, horizontalalignment='left')
 sub1.axes.get_xaxis().set_visible(False)

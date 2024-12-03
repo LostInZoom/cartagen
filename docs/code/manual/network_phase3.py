@@ -82,10 +82,12 @@ n4 = c4.eliminate_dead_ends(deadends, 200, keep_longest=True)
 fig = plt.figure(1, (12, 4))
 
 sub1 = fig.add_subplot(121)
+sub1.set_aspect('equal')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
 sub2 = fig.add_subplot(122)
+sub2.set_aspect('equal')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 

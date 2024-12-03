@@ -14,6 +14,7 @@ line = loads('LineString (-176283.00173896295018494 5373523.20335822738707066, -
 fig = plt.figure(1, (12, 4))
 
 sub1 = fig.add_subplot(131)
+sub1.set_aspect('equal')
 sub1.set_title('a) Cell size: {0}'.format(size1), pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
@@ -25,6 +26,7 @@ sub1.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub1.autoscale_view()
 
 sub2 = fig.add_subplot(132)
+sub2.set_aspect('equal')
 sub2.set_title('b) Cell size: {0}'.format(size2), pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
@@ -36,6 +38,7 @@ sub2.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub2.autoscale_view()
 
 sub3 = fig.add_subplot(133)
+sub3.set_aspect('equal')
 sub3.set_title('c) Cell size: {0}'.format(size3), pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)

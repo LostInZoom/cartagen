@@ -14,6 +14,7 @@ records = cities.to_dict('records')
 fig = plt.figure(1, (10, 9))
 
 sub1 = fig.add_subplot(111)
+sub1.set_aspect('equal')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
@@ -28,10 +29,11 @@ for g in grid.to_dict('records'):
     sub1.add_patch(PathPatch(path, facecolor="none", edgecolor='gray', linewidth=.5))
 
 for r in reduced.to_dict('records'):
-    name = r['name']
-    geom = r['geometry']
-    sub1.plot(geom.coords[0][0], geom.coords[0][1], linestyle="", marker='o', color="red", markersize=2)
-    sub1.annotate(name, (geom.coords[0][0], geom.coords[0][1]), annotation_clip=True, ha='center', va='top')
+    if r['selected_labelgrid']:
+        name = r['name']
+        geom = r['geometry']
+        sub1.plot(geom.coords[0][0], geom.coords[0][1], linestyle="", marker='o', color="red", markersize=2)
+        sub1.annotate(name, (geom.coords[0][0], geom.coords[0][1]), annotation_clip=True, ha='center', va='top')
 
 sub1.autoscale_view()
 plt.show()

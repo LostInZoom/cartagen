@@ -15,6 +15,7 @@ e2 = c4.enclosing_rectangle(polygon, mode='input')
 fig = plt.figure(1, (6, 12))
 
 sub1 = fig.add_subplot(211)
+sub1.set_aspect('equal')
 sub1.set_title("a) mode='hull'", pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
@@ -25,6 +26,7 @@ poly2 = Path.make_compound_path(Path(numpy.asarray(e1.exterior.coords)[:, :2]),*
 sub1.add_patch(PathPatch(poly2, facecolor="none", edgecolor='red'))
 
 sub2 = fig.add_subplot(212)
+sub2.set_aspect('equal')
 sub2.set_title("b) mode='input'", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
