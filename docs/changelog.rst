@@ -10,8 +10,8 @@ to have a look on what we currently are working on. Feel free to propose some fe
 Changelog
 #########
 
-1.0.2 - next release
-====================
+1.0.2
+=====
 
 - **New features**:
 
