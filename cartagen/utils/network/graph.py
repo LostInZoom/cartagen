@@ -2,7 +2,7 @@ import networkx as nx
 import geopandas as gpd
 import shapely
 from shapely.ops import linemerge, unary_union
-from shapely import STRtree
+from shapely import STRtree, LineString
 
 from cartagen.utils.geometry.conversion import multi_to_simple
 
@@ -14,6 +14,9 @@ def make_planar(network):
     a network having its edges intersect only at their endpoints.
     As an example, a road network will lose its tunnels and bridges as topological features
     and merging lanes will split the main road it merges into.
+
+    This function is also suitable for river networks as it preserves the
+    direction of the LineStrings.
 
     Parameters
     ----------
@@ -41,6 +44,32 @@ def make_planar(network):
     1   LINESTRING (1 1, 0 1)   1
     2   LINESTRING (0 1, 0 2)   2
     """
+    def has_same_direction(line1, line2):
+        """
+        Returns True is the line1 has the same direction as the line2, else False.
+        """
+        direction = True
+        # Get list of coords for each line
+        coords1, coords2 = list(line1.coords), list(line2.coords)
+        # Get start and end vertex of line2
+        start, end = coords2[0], coords2[-1]
+
+        # Boolean to check if the end has been found first
+        endfirst = False
+        # Loop through vertex of line1
+        for vertex in coords1:
+            # If the current vertex if the start of line2
+            if vertex == start:
+                # Break the loop and keep direction=True
+                break
+            # If the current vertex is the end of line2
+            if vertex == end:
+                # Set direction to False and break the loop
+                direction = False
+                break
+
+        return direction
+
     # Retrieve the crs
     crs = network.crs
 
@@ -92,7 +121,8 @@ def make_planar(network):
             elif shapely.contains(original, resulting):
                 e = dict(records[i])
                 e['planar_id'] = pid
-                e['geometry'] = resulting
+                geom = resulting if has_same_direction(original, resulting) else resulting.reverse()
+                e['geometry'] = geom
                 planar.append(e)
                 pid += 1
             # If the resulting line and the original one overlaps
@@ -104,9 +134,12 @@ def make_planar(network):
                     union = unary_union(parts)
                     intersection = linemerge(union)
 
+                # The intersection being contained in the original line
+                # we can check its direction and reverse it if needed
+                geom = intersection if has_same_direction(original, intersection) else intersection.reverse()
                 e = dict(records[i])
                 e['planar_id'] = pid
-                e['geometry'] = intersection
+                e['geometry'] = geom
                 planar.append(e)
                 pid += 1
 
