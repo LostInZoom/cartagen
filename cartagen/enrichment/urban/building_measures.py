@@ -3,7 +3,7 @@ from cartagen.utils.geometry.segment import get_segment_list
 from cartagen.utils.geometry.line import to_2d, get_nearest_vertex, resample_line
 from cartagen.utils.geometry.angle import angle_3_pts, angle_2_pts, angle_to_zero_pi, angle_between_2lines
 from shapely.ops import nearest_points, transform, triangulate, substring, split
-from shapely.geometry import MultiPolygon, MultiPoint, Polygon
+from shapely.geometry import MultiPolygon, MultiPoint, Polygon, LineString, Point
 from math import pi
 
 def building_min_width(building):
