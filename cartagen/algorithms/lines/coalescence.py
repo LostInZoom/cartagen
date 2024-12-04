@@ -1,7 +1,7 @@
 import shapely
+from shapely import Point, LineString, length
 from shapely.ops import nearest_points
 
-from cartagen.utils.debug import plot_debug
 from cartagen.utils.geometry.dilation import offset_line, reconstruct_line
 
 def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
@@ -54,13 +54,13 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
                 if len(o) == 1:
                     # The point is the node
                     p = coords[o[0]]
-                    point = shapely.Point(p)
+                    point = Point(p)
                 # If it's not (must be 2)
                 else:
                     # Create the segment formed by both coordinates
-                    segment = shapely.LineString([coords[o[0]], coords[o[1]]])
+                    segment = LineString([coords[o[0]], coords[o[1]]])
                     # Project the point on the segment
-                    point = nearest_points(shapely.Point(b['geometry']), segment)[1]
+                    point = nearest_points(Point(b['geometry']), segment)[1]
                     p = point.coords[0]
 
                 if oline is not None:
@@ -76,7 +76,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
                     b['o1'], b['o2'] = b['o2'], b['o1']
 
                 # Retrieve breakpoint geometry
-                geom = shapely.Point(b['geometry'])
+                geom = Point(b['geometry'])
                 # Loop through group lines
                 for iline, gline in enumerate(lines):
                     # If the breakpoint intersects the line
@@ -106,7 +106,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
             # If the projected point is different from the vertex
             if c != cl:
                 # Add the distance as an attribute of the dict
-                e['distance'] = float(shapely.distance(shapely.Point(cl), shapely.Point(c)))
+                e['distance'] = float(shapely.distance(Point(cl), Point(c)))
                 e['coords'] = c
             
             return e
@@ -167,7 +167,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
                         continue
 
             # Create the break point
-            bgeom = shapely.Point(b['geometry'])
+            bgeom = Point(b['geometry'])
 
             n1, n2 = b['o1'], b['o2']
 
@@ -176,7 +176,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
             # Loop through the nodes of the concerned section of the line
             for index in range(n1[-1], n2[0] + 1):
                 # Create the line node point
-                ogeom = shapely.Point(coords[index])
+                ogeom = Point(coords[index])
                 # Calculate the distance between the breakpoint and the line node
                 d = shapely.distance(bgeom, ogeom)
                 # If the distance is above the max distance, update it
@@ -216,7 +216,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
                 # Add the line to the list
                 lines.append({
                     'type': ltype,
-                    'geometry': shapely.LineString(line)
+                    'geometry': LineString(line)
                 })
         
         return lines
@@ -241,7 +241,7 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
     coords = list(line.coords)
 
     # Storage for the final lines
-    result = []
+    chunks = []
     # The state flag identify the current pastiness level
     state = 0
 
@@ -259,11 +259,11 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
 
                 if 'coords' in o:
                     current.append(o['coords'])
-                    result.append({ 'coalescence': state, 'geometry': shapely.LineString(current) })
+                    chunks.append({ 'coalescence': state, 'geometry': LineString(current) })
                     n = o['coords']
                 else:
                     if len(current) > 0:
-                        result.append({ 'coalescence': state, 'geometry': shapely.LineString(current) })
+                        chunks.append({ 'coalescence': state, 'geometry': LineString(current) })
                     n = c
                 
                 current = [n]
@@ -273,6 +273,15 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
                 else:
                     state -= 1
 
-    result.append({ 'coalescence': state, 'geometry': shapely.LineString(current) })
+    chunks.append({ 'coalescence': state, 'geometry': LineString(current) })
 
-    return result
+    # result = []
+
+    # for chunk in chunks:
+    #     length = chunk['geometry'].length
+    #     print(length)
+
+    # from cartagen.utils.debug import plot_debug
+    # plot_debug(*[s['geometry'] for s in chunks], [ Point(l['geometry']) for l in left[1] ], [ Point(l['geometry']) for l in right[1] ])
+
+    return chunks
