@@ -1,12 +1,5 @@
 .. _changelog:
 
-Roadmap
-#######
-
-In this section, you can see which new features, improvements or bug fixes will be available in the next release.
-You can also take a look on the `issue section of the GitHub repository <https://github.com/LostInZoom/cartagen/issues>`_
-to have a look on what we currently are working on. Feel free to propose some features you would want in CartAGen as well !
-
 Changelog
 #########
 

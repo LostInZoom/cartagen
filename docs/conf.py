@@ -82,7 +82,7 @@ intersphinx_mapping = {
 }
 
 extlinks = {
-    "bug": ("https://github.com/LostInZoom/cartagen/issues/%s", "#%s"),
+    "issue": ("https://github.com/LostInZoom/cartagen/issues/%s", "#%s"),
     "pr": ("https://github.com/LostInZoom/cartagen/pull/%s", "#%s"),
     "user": ("https://github.com/%s", "%s"),
 }

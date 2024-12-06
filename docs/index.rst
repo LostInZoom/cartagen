@@ -151,7 +151,9 @@ Enrich your cartographic data
    installation
    manual
    changelog
+   roadmap
    qgis
+   notebooks
    contribution
    bibliography
 
