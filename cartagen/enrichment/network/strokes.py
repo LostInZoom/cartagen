@@ -7,7 +7,7 @@ import networkx as nx
 
 from cartagen.utils.geometry.angle import angle_3_pts, angle_between_2lines
 
-def strokes_roads(roads, attributes, angle=45.0, angle_sum=30.0):
+def strokes_roads(roads, attributes=None, angle=45.0, angle_sum=30.0):
     """
     Calculate strokes inside a road network.
 
@@ -42,6 +42,9 @@ def strokes_roads(roads, attributes, angle=45.0, angle_sum=30.0):
     ----------
     .. footbibliography::
     """
+    if attributes is None:
+        attributes = []
+
     crs = roads.crs
     strokes = StrokeNetwork(roads, attributes)
     strokes.buildStrokes(attributes, angle, angle_sum)
