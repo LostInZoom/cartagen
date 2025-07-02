@@ -25,12 +25,13 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
         containing density values.
         Smaller size means smoother result,
         but also higher computation time.
-    radius : int
+    radius : int or str
         The radius used for the density calculation
         in each grid cells. For each centroid
         of grid cell, all the points within the
         radius are taken in account for density calculation.
         Higher radius means more generalized results.
+        You can also specify a column name representing a variable radius. This allows the heat map's accuracy to be adapted to the local point density.
     column : str, optional 
         Name of the column of the
         point to use to weight the density value.
@@ -106,21 +107,39 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
             P=1-abs(dn)
             return P
 
-    #density calculation
-    intensity_list = [] # list to store density value of each cell
-    for i in range(len(centroids)):
-        kde_value_list = []
-        for k in range(len(points_x)):
-            d = np.sqrt((centroids_x[i]-points_x[k])**2+(centroids_y[i]-points_y[k])**2)
-            if d <= radius:
-                p = kernel(d,radius)
-                if column is None:
-                    kde_value_list.append(p)
-                else: 
-                    kde_value_list.append(p*lst_values[k])
+    if isinstance(radius, str):
+        lst_radius = list(points[radius])    
+        #density calculation
+        intensity_list = [] # list to store density value of each cell
+        for i in range(len(centroids)):
+            kde_value_list = []
+            for k in range(len(points_x)):
+                d = np.sqrt((centroids_x[i]-points_x[k])**2+(centroids_y[i]-points_y[k])**2)
+                if d <= lst_radius[k]:
+                    p = kernel(d,lst_radius[k])
+                    if column is None:
+                        kde_value_list.append(p)
+                    else: 
+                        kde_value_list.append(p*lst_values[k])
 
-        total_density = sum(kde_value_list)
-        intensity_list.append(total_density)
+            total_density = sum(kde_value_list)
+            intensity_list.append(total_density)
+    else:
+        #density calculation
+        intensity_list = [] # list to store density value of each cell
+        for i in range(len(centroids)):
+            kde_value_list = []
+            for k in range(len(points_x)):
+                d = np.sqrt((centroids_x[i]-points_x[k])**2+(centroids_y[i]-points_y[k])**2)
+                if d <= radius:
+                    p = kernel(d,radius)
+                    if column is None:
+                        kde_value_list.append(p)
+                    else: 
+                        kde_value_list.append(p*lst_values[k])
+
+            total_density = sum(kde_value_list)
+            intensity_list.append(total_density)
 
     final_grid = gpd.GeoDataFrame({'geometry': polygons,'density':intensity_list}, crs=points.crs)
 
