@@ -155,6 +155,7 @@ Enrich your cartographic data
    qgis
    notebooks
    contribution
+   faq
    bibliography
 
 .. toctree::
