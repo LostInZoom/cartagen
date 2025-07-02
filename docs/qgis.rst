@@ -38,6 +38,11 @@ Use the following command to install CartAGen on the QGIS pip::
 
     $ flatpak run --devel --command=pip3 org.qgis.qgis install cartagen --user
 
+If you run into the following error: `error: runtime/org.kde.Sdk/x86_64/VERSION not installed`, you need to install the proper SDK by
+running the following command (where VERSION is the version that appears in the error)::
+
+    $ flatpak install runtime/org.kde.Sdk/x86_64/VERSION
+
 Debian-based distributions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
