@@ -80,11 +80,13 @@ h2 = c4.hull_swinging_arm(points, 2000)
 fig = plt.figure(1, (8, 4))
 
 sub1 = fig.add_subplot(121)
+sub1.set_aspect('equal')
 sub1.set_title("a) Delaunay with a length of 2000", pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
 sub2 = fig.add_subplot(122)
+sub2.set_aspect('equal')
 sub2.set_title("b) Swinging arm with a length of 2000", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)

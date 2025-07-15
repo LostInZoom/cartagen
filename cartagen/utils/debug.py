@@ -134,6 +134,7 @@ def geojson_to_variable(geojson, write=False, attributes=None):
             entry += "}, \n"
             if write:
                 f.write(entry)
+            s += entry
         else:
             entry = "loads('{0}'), \n".format(o['geometry'].wkt)
             if write:

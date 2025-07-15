@@ -1,6 +1,7 @@
 from cartagen.enrichment.urban.building_measures import block_triangulation, building_congestion, corner_buildings
 from cartagen.processes.agent.actions.generalisation_action import GeneralisationAction
 from cartagen.algorithms.buildings.displacement import random_displacement
+from cartagen.algorithms.blocks.building_elimination import building_elimination_ranking_in_block
 import geopandas as gpd
 
 class RandomBlockDisplacementAction(GeneralisationAction):

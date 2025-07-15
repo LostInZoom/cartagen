@@ -59,10 +59,12 @@ displaced = c4.random_displacement(buildings_gdf, networks=[roads_gdf, rivers_gd
 
 fig = plt.figure(1, (12, 5))
 sub1 = fig.add_subplot(121)
+sub1.set_aspect('equal')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
 sub2 = fig.add_subplot(122)
+sub2.set_aspect('equal')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 

@@ -82,7 +82,7 @@ intersphinx_mapping = {
 }
 
 extlinks = {
-    "bug": ("https://github.com/LostInZoom/cartagen/issues/%s", "#%s"),
+    "issue": ("https://github.com/LostInZoom/cartagen/issues/%s", "#%s"),
     "pr": ("https://github.com/LostInZoom/cartagen/pull/%s", "#%s"),
     "user": ("https://github.com/%s", "%s"),
 }
@@ -103,6 +103,8 @@ bibtex_bibfiles = ['bibliography.bib']
 plot_rcparams = {
     'savefig.bbox': "tight"
 }
+
+plot_html_show_formats = False
 
 html_favicon = 'img/logo.svg'
 

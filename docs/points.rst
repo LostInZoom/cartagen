@@ -13,9 +13,15 @@ Reduction
     :nosignatures:
     :toctree: reference/
 
-    reduce_kmeans
-    reduce_labelgrid
-    reduce_quadtree
+    kmeans_selection
+    kmeans_simplification
+    kmeans_aggregation
+    labelgrid_selection
+    labelgrid_simplification
+    labelgrid_aggregation
+    quadtree_selection
+    quadtree_simplification
+    quadtree_aggregation    
 
 Covering
 --------

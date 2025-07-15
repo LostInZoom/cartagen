@@ -61,6 +61,7 @@ colors = cmap(numpy.linspace(0, 1, len(slist)))
 fig = plt.figure(1, (8, 8))
 
 sub1 = fig.add_subplot(111)
+sub1.set_aspect('equal')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 

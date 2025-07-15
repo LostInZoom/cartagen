@@ -7,7 +7,7 @@ import networkx as nx
 
 from cartagen.utils.geometry.angle import angle_3_pts, angle_between_2lines
 
-def strokes_roads(roads, attributes, angle=45.0, angle_sum=30.0):
+def strokes_roads(roads, attributes=None, angle=45.0, angle_sum=30.0):
     """
     Calculate strokes inside a road network.
 
@@ -33,26 +33,62 @@ def strokes_roads(roads, attributes, angle=45.0, angle_sum=30.0):
     -------
     GeoDataFrame of LineString
 
+    See Also
+    --------
+    strokes_rivers :
+        Calculate strokes inside a river network.
+
     References
     ----------
     .. footbibliography::
     """
+    if attributes is None:
+        attributes = []
+
     crs = roads.crs
     strokes = StrokeNetwork(roads, attributes)
     strokes.buildStrokes(attributes, angle, angle_sum)
     s = strokes.reconstruct_strokes()
     return gpd.GeoDataFrame(s,  columns = ['id','geometry','section'], crs=crs, geometry='geometry') 
 
-def strokes_rivers(rivers, attributes, angle=45.0, angle_sum=30.0):
+def strokes_rivers(rivers, attribute=None, angle=45.0, angle_sum=30.0):
     """
     Calculate strokes inside a river network.
 
-    Strokes are network segments that follow the perceptual
-    grouping principle of Good Continuity (Gestalt).
+    This algorithm is based on the 'Good Continuation' principle
+    as defined by Thomson & Richardson. :footcite:p:`thomson:2002`
+    It defines strokes, which are segments that follow this perceptual
+    grouping also known as Gestalt's principle.
+
+    Parameters
+    ----------
+    roads : GeoDataFrame of LineString
+        The roads to calculate the strokes from.
+    attribute : str
+        The attribute to help the derivation of continuity.
+    angle : float, optional
+        Thresholds for the maximum angle between two segments
+        at the junction of two sections belonging to the same stroke.
+    angle_sum : float, optional
+        Thresholds for the maximum angle between
+        two sections belonging to the same stroke.
+
+    Returns
+    -------
+    GeoDataFrame of LineString
+
+    See Also
+    --------
+    strokes_roads :
+        Calculate strokes inside a road network.
+
+    References
+    ----------
+    .. footbibliography::
     """
     crs = rivers.crs
-    strokes = RiverStrokeNetwork(rivers, attributes)
-    strokes.buildRiverStrokes(attributes, angle, angle_sum)
+    strokes = RiverStrokeNetwork(rivers, attribute)
+    strokes.buildRiverStrokes(attribute, angle, angle_sum)
     s = strokes.reconstruct_strokes()
     return gpd.GeoDataFrame(s,  columns = ['id','geometry','strahler'], crs=crs, geometry='geometry') 
 

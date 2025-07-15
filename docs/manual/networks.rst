@@ -2,7 +2,7 @@ Networks
 ========
 
 CartAGen also proposes network-related algorithms intended for the generalisation
-of different type of artificial or natural linear networks. 
+of different type of artificial or natural linear networks.
 
 Roads
 ~~~~~
@@ -19,6 +19,14 @@ road network as the base data, which has too much detail for the scale we want.
 .. plot:: code/manual/network_original.py
 
     The original road network.
+
+It is advised to make your network planar before using any generalisation algorithms as it will avoid
+most issues afterwards.
+
+.. plot:: code/manual/network_planar.py
+
+    The original network (left) and the network made planar (right). The color are used
+    only on non-planar edges to show their geometries.
 
 Roundabouts and branching crossroads
 ------------------------------------

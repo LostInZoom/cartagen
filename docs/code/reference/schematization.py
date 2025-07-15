@@ -12,6 +12,7 @@ line = loads('LineString (-176341.48260207643033937 5373725.60607721097767353, -
 fig = plt.figure(1)
 
 sub1 = fig.add_subplot(111)
+sub1.set_aspect('equal')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 

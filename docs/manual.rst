@@ -7,6 +7,8 @@ User Manual
 :Authors: Guillaume Touya, Justin Berli, Azelle Courtial
 :Copyright:
   This work is licensed under a `European Union Public Licence v1.2`__.
+:Abstract:
+  This document explains how to use the CartAGen Python library for cartographic generalisation.
 
 .. __: https://eupl.eu/
 

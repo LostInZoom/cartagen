@@ -45,18 +45,18 @@ f, axs = plt.subplots(3, 1, figsize=(12, 16), gridspec_kw={'height_ratios': [1, 
 
 #############################################################
 
-# sub1 = fig.add_subplot(311)
 axs[0].set_title('densify=10.0 sigma=5.0 without structural point', pad=10, family='sans-serif')
+axs[0].set_aspect('equal')
 axs[0].axes.get_xaxis().set_visible(False)
 axs[0].axes.get_yaxis().set_visible(False)
 
-# sub2 = fig.add_subplot(312)
 axs[1].set_title('densify=10.0 sigma=5.0 with structural point', pad=10, family='sans-serif')
+axs[1].set_aspect('equal')
 axs[1].axes.get_xaxis().set_visible(False)
 axs[1].axes.get_yaxis().set_visible(False)
 
-# sub3 = fig.add_subplot(313)
 axs[2].set_title('densify=10.0 sigma=5.0 with multiple entries', pad=10, family='sans-serif')
+axs[2].set_aspect('equal')
 axs[2].axes.get_xaxis().set_visible(False)
 axs[2].axes.get_yaxis().set_visible(False)
 

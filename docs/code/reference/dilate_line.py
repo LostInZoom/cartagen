@@ -16,6 +16,7 @@ fig = plt.figure(1, (12, 4))
 #############################################################
 
 sub1 = fig.add_subplot(121)
+sub1.set_aspect('equal')
 sub1.set_title("a) offset=28, cap_style='round'", pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
@@ -38,6 +39,7 @@ sub1.autoscale_view()
 #############################################################
 
 sub2 = fig.add_subplot(122)
+sub2.set_aspect('equal')
 sub2.set_title("a) offset=50, cap_style='flat'", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)

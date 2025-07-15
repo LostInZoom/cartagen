@@ -19,11 +19,13 @@ fig = plt.figure(1, (12, 5))
 #############################################################
 
 sub1 = fig.add_subplot(121)
+sub1.set_aspect('equal')
 sub1.set_title('a) Least square squaring', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
 sub2 = fig.add_subplot(122)
+sub2.set_aspect('equal')
 sub2.set_title('b) Naive squaring', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
