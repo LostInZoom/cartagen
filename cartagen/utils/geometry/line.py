@@ -1,5 +1,6 @@
 import numpy as np
 import shapely
+import heapq
 import geopandas as gpd
 from shapely.ops import split, nearest_points, snap, transform
 from shapely.geometry import LineString, Point, Polygon, MultiPoint
@@ -104,48 +105,75 @@ def visvalingam_whyatt(line, area_tolerance):
     >>> visvalingam_whyatt(line, 5.0)
     <LINESTRING (0 0, 2 0, 5 3)>
     """
-    def contains_another_point(line, pt, index):
-        first = line.coords[index-1]
-        last = line.coords[index+1]
-        triangle_coords = [first, pt, last, first]
-        triangle = Polygon(triangle_coords)
-        for vertex in line.coords:
-            if (vertex == first):
-                continue
-            if (vertex == pt):
-                continue
-            if (vertex == last):
-                continue
-            if (triangle.contains(Point(vertex))):
-                return True
-        return False
-    def compute_area_point(line, pt, index):
-        first = line.coords[index-1]
-        last = line.coords[index+1]
-        triangle = [first, pt, last, first]
-        polygon = Polygon(triangle)
-        return polygon.area
+    coords = list(line.coords)
+    if len(coords) < 3:
+        return line
 
-    final_coords = list(line.coords)
-    while (True):
-        pt_area_min = None
-        area_min = line.envelope.area
-        current_line = LineString(tuple(final_coords))
-        for i in range(1,len(final_coords)-2):
-            pt = final_coords[i]
-            if(contains_another_point(current_line, pt, i)):
-                continue
-            area = compute_area_point(current_line, pt, i)
-            if (area < area_min):
-                area_min = area
-                if(area < area_tolerance):
-                    pt_area_min = pt
-        if(pt_area_min is None):
+    def triangle_area_2d(p1, p2, p3):
+        """Calculates the area of a triangle given three 2D points using the shoelace formula."""
+        return 0.5 * abs(p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]))
+
+    points = {i: {'coords': coords[i], 'prev': i - 1, 'next': i + 1, 'effective_area': 0} for i in range(len(coords))}
+    points[0]['prev'] = None
+    points[len(coords)-1]['next'] = None
+    
+    areas_heap = []
+    
+    # Calculate initial effective areas for all internal points and push to heap
+    for i in range(1, len(coords) - 1):
+        area = triangle_area_2d(points[i-1]['coords'], points[i]['coords'], points[i+1]['coords'])
+        points[i]['effective_area'] = area
+        heapq.heappush(areas_heap, (area, i))
+
+    while areas_heap:
+        min_area, min_index = heapq.heappop(areas_heap)
+        
+        # Check for stale entries in the heap (due to updates)
+        if min_index not in points or points[min_index]['effective_area'] > min_area:
+            continue
+            
+        # Stop condition: if the smallest effective area is above tolerance, we are done.
+        if min_area > area_tolerance:
             break
-        # remove pt from the line
-        final_coords.remove(pt_area_min)
 
-    return LineString(tuple(final_coords))
+        prev_idx = points[min_index]['prev']
+        next_idx = points[min_index]['next']
+
+        # Remove the point
+        del points[min_index]
+
+        # Update the linked list
+        if prev_idx is not None:
+            points[prev_idx]['next'] = next_idx
+        if next_idx is not None:
+            points[next_idx]['prev'] = prev_idx
+
+        # Recalculate and propagate the effective area to neighbors
+        if prev_idx is not None:
+            # Get the new triangle vertices for the previous neighbor
+            new_prev_idx = points[prev_idx]['prev']
+            if new_prev_idx is not None:
+                new_area_prev = triangle_area_2d(points[new_prev_idx]['coords'], points[prev_idx]['coords'], points[next_idx]['coords'])
+                # The effective area of a point is the maximum of all triangle areas it forms.
+                propagated_area = max(points[prev_idx]['effective_area'], min_area)
+                points[prev_idx]['effective_area'] = max(propagated_area, new_area_prev)
+                heapq.heappush(areas_heap, (points[prev_idx]['effective_area'], prev_idx))
+
+        if next_idx is not None:
+            # Get the new triangle vertices for the next neighbor
+            new_next_idx = points[next_idx]['next']
+            if new_next_idx is not None:
+                new_area_next = triangle_area_2d(points[prev_idx]['coords'], points[next_idx]['coords'], points[new_next_idx]['coords'])
+                # Propagate the effective area
+                propagated_area = max(points[next_idx]['effective_area'], min_area)
+                points[next_idx]['effective_area'] = max(propagated_area, new_area_next)
+                heapq.heappush(areas_heap, (points[next_idx]['effective_area'], next_idx))
+
+    # Reconstruct the simplified line from the remaining points
+    simplified_coords = [p['coords'] for p in points.values()]
+    
+    return LineString(simplified_coords)
+
 
 def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
