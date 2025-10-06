@@ -242,36 +242,23 @@ class Stroke:
                         followers.remove(a)
 
     def filterFollowers(self, arc, followers):
-        loopFoll = []
-        #loop on the followers to filter them
-        loopFoll+=followers
-        for a in loopFoll:
-            if (a==arc):
-                #remove it from the set
-                followers.remove(a)
-                continue
-             #check that a does not belong to another stroke
-            if (a in self.network.groupedFeatures):
-                  #remove it from the set
-                  followers.remove(a)
-                  continue
-                  #check if it belongs to this stroke
-            if (a in self.features):
-             #remove it from the set
-                 followers.remove(a)
-                 continue
-            #check if it belongs to the network
-            if (not a in self.network.features) :
-            # remove it from the set
-                followers.remove(a)
+        # first discard the arc itself
+        followers.discard(arc['id'])
+        # then remove the arcs already in a stroke or not in the network
+        followers = followers - self.network.groupedFeatures
+        if len(followers) == 0:
+            return
+        followers = followers & set([d['id'] for d in self.network.features if 'id' in d])
+        #followers = followers - set([d['id'] for d in self.features if 'id' in d])
       
                         
     def chooseNextSegment(self,arc, followers, attributeNames, deviatAngle, deviatSum):
         #first, if it's a node of degree two
         if (len(followers) == 1) :
             follower = next(iter(followers))
-            if (not follower in self.features):#COR
-                return follower
+            follower_obj = next((item for item in self.network.features if item["id"] == follower), None)
+            if (not follower_obj in self.features):#COR
+                return follower_obj
             return None
         # then, filter the followers
         self.filterFollowers(arc, followers)
@@ -281,10 +268,12 @@ class Stroke:
         Stroke.attribute_filter(arc, followers, attributeNames)
         if (len(followers) == 0) :
             return None
-        continuity,bestSegment = True, None
+        continuity,bestSegment = False, None
         # Loop on the followers to choose the best continuity
         minDiff = math.pi
-        for follower in followers:
+        for follower_id in followers:
+            # get the follower object from its id
+            follower = next((item for item in self.network.features if item["id"] == follower_id), None)
             # get the continuity difference with this follower
             diffContinuity = Stroke.is_good_continuity(arc, follower, deviatAngle, deviatSum) 
             if (diffContinuity > -1.0) :
@@ -296,8 +285,16 @@ class Stroke:
                     bestSegment = follower
         
         # final verification: if we found a continuous follower, check if there is a better continuity between the followers themselves
-        if (((continuity) and not bestSegment in self.network.groupedFeatures) or (minDiff < deviatAngle)) :
-            for pair in combinations(followers, 2):
+        if bestSegment is None:
+            return None
+        if (((continuity) and not bestSegment.get('id') in self.network.groupedFeatures) or (minDiff < deviatAngle)) :
+            # check if there is a better continuity between the best segment and the other followers
+            for pair_id in combinations(followers, 2):
+                if pair_id[0] != bestSegment.get('id') and pair_id[1] != bestSegment.get('id'):
+                    continue
+                if pair_id[0] == arc.get('id') or pair_id[1] == arc.get('id'):
+                    continue
+                pair = [next((item for item in self.network.features if item["id"] == pair_id[0]), None), next((item for item in self.network.features if item["id"] == pair_id[1]), None)]
                 diffContinuity = Stroke.is_good_continuity(pair[0], pair[1], deviatAngle, deviatSum)
                 if (diffContinuity > -1.0 and diffContinuity < minDiff) :
                     # there is a pair of followers with a better continuity so we stop the stroke here and return None
@@ -312,41 +309,51 @@ class Stroke:
         node = self.root["geom"].coords[side]
         if (node is None):
             return
-        followers =[]
-        followers+=self.network.dic_neighbours[self.root["geom"].coords[side]]
-        if self.root in followers:
-            followers.remove(self.root)
+        followers = set()
+        for obj in self.network.dic_neighbours[self.root["geom"].coords[side]]:
+            followers.add(obj['id'])
+        if self.root['id'] in followers:
+            followers.remove(self.root['id'])
         next1 = self.root
         continuity = True
-        self.network.groupedFeatures.append(next1)
+        self.network.groupedFeatures.add(next1['id'])
+        i = len(self.network.groupedFeatures)
         while (continuity) :
             # get the best candidate among the followers (the one with best continuity)
             best = self.chooseNextSegment(next1, followers, attributeNames,deviatAngle, deviatSum)
+            
             if (best is None):
                 break
+            # get the id of the best object
+            best_id = best.get('id')
             # add this to the 2 sets (the network one and the stroke one)
             if not side:
                 self.features.insert(0, best)
             else:
                 self.features.append(best)
-            self.network.groupedFeatures.append(best) 
+            self.network.groupedFeatures.add(best_id) 
             # get the followers of 'best'
-            followers=[]
+            followers = set()
             nextNode = best["geom"].coords[0]
             
             side2=0
             if (node==nextNode):
                 nextNode = best["geom"].coords[-1]
                 side2=-1 
-                
-            followers+=self.network.dic_neighbours[best["geom"].coords[side2]]#AC
-            followers.remove(best)
+                    
+            for obj in self.network.dic_neighbours[best["geom"].coords[side2]]:
+                followers.add(obj['id'])    
+            followers.discard(best_id)
             # if there is no follower, break
             if (len(followers)== 0):
                 break
             # update the 'next' segment with 'best'
             next1 = best
-            node = nextNode;         
+            node = nextNode
+            if i == len(self.network.groupedFeatures):
+                break
+            i = len(self.network.groupedFeatures)
+
     def __str__(self):
         liste=""
         for elem in self.features: 
@@ -364,8 +371,8 @@ class StrokeNetwork:
     """
     def __init__(self, features):
             #Initialisation from a list of shapely geometry with the correct attributes
-          self.features = features
-          self.groupedFeatures = []
+          self.features = set(features)
+          self.groupedFeatures = set()
           self.id = 0
           self.strokes = []
           
@@ -389,7 +396,7 @@ class StrokeNetwork:
             features.append(elem)
 
         self.features = features
-        self.groupedFeatures = []
+        self.groupedFeatures = set()
         self.id = 0
         self.strokes = []
         self.dic_neighbours=StrokeNetwork.compute_neighbours(features)
@@ -420,7 +427,7 @@ class StrokeNetwork:
         #loop on the network features
         for obj in self.features :
             #test if the feature has already been treated
-            if obj in self.groupedFeatures :
+            if obj['id'] in self.groupedFeatures :
                 continue
             #build a new stroke object
             stroke = Stroke(self, obj)
@@ -468,7 +475,7 @@ class RiverStroke:
         self.isBraided = None
 
     def setBraided(self,isBraided) :
-        self.isBraided = isBraided;
+        self.isBraided = isBraided
         
     def getlength(self) :
         l=0
@@ -479,7 +486,7 @@ class RiverStroke:
 class RiverStrokeNetwork:
     def __init__(self, lines, attributeName):
         #Initialisation from a geopanda dataframe and the liste of desired attribute name
-        features=[]
+        features = []
 
         if attributeName is None: 
             self.NoAttribute=True
@@ -495,11 +502,11 @@ class RiverStrokeNetwork:
             features+=[elem]
 
         self.features = features
-        self.sources = []
-        self.sinks = []
+        self.sources = set()
+        self.sinks = set()
         self.strahlerOrders={}  
-        self.groupedFeatures = []
-        self.strokes = []
+        self.groupedFeatures = set()
+        self.strokes = set()
         self.dic_neighbours,self.dicentrant=self.compute_neighbours(features)
         self.dtf=lines
         
@@ -515,9 +522,9 @@ class RiverStrokeNetwork:
             la= list(ntx.successors(node))
             lb= list(ntx.predecessors(node))
             if (not len(la)==0) and  len(lb)==0: 
-                self.sources.append(node)
+                self.sources.add(node)
             if (not len(lb)==0) and  len(la)==0: 
-                self.sinks.append(node)    
+                self.sinks.add(node)    
             for prednode in ntx.predecessors(node):
                 if ntx.has_edge(prednode,node) : 
                     temp=ntx[prednode][node]["elem"]
@@ -531,7 +538,7 @@ class RiverStrokeNetwork:
 
     def allBelongToStroke(self, sections) :
         for section in sections:
-            if (not section in self.groupedFeatures) :
+            if (not section['id'] in self.groupedFeatures) :
                 return False
         return True
     
@@ -633,7 +640,7 @@ class RiverStrokeNetwork:
 		#continue the upstream stroke with mainBranch
         upstreamStroke = self.getUpstreamStrokes(node)[0]
         upstreamStroke.features.append(mainBranch)
-        self.groupedFeatures.append(mainBranch)
+        self.groupedFeatures.add(mainBranch['id'])
 		#find the next node
         if (not mainBranch["geom"].coords[-1] in downstreamNodes):
             downstreamNodes.insert(0, mainBranch["geom"].coords[-1])
@@ -660,8 +667,8 @@ class RiverStrokeNetwork:
             section = self.dic_neighbours[source][0]
 			#build a new RiverStroke with this section
             stroke = RiverStroke(self, section)
-            self.strokes.append(stroke)
-            self.groupedFeatures.append(section)
+            self.strokes.add(stroke)
+            self.groupedFeatures.add(section['id'])
             if (not  section['geom'].coords[-1] in downstreamNodes) :
                 downstreamNodes.insert(0,section['geom'].coords[-1])
 			# compute Strahler orders
@@ -690,14 +697,14 @@ class RiverStrokeNetwork:
             counter = 0
             if (len(self.dic_neighbours[node]) == 1) :
                 downstreamSection = self.dic_neighbours[node][0]
-                if downstreamSection in self.groupedFeatures:
+                if downstreamSection['id'] in self.groupedFeatures:
                     continue
                 #get the upstream strokes and find the one that continues
                 continuing = self.makeDecisionAtConfluence(node, downstreamSection,self.getUpstreamStrokes(node))#ac[]
     
                 #now extends the continuing stroke with downstreamSection
                 continuing.features.append(downstreamSection)#AC features
-                self.groupedFeatures.append(downstreamSection)
+                self.groupedFeatures.add(downstreamSection['id'])
                 
                 # find the next node
                 if (not downstreamSection['geom'].coords[-1] in downstreamNodes):
@@ -725,8 +732,8 @@ class RiverStrokeNetwork:
                     for branch in remainingBranches :
                         stroke = RiverStroke(self, branch)
                         stroke.setBraided(True)
-                        self.strokes.append(stroke)
-                        self.groupedFeatures.append(branch)
+                        self.strokes.add(stroke)
+                        self.groupedFeatures.add(branch['id'])
                         if (not branch['geom'].coords[-1] in downstreamNodes) :
                             downstreamNodes.insert(0, branch['geom'].coords[-1])
                         # compute Strahler orders
@@ -743,8 +750,8 @@ class RiverStrokeNetwork:
                     for branch in remainingBranches:
                         stroke = RiverStroke(self, branch)
                         stroke.setBraided(True)
-                        self.strokes.append(stroke)
-                        self.groupedFeatures.append(branch)
+                        self.strokes.add(stroke)
+                        self.groupedFeatures.add(branch['id'])
                         if (not branch['geom'].coords[-1] in downstreamNodes):
                             
                             downstreamNodes.insert(0, branch['geom'].coords[-1])

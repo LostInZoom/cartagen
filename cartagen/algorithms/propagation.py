@@ -10,12 +10,12 @@ import pandas as pd
 # Let's use SizePZ as the direct input and calculate beta from it.
 # SizeIZ is derived from SizePZ for a given max_dep: SizeIZ = SizePZ - max_dep.
 
-def calculate_size_iz(max_dep, propagation_distance):
+def __calculate_size_iz(max_dep, propagation_distance):
     """Calculate SizeIZ (Radius of Influence Zone) based on max_dep and SizePZ (propagation_distance)."""
     # propagation_distance is SizePZ. SizeIZ = SizePZ - max_dep
     return propagation_distance - max_dep
 
-def get_vertices(gdf):
+def __get_vertices(gdf):
     """Extract all unique vertices from a GeoDataFrame of (multi)lines/polygons."""
     vertices = []
     
@@ -56,7 +56,7 @@ def get_vertices(gdf):
 
 # --- Core Geometric Functions (Highly Simplified Placeholders) ---
 
-def interpolate_displacement_vectors(initial_geom, final_geom, interval_distance, crs):
+def __interpolate_displacement_vectors(initial_geom, final_geom, interval_distance, crs):
     """
     Computes initial displacement vectors using interpolation at regular intervals.
     Origin point on initial_geom, extremity on final_geom (same curvilinear abscissa ratio).
@@ -95,11 +95,11 @@ def interpolate_displacement_vectors(initial_geom, final_geom, interval_distance
     max_dep = vectors_gdf['dep_ini'].max() if not vectors_gdf.empty else 0.0
     return vectors_gdf, max_dep
 
-def visibility_condition_check(vertex, vector_origin, initiator_geom):
+def __visibility_condition_check(vertex, vector_origin, initiator_geom):
     """
     Checks if the vector_origin is visible from the vertex, i.e., not hidden by any initiator object. 
     This is a ray-tracing-like operation, highly complex for general geometries.
-    Placeholder: always True for conceptual demo.
+    Placeholder: always True for conceptual demo. TODO: Implement actual visibility check.
     """
     return True
 
@@ -141,7 +141,7 @@ def compute_propagation_crow_flies(
     initiator_initial = initiator_initial_gdf.iloc[0].geometry
     initiator_final = initiator_final_gdf.iloc[0].geometry
     
-    initial_vectors_gdf, max_dep = interpolate_displacement_vectors(
+    initial_vectors_gdf, max_dep = __interpolate_displacement_vectors(
         initiator_initial, initiator_final, interval_distance, crs=movable_objects_gdf.crs
     )
     
@@ -150,13 +150,13 @@ def compute_propagation_crow_flies(
 
     # Calculate Influence Zone Radius (SizeIZ) [cite: 150]
     # Note: SizePZ = propagation_distance [cite: 132]
-    size_iz = calculate_size_iz(max_dep, propagation_distance)
+    size_iz = __calculate_size_iz(max_dep, propagation_distance)
     
     # 2. Compute Propagation Zone (Buffer)
     propagation_zone = initiator_initial.buffer(propagation_distance) # [cite: 127]
     
     # 3. Identify Movable Vertices within the Propagation Zone
-    movable_vertices_gdf = get_vertices(movable_objects_gdf)
+    movable_vertices_gdf = __get_vertices(movable_objects_gdf)
     
     # Filter vertices *outside* the propagation zone (no displacement)
     vertices_in_zone = movable_vertices_gdf.clip(propagation_zone)
@@ -185,7 +185,7 @@ def compute_propagation_crow_flies(
         
         for v_idx, vector_row in influencing_vectors.iterrows():
             # 4.1. Visibility Condition (Skipping for conceptual demo, see placeholder)
-            if not visibility_condition_check(vertex, vector_row.origin, initiator_initial):
+            if not __visibility_condition_check(vertex, vector_row.origin, initiator_initial):
                 continue
 
             dist_i_vertex = vertex.distance(vector_row.origin)
