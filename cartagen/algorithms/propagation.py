@@ -117,7 +117,7 @@ def compute_propagation_crow_flies(
     This function propagates the displacement defined by the movement of initiator objects to nearby movable objects,
     while respecting frozen objects that should not be moved.
 
-    Be careful, the initiators should be simple LineStrings.
+    Be careful, the initiators should be simple LineStrings, and not MultiLineString objects.
 
     Parameters
     ----------

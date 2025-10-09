@@ -225,7 +225,7 @@ class Stroke:
                 return angleTotalDiff1 + angleTotalDiff2
             return -1.0
     
-    def attribute_filter(arc,followers,attributeNames):
+    def attribute_filter(self, arc, followers, attributeNames):
         loopFoll = []
         for attribute in attributeNames:
             # get the attribute value for 'arc'
@@ -235,8 +235,9 @@ class Stroke:
                 loopFoll = []
                 loopFoll+=followers
                 for a in loopFoll:
+                    follower_obj = next((item for item in self.network.features if item["id"] == a), None)
                     # get the value of a for attribute
-                    valueA = a[attribute]
+                    valueA = follower_obj[attribute]
                     if value != valueA:
                         # remove 'a' from the followers set
                         followers.remove(a)
@@ -265,7 +266,7 @@ class Stroke:
         if (len(followers) == 0) :
             return None
         # then, filter the followers from the attributeNames
-        Stroke.attribute_filter(arc, followers, attributeNames)
+        self.attribute_filter(arc, followers, attributeNames)
         if (len(followers) == 0) :
             return None
         continuity,bestSegment = False, None

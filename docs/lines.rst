@@ -28,3 +28,16 @@ Smoothing
     :toctree: reference/
 
     gaussian_smoothing
+
+
+Displacement
+---------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    elastic_beams
+    crow_fly_propagation
