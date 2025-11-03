@@ -141,7 +141,9 @@ def rural_traffic(roads, min_traffic=1,
     Returns
     -------
     roads : GeoDataFrame of LineString
-        The network with simulated traffic information.
+        The network with simulated traffic information :
+        - *'rural'*: boolean indicating whether the route has a traffic value greater than the min_traffic threshold.
+        - *'traffic'*: number of times the road section is part of the shortest route between two points of attraction.
     samples : GeoDataFrame of Point, optional
         The random sample if wanted, and if no attraction points were provided.
 
