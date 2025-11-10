@@ -217,7 +217,11 @@ def beams_displacement(lines_geodataframe, min_dist, E=1.0, A=1.0, I=1.0, gamma=
     """
     Applies the elastic beams algorithm to a geodataframe of polyline features. The forces are computed based on proximity between those line features.
 
-    Args:
+    This algorithm was proposed by Mats Bader during his PhD supervised by Mathieu Barrault and Robert Weibel :footcite:p:`bader_cartographic_2001`. *
+    The algorithm models each polyline as an elastic beam and computes displacements based on internal beam forces and external proximity forces from other polylines.
+
+    Parameters
+    ----------
         polylines: List of Shapely polylines to be displaced.
         min_dist: The minimum distance that should separate each polyline.
         E: Modulus of elasticity (material constant).
@@ -229,8 +233,14 @@ def beams_displacement(lines_geodataframe, min_dist, E=1.0, A=1.0, I=1.0, gamma=
         verbose: If True, prints iteration details.
         iterations: Number of iterations for convergence.
 
-    Returns:
+    Returns
+    ----------
         A new GeoDataFrame of displaced polylines.
+    
+    References
+    ----------
+    .. footbibliography::
+
     """
     displaced_lines = lines_geodataframe.copy()
 
