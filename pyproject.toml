@@ -13,6 +13,7 @@ authors = [
     { name = "Guillaume Touya" },
     { name = "Justin Berli" },
     { name = "Azelle Courtial" },
+    { name = "Paul Bourcier" }
 ]
 maintainers = [
     { name = "CartAGen contributors" },
