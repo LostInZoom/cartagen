@@ -13,7 +13,7 @@ import cartagen
 
 project = 'cartagen'
 copyright = '2024, IGN, Univ Gustave Eiffel'
-author = 'Guillaume Touya, Justin Berli, Azelle Courtial'
+author = 'Guillaume Touya, Justin Berli, Azelle Courtial, Paul Bourcier'
 release = cartagen.__version__.split("+")[0]
 
 # -- General configuration ---------------------------------------------------
