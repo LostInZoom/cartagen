@@ -37,6 +37,16 @@ from aerial or satellite imagery. On the other hand, the rectangle
 transformation is mostly used inside more complex algorithms, such as AGENT
 as a possible branch inside a decision tree.
 
+CartAGen also contains algorithms that process several buildings at a time,
+usually to create amalgamted representation of buildings.
+
+- :func:`Building amalgamation <cartagen.simplibuilding_amalgamationfy_building>` :footcite:p:`regnauld_generalisation_1998`
+
+.. plot:: code/reference/building_amalgamation.py
+
+    Building amalgamation algorithm
+
+
 Building blocks
 ~~~~~~~~~~~~~~~
 
