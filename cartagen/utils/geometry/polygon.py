@@ -479,3 +479,40 @@ def orientation(polygon, method='mbr'):
 
         else:
             raise Exception('{0} method not supported.'.format(method))
+
+def surfacic_distance(polygon1: Polygon, polygon2: Polygon):
+    """
+    Calculate the surfacic distance between 2 polygons.
+
+    The surfacic distance is a distance between 0 and 1 using the intersection over union principle.
+
+    Parameters
+    ----------
+    polygon1 : Polygon
+        The first polygon to calculate the distance from.
+    polygon2 : Polygon
+        The second polygon in the distance calculation
+
+    Returns
+    -------
+    float
+
+    References
+    ----------
+    .. footbibliography::
+
+    Examples
+    --------
+    >>> polygon1 = Polygon([(0, 0), (0, 2), (1, 2), (1, 0), (0, 0)])
+    >>> polygon1 = Polygon([(0, 1), (0, 4), (1, 4), (1, 1), (0, 1)])
+    >>> surfacic_distance(polygon1, polygon2)
+    0.75
+    """
+
+    intersection = polygon1.intersection(polygon2)
+    union = polygon1.union(polygon2)
+
+    if union.area == 0:
+        return 0 
+
+    return 1 - intersection.area / union.area

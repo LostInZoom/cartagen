@@ -11,9 +11,9 @@ build/
 dist/
 cartagen.egg-info/
 
-test
+test_scripts/
 test*.py
-cartagen/test
+cartagen/test_scripts/
 
 # Remove qgis files
 *.qgz
