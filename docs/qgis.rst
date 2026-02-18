@@ -26,6 +26,23 @@ Matplotlib and NetworkX.
 Linux
 -----
 
+Debian/Ubuntu
+^^^^^^^^^^^^^
+
+Depending on your linux distribution, the installation of CartAGen system-wide can be different.
+Please keep in mind that installing system-wide pip packages using this solution will conflict
+with the apt packages of your system. Continue at your own risks.
+
+One way to install the CartAGen Python package for QGIS is to use this command outside of a python environment::
+
+    $ pip install cartagen
+
+If you are running Debian 12 or above, you might get an error from the system because you are
+trying to install the package outside of a virtual environment.
+You can bypass this error by using the ``--break-system-package`` flag::
+
+    $ pip install --break-system-package cartagen
+
 Flatpak
 ^^^^^^^
 
@@ -42,23 +59,6 @@ If you run into the following error: `error: runtime/org.kde.Sdk/x86_64/VERSION 
 running the following command (where VERSION is the version that appears in the error)::
 
     $ flatpak install runtime/org.kde.Sdk/x86_64/VERSION
-
-Debian-based distributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Depending on your linux distribution, the installation of CartAGen system-wide can be different.
-Please keep in mind that installing system-wide pip packages using this solution will conflict
-with the apt packages of your system. Continue at your own risks.
-
-One way to install the CartAGen Python package for QGIS is to use this command outside of a python environment::
-
-    $ pip install cartagen
-
-If you are running Debian 12 or above, you might get an error from the system because you are
-trying to install the package outside of a virtual environment.
-You can bypass this error by using the ``--break-system-package`` flag::
-
-    $ pip install --break-system-package cartagen
 
 Windows
 -------
