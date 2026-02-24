@@ -20,11 +20,30 @@ Installation
 ============
 
 The plugin is currently available in the `official QGIS plugin repository <https://plugins.qgis.org/plugins/cartagen4qgis/>`_.
-But, as the plugin relies on cartagen, you might need to install cartagen's Python dependencies, namely Numpy, Shapely, GeoPandas,
-Matplotlib and NetworkX.
+Currently, when loading the plugin, a dialog allows you to automatically install CartAGen Python lib within the current Python
+environment. This is the prefered way. But it can fail you and you may want to tweak the dependencies version to your liking.
+If you are using Linux, **we recommend using the Flatpak version** as its Python environment is isolated from the global Python
+environment.
 
 Linux
 -----
+
+Flatpak (recommended)
+^^^^^^^^^^^^^^^^^^^^^
+
+We recommend using `Flatpak <https://flatpak.org/>`_ to install QGIS (as described `here <https://qgis.org/resources/installation-guide/#flatpak>`_)
+to avoid having to mess with the system-wide pip packages and potentially conflict with the OS.
+Flatpak can be seen as a package installer to install containerized softwares on your computer. This
+allows you to install CartAGen and all its dependencies inside this container.
+
+Use the following command to install CartAGen on the QGIS pip::
+
+    $ flatpak run --devel --command=pip3 org.qgis.qgis install cartagen --user
+
+If you run into the following error: `error: runtime/org.kde.Sdk/x86_64/VERSION not installed`, you need to install the proper SDK by
+running the following command (where VERSION is the version that appears in the error)::
+
+    $ flatpak install runtime/org.kde.Sdk/x86_64/VERSION
 
 Debian/Ubuntu
 ^^^^^^^^^^^^^
@@ -42,23 +61,6 @@ trying to install the package outside of a virtual environment.
 You can bypass this error by using the ``--break-system-package`` flag::
 
     $ pip install --break-system-package cartagen
-
-Flatpak
-^^^^^^^
-
-We recommend using `Flatpak <https://flatpak.org/>`_ to install QGIS (as described `here <https://qgis.org/resources/installation-guide/#flatpak>`_)
-to avoid having to mess with the system-wide pip packages and potentially conflict with the OS.
-Flatpak can be seen as a package installer to install containerized softwares on your computer. This
-allows you to install CartAGen and all its dependencies inside this container.
-
-Use the following command to install CartAGen on the QGIS pip::
-
-    $ flatpak run --devel --command=pip3 org.qgis.qgis install cartagen --user
-
-If you run into the following error: `error: runtime/org.kde.Sdk/x86_64/VERSION not installed`, you need to install the proper SDK by
-running the following command (where VERSION is the version that appears in the error)::
-
-    $ flatpak install runtime/org.kde.Sdk/x86_64/VERSION
 
 Windows
 -------
