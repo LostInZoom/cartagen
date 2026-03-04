@@ -16,28 +16,6 @@ def distance_area(geom1, geom2):
     else:
         return None
 
-# def group_intersecting(geoms):
-#     """
-#     Group intersecting geometries in nested lists.
-#     """
-#     done = []
-#     groups = []
-#     groupsgeom = []
-#     for i, p1 in enumerate(geoms):
-#         if i not in done:
-#             done.append(i)
-#             group = [ i ]
-#             groupgeom = p1
-#             for j, p2 in enumerate(geoms):
-#                 if j not in done:
-#                     if shapely.intersects(groupgeom, p2):
-#                         done.append(j)
-#                         group.append(j)
-#                         groupgeom = shapely.union(groupgeom, p2)
-#             groups.append(group)
-#             groupsgeom.append(groupgeom)
-#     return groups
-
 def group_intersecting(polygons):
     """
     Group intersecting geometries in nested lists.
