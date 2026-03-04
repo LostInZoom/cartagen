@@ -107,7 +107,7 @@ def skeletonize_artificial(polygon, entries, connection='joint', threshold_range
 
     return n
 
-def skeletonize_network(polygon, network, sigma=None, attributes=None, threshold_range=(0.7, 1.4)):
+def skeletonize_network(polygon, network, sigma=None, attributes=None, blend_smoothing=False, threshold_range=(0.7, 1.4)):
     """
     Create an artificial TIN skeleton and blend it inside a network.
     
@@ -130,6 +130,11 @@ def skeletonize_network(polygon, network, sigma=None, attributes=None, threshold
         A list of dict where the index matches the provided network. This dict represents the attributes
         of the lines to be propagated to the new network.
         If None is provided, the resulting network will lack the original attributes.
+    blend_smoothing : bool, optional
+        If set to True, the gaussian smoothing is applied to the skeleton after blending with the
+        rest of the network, this can deform the network outside of the dual carriageways.
+        If set to False, the gaussian smoothing is only applied to the skeleton before blending
+        with the rest of the network.
     threshold_range : tuple, optional
         This value is only used for inner triangles calculated by the Delaunay triangulation.
         If two of the length ratio between each pair of edges (of an inner triangle) is outside the given range,
@@ -158,7 +163,7 @@ def skeletonize_network(polygon, network, sigma=None, attributes=None, threshold
     # Create the network
     skeleton.create_network()
     # Blend the network with the provided one
-    skeleton.blend(attributes, sigma=sigma)
+    skeleton.blend(attributes, sigma=sigma, blend_smoothing=blend_smoothing)
 
     return skeleton.blended
 
@@ -443,7 +448,7 @@ class SkeletonTIN:
         self.network = network
         return network
 
-    def blend(self, attributes=None, sigma=None):
+    def blend(self, attributes=None, sigma=None, blend_smoothing=False):
         """
         This method can only be used if incoming lines were provided using the add_incoming_lines() method.
         Blends the incoming lines with the created skeleton network. It relies on entry points.
@@ -457,6 +462,11 @@ class SkeletonTIN:
             The strength of the gaussian smoothing applied to the resulting blended network. If None is provided, no smoothing
             is applied to the lines. Be careful that this method is destructive in the way that the vertices of incoming lines blended
             with the skeleton are moved, thus, the entry points are lost.
+        blend_smoothing : bool, optional
+            If set to True, the gaussian smoothing is applied to the skeleton after blending with the
+            rest of the network, this can deform the network outside of the dual carriageways.
+            If set to False, the gaussian smoothing is only applied to the skeleton before blending
+            with the rest of the network.
         """
 
         if self.incoming is None:
@@ -464,6 +474,12 @@ class SkeletonTIN:
 
         blended = deepcopy(self.incoming)
         network = self.network.copy()
+
+        if sigma is not None and blend_smoothing is False:
+            smoothed = []
+            for n in network:
+                smoothed.append(gaussian_smoothing(n, sigma=sigma))
+            network = smoothed
 
         remove = []
         # Loop through entry points
@@ -510,22 +526,34 @@ class SkeletonTIN:
                             remove.append(i1)
 
         # Here, handle specific case of two entry of degree 2
-        if len(self.entries) == 2 and (len(blended) - len(remove)) == 2:
-            final = blended[0]
-            # Merge all the lines into one
-            geometries = []
-            for b in blended:
-                geometries.append(b['geometry'])
-            final['geometry'] = shapely.ops.linemerge(geometries)
-            blended = [final]
-        else:
-            # Else, retrieve the blended network without contained lines
-            blended = [b for i, b in enumerate(blended) if i not in remove]
+        # if len(self.entries) == 2 and (len(blended) - len(remove)) == 2:
+        #     final = blended[0]
+        #     # Merge all the lines into one
+        #     geometries = []
+        #     for i, b in enumerate(blended):
+        #         if i not in remove:
+        #             geometries.append(b['geometry'])
+        #     final['geometry'] = shapely.ops.linemerge(geometries)
+        #     blended = [final]
+        # else:
+        # Else, retrieve the blended network without contained lines
+        blended = [b for i, b in enumerate(blended) if i not in remove]
 
         # Apply a gaussian smoothing to the blended network if selected
-        if sigma is not None:
+        if sigma is not None and blend_smoothing:
+            boundary_coords = set(self.polygon.boundary.coords)
+
             for i, n in enumerate(blended):
                 geom = n['geometry']
+                start = geom.coords[0]
+                end = geom.coords[-1]
+
+                # Don't apply smoothing to lines that are touching the polygon on its border while being outside the polygon
+                touches = (start in boundary_coords) ^ (end in boundary_coords)
+                inside = self.polygon.intersects(geom) and not self.polygon.touches(geom)
+                if touches and not inside:
+                    continue
+
                 blended[i]['geometry'] = gaussian_smoothing(geom, sigma=sigma)
 
         self.blended = blended
