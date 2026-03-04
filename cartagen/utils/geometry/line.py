@@ -960,3 +960,43 @@ def inflexion_points(line, min_dir=120.0):
     inflexion.append(part[len(part) // 2])
 
     return inflexion
+
+def split_line_at_vertex(line, point):
+    """
+    Divide a line at one of its vertex.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to divide
+    point : Point or tuple (x, y)
+        A point, it must be one of the line's vertex
+
+    Returns
+    -------
+    list of LineString
+        Liste de 2 segments (ou [line] si le point est aux extrémités)
+    """
+    # Convertir en tuple si c'est un Point
+    if isinstance(point, Point):
+        point_coords = point.coords[0]
+    else:
+        point_coords = point
+    
+    coords = list(line.coords)
+
+    if point_coords not in coords:
+        raise Exception('Provided point is not a vertex of the line.')
+    
+    # Find the vertex index
+    idx = coords.index(point_coords)
+    
+    # If first or last, return the same line
+    if idx == 0 or idx == len(coords) - 1:
+        return [line]
+    
+    # Divide in two parts
+    first_part = LineString(coords[:idx+1])
+    second_part = LineString(coords[idx:])
+    
+    return [first_part, second_part]
