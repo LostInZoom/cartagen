@@ -95,6 +95,20 @@ class Crossroad:
         # Return the unchanged list of index
         return unchanged
 
+    def get_entry_points(self):
+        """
+        Returns a list of entry points, i.e. the points connecting external roads to the crossroad face.
+        """
+        points = []
+        for ext in self.externals:
+            line = list(self.network[ext].coords)
+            face = list(self.face.exterior.coords)
+            start, end = line[0], line[-1]
+            if start in face and start not in points:
+                points.append(Point(start))
+            if end in face and end not in points: 
+                points.append(Point(end))
+        return points
 
     def __create_graph_from_face(self, network, face):
         """
