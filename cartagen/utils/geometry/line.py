@@ -3,7 +3,7 @@ import shapely
 import heapq
 import geopandas as gpd
 from shapely.ops import split, nearest_points, snap, transform
-from shapely.geometry import LineString, Point, Polygon, MultiPoint
+from shapely.geometry import LineString, Point, Polygon, MultiPoint, MultiLineString, MultiPolygon
 
 from cartagen.utils.geometry.angle import angle_3_pts
 from cartagen.utils.partitioning.tessellation import HexagonalTessellation
@@ -362,7 +362,8 @@ def li_openshaw(line, cell_size):
 
 def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
     """
-    Smooth a line or a polygon and attenuate its inflexion points.
+    Smooth a line or a polygon and attenuate its inflexion points. Accept Multi geometries.
+    If a polygon is provided, it also apply the smoothing to its holes using the same parameters.
 
     The gaussian smoothing has been studied by Babaud *et al.* :footcite:p:`babaud:1986`
     for image processing, and by Plazanet :footcite:p:`plazanet:1996`
@@ -370,7 +371,7 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
 
     Parameters
     ----------
-    geometry : LineString or Polygon
+    geometry : LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
         The line or polygon to smooth.
         If a line is provided, the first and last vertexes are kept.
         If a polygon is provided, every vertex is smoothed.
@@ -385,7 +386,7 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
 
     Returns
     -------
-    LineString or Polygon
+    LineString, Polygon, MultiLineString, MultiPolygon
 
     References
     ----------
@@ -429,15 +430,35 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
 
         return LineString(result)
 
-    polygon = None
+    multi = False
+    polygon = False
     ring = None
+
+    interiors = []
+
     geomtype = geometry.geom_type
     if geomtype == 'LineString':
-        polygon = False
+        ring = geometry
+    elif geomtype == 'LinearRing':
+        polygon = True
         ring = geometry
     elif geomtype == 'Polygon':
         polygon = True
         ring = geometry.exterior
+        i = list(geometry.interiors)
+        if len(i) > 0:
+            for interior in i:
+                interiors.append(gaussian_smoothing(interior, sigma, sample, densify).exterior)
+    elif geomtype == 'MultiLineString':
+        result = []
+        for simple in geometry.geoms:
+            result.append(gaussian_smoothing(simple, sigma, sample, densify))
+        return MultiLineString(result)
+    elif geomtype == 'MultiPolygon':
+        result = []
+        for simple in geometry.geoms:
+            result.append(gaussian_smoothing(simple, sigma, sample, densify))
+        return MultiPolygon(result)
     else:
         raise Exception("{0} geometry cannot be smoothed.".format(geomtype))
 
@@ -483,7 +504,7 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
     else:
         # Extend the line at its first and last points with central inversion
         extended = extend(resampled, interval)
-   
+
     smoothed_coords = []
     for i in range(0, length):
         x, y = 0, 0
@@ -526,7 +547,10 @@ def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
     result = None
     if polygon:
         final_coords.append(final_coords[0])
-        result = Polygon(final_coords)
+        if len(interiors) > 0:
+            result = Polygon(final_coords, interiors)
+        else:
+            result = Polygon(final_coords)
     else:
         # Replace first and last vertex by the line's original ones
         final_coords[0] = Point(coords[0])
@@ -936,3 +960,43 @@ def inflexion_points(line, min_dir=120.0):
     inflexion.append(part[len(part) // 2])
 
     return inflexion
+
+def split_line_at_vertex(line, point):
+    """
+    Divide a line at one of its vertex.
+
+    Parameters
+    ----------
+    line : LineString
+        The line to divide
+    point : Point or tuple (x, y)
+        A point, it must be one of the line's vertex
+
+    Returns
+    -------
+    list of LineString
+        Liste de 2 segments (ou [line] si le point est aux extrémités)
+    """
+    # Convertir en tuple si c'est un Point
+    if isinstance(point, Point):
+        point_coords = point.coords[0]
+    else:
+        point_coords = point
+    
+    coords = list(line.coords)
+
+    if point_coords not in coords:
+        raise Exception('Provided point is not a vertex of the line.')
+    
+    # Find the vertex index
+    idx = coords.index(point_coords)
+    
+    # If first or last, return the same line
+    if idx == 0 or idx == len(coords) - 1:
+        return [line]
+    
+    # Divide in two parts
+    first_part = LineString(coords[:idx+1])
+    second_part = LineString(coords[idx:])
+    
+    return [first_part, second_part]

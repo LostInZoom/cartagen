@@ -20,14 +20,16 @@ Installation
 ============
 
 The plugin is currently available in the `official QGIS plugin repository <https://plugins.qgis.org/plugins/cartagen4qgis/>`_.
-But, as the plugin relies on cartagen, you might need to install cartagen's Python dependencies, namely Numpy, Shapely, GeoPandas,
-Matplotlib and NetworkX.
+Currently, when loading the plugin, a dialog allows you to automatically install CartAGen Python lib within the current Python
+environment. This is the prefered way. But it can fail you and you may want to tweak the dependencies version to your liking.
+If you are using Linux, **we recommend using the Flatpak version** as its Python environment is isolated from the global Python
+environment.
 
 Linux
 -----
 
-Flatpak
-^^^^^^^
+Flatpak (recommended)
+^^^^^^^^^^^^^^^^^^^^^
 
 We recommend using `Flatpak <https://flatpak.org/>`_ to install QGIS (as described `here <https://qgis.org/resources/installation-guide/#flatpak>`_)
 to avoid having to mess with the system-wide pip packages and potentially conflict with the OS.
@@ -43,8 +45,8 @@ running the following command (where VERSION is the version that appears in the 
 
     $ flatpak install runtime/org.kde.Sdk/x86_64/VERSION
 
-Debian-based distributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Debian/Ubuntu
+^^^^^^^^^^^^^
 
 Depending on your linux distribution, the installation of CartAGen system-wide can be different.
 Please keep in mind that installing system-wide pip packages using this solution will conflict

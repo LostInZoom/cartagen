@@ -1,8 +1,11 @@
+from collections import Counter
 import shapely
+from shapely import Point
 from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, unary_union
 
 from cartagen.utils.geometry.angle import angle_3_pts, angle_to_zero_pi
+from cartagen.utils.geometry.line import split_line_at_vertex
 
 class Crossroad:
     """
@@ -13,10 +16,22 @@ class Crossroad:
 
         # Retrieve objects that intersects the considered network face using strtree
         self.original = tree.query(self.face, predicate='intersects').tolist()
+        self.original_geoms = [roads[i] for i in self.original]
 
-        self.original_geoms = []
-        for i in self.original:
-            self.original_geoms.append(roads[i])
+        # Collect all start and end points
+        endpoints = []
+        for line in self.original_geoms:
+            endpoints.append(line.coords[0])
+            endpoints.append(line.coords[-1])
+        
+        # Count endpoints occurences
+        nb = Counter(endpoints)
+        
+        # Stores points shared by two lines outside the crossroad geometry
+        shared = []
+        for point, count in nb.items():
+            if count > 1 and not shapely.intersects(Point(point), self.face):
+                shared.append(point)
 
         # Fully dissolve and node the subnetwork
         unioned = unary_union(self.original_geoms)
@@ -27,15 +42,26 @@ class Crossroad:
             # Merge all contiguous lines
             merged = linemerge(unioned)
 
-        self.network = []
-        if merged.geom_type == 'LineString':
-            self.network.append(merged)
-        elif merged.geom_type == 'MultiLineString':
-            for line in merged.geoms:
+        def insert_line(line):
+            if len(shared) > 0:
+                if bool(set(shared) & set(line.coords)):
+                    for s in shared:
+                        if s in list(line.coords):
+                            self.network.extend(split_line_at_vertex(line, s))
+                else:
+                    self.network.append(line)
+            else:
                 self.network.append(line)
 
+        self.network = []
+        if merged.geom_type == 'LineString':
+            insert_line(merged)
+        elif merged.geom_type == 'MultiLineString':
+            for line in merged.geoms:
+                insert_line(line)
+        
         rtree = shapely.STRtree(self.network)
-        indexes = rtree.query(self.face)
+        indexes = rtree.query(self.face).tolist()
 
         self.nodes, self.links = self.__create_graph_from_face(self.network, self.face)
         self.internals = self.__get_internal_roads(indexes, self.network, self.face)
@@ -43,7 +69,7 @@ class Crossroad:
 
     def get_unchanged_roads(self, roads=None):
         """
-        Return a list of index of unchanged roads, i.e. roads that have the same gemetry as the original.
+        Return a list of index of unchanged roads, i.e. roads that have the same geometry as the original.
         If the roads argument is None, returns all unchanged roads. Possible values are: 'externals' and 'internals'.
         Default is set to None.
         """
@@ -69,6 +95,20 @@ class Crossroad:
         # Return the unchanged list of index
         return unchanged
 
+    def get_entry_points(self):
+        """
+        Returns a list of entry points, i.e. the points connecting external roads to the crossroad face.
+        """
+        points = []
+        for ext in self.externals:
+            line = list(self.network[ext].coords)
+            face = list(self.face.exterior.coords)
+            start, end = line[0], line[-1]
+            if start in face and start not in points:
+                points.append(Point(start))
+            if end in face and end not in points: 
+                points.append(Point(end))
+        return points
 
     def __create_graph_from_face(self, network, face):
         """
