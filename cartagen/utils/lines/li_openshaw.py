@@ -1,10 +1,11 @@
 import shapely
+import numpy as np
 import geopandas as gpd
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString
 
 from cartagen.utils.partitioning import partition_grid
 
-def li_openshaw(line, cell_size):
+def li_openshaw(line, cell_size, preserve_extremities=True):
     """
     Regular grid-based line simplification.
 
@@ -18,6 +19,9 @@ def li_openshaw(line, cell_size):
         The line to simplify.
     cell_size : float
         The size of the regular grid used to divide the line.
+    preserve_extremities : bool, optional
+        Whether the algorithm should preserve the first and last vertex
+        of the input line.
 
     Returns
     -------
@@ -49,31 +53,34 @@ def li_openshaw(line, cell_size):
         geoms = [li_openshaw(geom, cell_size) for geom in line.geoms]
         return MultiLineString(geoms)
     
-    vertexes = [Point(x) for x in line.coords]
-    gdf = gpd.GeoDataFrame(geometry=vertexes)
-    groups, squares = partition_grid(gdf, cell_size)
+    coords = np.array(line.coords)
+    n = len(coords)
     
-    # Créer un mapping vertex_index -> group_index pour O(1) lookup
-    vertex_to_group = {}
-    for gi, group in enumerate(groups):
-        for vertex_idx in group:
-            vertex_to_group[vertex_idx] = gi
+    if n <= 2:
+        return line
     
+    # Calculate cell indexes
+    cell_indices = (coords // cell_size).astype(int)
+    
+    # Create unique id for each cell
+    cell_ids = cell_indices[:, 0] * 1000000 + cell_indices[:, 1]
+    
+    # Find unique cell while preserving order
+    _, unique_idx = np.unique(cell_ids, return_index=True)
+    unique_idx = np.sort(unique_idx)
+    
+    # Calculate centroid for each cell
     simplified = []
-    processed_groups = set()
+    for idx in unique_idx:
+        mask = cell_ids == cell_ids[idx]
+        centroid = coords[mask].mean(axis=0)
+        simplified.append(tuple(centroid))
     
-    for i in range(len(vertexes)):
-        group_idx = vertex_to_group.get(i)
-        if group_idx is not None and group_idx not in processed_groups:
-            group = groups[group_idx]
-            centroid = shapely.centroid(MultiPoint([vertexes[v] for v in group]))
-            simplified.append(centroid)
-            processed_groups.add(group_idx)
-    
-    # Assurer la préservation des extrémités
-    if not simplified[0].equals(vertexes[0]):
-        simplified.insert(0, vertexes[0])
-    if not simplified[-1].equals(vertexes[-1]):
-        simplified.append(vertexes[-1])
+    if preserve_extremities:
+        # Keep extremities
+        if simplified[0] != tuple(coords[0]):
+            simplified.insert(0, tuple(coords[0]))
+        if simplified[-1] != tuple(coords[-1]):
+            simplified.append(tuple(coords[-1]))
     
     return LineString(simplified)
