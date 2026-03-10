@@ -4,7 +4,7 @@ from cartagen.utils.geometry.polygon import surfacic_distance
 
 def boundaries_douglas_peucker(polygons, threshold, preserve_topology=True):
     """
-    Simplify polygon boundaries using the Ramer-Doublas-Peucker algorithm.
+    Simplify polygon boundaries with Douglas-Peucker.
 
     Applies the Ramer-Douglas-Peucker :footcite:p:`ramer:1972` :footcite:p:`douglas:1973` algorithm to the boundaries of polygons.
     As most polygons share a boundary with another polygon, the simplification is only applied to the common line,
@@ -90,7 +90,7 @@ def boundaries_douglas_peucker(polygons, threshold, preserve_topology=True):
 
 def boundaries_visvalingam_whyatt(polygons, threshold):
     """
-    Simplify polygon boundaries using the Visvalingam-Whyatt algorithm.
+    Simplify polygon boundaries with Visvalingam-Whyatt.
 
     Applies the Visvalingam-Whyatt :footcite:p:`visvalingam:1993` algorithm to the boundaries of the given polygons.
     As most polygons share a boundary with another polygon, the simplification is only applied to the common line,
@@ -174,7 +174,7 @@ def boundaries_visvalingam_whyatt(polygons, threshold):
 
 def boundaries_raposo(polygons, initial_scale, final_scale, centroid=True, tobler=False):
     """
-    Simplify polygon boundaries using the Raposo algorithm.
+    Simplify polygon boundaries with Raposo.
 
     Applies the Raposo :footcite:p:`raposo:2013` algorithm to the boundaries of polygons.
     As most polygons share their boundaries with another polygon, the simplification is only applied to the common line,
@@ -264,7 +264,7 @@ def boundaries_raposo(polygons, initial_scale, final_scale, centroid=True, toble
 
 def boundaries_li_openshaw(polygons, cell_size):
     """
-    Simplify polygon boundaries using the Li-Openshaw algorithm.
+    Simplify polygon boundaries with Li-Openshaw.
 
     Applies the Li-Openshaw :footcite:p:`li:1993` algorithm to the boundaries of the polygons. As most polygons share a boundary
     with another polygon, the simplification is only applied to the common line, so that no topological disconnection is
