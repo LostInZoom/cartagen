@@ -1,9 +1,9 @@
 import numpy as np
-
 from shapely import Point, LineString
 
+from cartagen.utils.lines.smoothing import gaussian_smoothing
 from cartagen.utils.geometry.angle import get_curvature
-from cartagen.utils.geometry.line import gaussian_smoothing, get_bend_side, inflexion_points
+from cartagen.utils.geometry.line import get_bend_side, inflexion_points
 
 class Bend:
     """

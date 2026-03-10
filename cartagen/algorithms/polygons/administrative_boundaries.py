@@ -1,5 +1,5 @@
 from cartagen.utils.geometry.topo_map import TopoMap
-from cartagen.utils.geometry.line import visvalingam_whyatt, douglas_peucker, raposo, li_openshaw
+from cartagen.utils.lines import visvalingam_whyatt, douglas_peucker, raposo, li_openshaw
 from cartagen.utils.geometry.polygon import surfacic_distance
 
 def boundaries_visvalingam(boundaries, area_tolerance):
@@ -58,7 +58,7 @@ def boundaries_visvalingam(boundaries, area_tolerance):
     # then loop on all arcs of the TopoMap
     for aid, arc in tm.arcs.items():
         geom = arc.geom
-        simplified = visvalingam_whyatt(geom, area_tolerance)
+        simplified = visvalingam_whyatt(geom, threshold=area_tolerance)
         tm.arcs[aid].geom = simplified
 
     # update the TopoMap with the simplified arcs

@@ -2,7 +2,8 @@ import shapely, itertools
 import numpy as np
 from shapely.geometry import LineString
 from copy import deepcopy
-from cartagen.utils.geometry.line import gaussian_smoothing, get_segment_center, merge_linestrings
+from cartagen.utils.lines.smoothing import gaussian_smoothing
+from cartagen.utils.geometry.line import get_segment_center, merge_linestrings
 
 def skeletonize_natural(polygon, threshold_range=(0.7, 1.4)):
     """

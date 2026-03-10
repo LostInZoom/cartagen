@@ -4,10 +4,8 @@ import networkx as nx
 from shapely.ops import unary_union, linemerge
 
 from cartagen.utils.geometry.distances import group_intersecting
-from cartagen.utils.geometry.line import (
-    get_line_middle_point, merge_linestrings,
-    resample_line, gaussian_smoothing
-)
+from cartagen.utils.geometry.line import get_line_middle_point, merge_linestrings, resample_line
+from cartagen.utils.lines.smoothing import gaussian_smoothing
 from cartagen.utils.network.graph import create_graph
 
 def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structural=None):

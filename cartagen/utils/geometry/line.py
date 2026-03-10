@@ -6,558 +6,7 @@ from shapely.ops import split, nearest_points, snap, transform
 from shapely.geometry import LineString, Point, Polygon, MultiPoint, MultiLineString, MultiPolygon
 
 from cartagen.utils.geometry.angle import angle_3_pts
-from cartagen.utils.partitioning.tessellation import HexagonalTessellation
 from cartagen.utils.partitioning import partition_grid
-
-def douglas_peucker(line, threshold, preserve_topology=True):
-    """
-    Distance-based line simplification.
-
-    This algorithm was proposed by Ramer :footcite:p:`ramer:1972` and by Douglas and Peucker.
-    :footcite:p:`douglas:1973` It is a line filtering algorithm, which means that it
-    filters the vertices of the line (or polygon) to only retain the most important ones
-    to preserve the shape of the line. The algorithm iteratively searches the most
-    characteristics vertices of portions of the line and decides to retain
-    or remove them given a distance threshold.
-
-    The algorithm tends to unsmooth geographic lines, and is rarely used to simplify geographic features.
-    But it can be very useful to quickly filter the vertices of a line inside another algorithm.
-
-    This is a simple wrapper around :func:`shapely.simplify() <shapely.simplify()>`.
-
-    Parameters
-    ----------
-    line : LineString
-        The line to simplify.
-    threshold : float
-        The distance thresholdto remove the vertex from the line.
-    preserve_topology : bool, optional
-        If set to True, the algorithm will prevent invalid geometries
-        from being created (checking for collapses, ring-intersections, etc).
-        The trade-off is computational expensivity.
-
-    Returns
-    -------
-    LineString
-
-    See Also
-    --------
-    visvalingam_whyatt :
-        Area-based line simplification.
-    raposo :
-        Hexagon-based line simplification.
-    li_openshaw :
-        Square grid-based line simplification.
-
-    References
-    ----------
-    .. footbibliography::
-
-    Examples
-    --------
-    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> douglas_peucker(line, 1.0)
-    <LINESTRING (0 0, 2 0, 5 3)>
-    """
-    return shapely.simplify(line, threshold, preserve_topology=preserve_topology)
-
-def visvalingam_whyatt(line, area_tolerance):
-    """
-    Area-based line simplification.
-
-    This algorithm proposed by Visvalingam and Whyatt :footcite:p:`visvalingam:1993` performs a
-    line simplification that produces less angular results than the filtering algorithm of Ramer-Douglas-Peucker.
-    The principle of the algorithm is to select the vertices to delete (the less characteristic ones)
-    rather than choosing the vertices to keep (in the Douglas and Peucker algorithm).
-    To select the vertices to delete, there is an iterative process,
-    and at each iteration, the triangles formed by three consecutive vertices are computed. If the area of the smallest
-    triangle is smaller than a threshold (“area_tolerance” parameter), the middle vertex is deleted, and another iteration starts.
-
-    The algorithm is relevant for the simplification of natural line or polygon features such as rivers, forests, or coastlines.
-
-    Parameters
-    ----------
-    line : LineString
-        The line to simplify.
-    area_tolerance : float
-        The minimum triangle area to keep a vertex in the line.
-
-    Returns
-    -------
-    LineString
-
-    See Also
-    --------
-    douglas_peucker :
-        Distance-based line simplification.
-    raposo :
-        Hexagon-based line simplification.
-    li_openshaw :
-        Square grid-based line simplification.
-
-    References
-    ----------
-    .. footbibliography::
-
-    Examples
-    --------
-    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> visvalingam_whyatt(line, 5.0)
-    <LINESTRING (0 0, 2 0, 5 3)>
-    """
-    coords = list(line.coords)
-    if len(coords) < 3:
-        return line
-
-    def triangle_area_2d(p1, p2, p3):
-        """Calculates the area of a triangle given three 2D points using the shoelace formula."""
-        return 0.5 * abs(p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]))
-
-    points = {i: {'coords': coords[i], 'prev': i - 1, 'next': i + 1, 'effective_area': 0} for i in range(len(coords))}
-    points[0]['prev'] = None
-    points[len(coords)-1]['next'] = None
-    
-    areas_heap = []
-    
-    # Calculate initial effective areas for all internal points and push to heap
-    for i in range(1, len(coords) - 1):
-        area = triangle_area_2d(points[i-1]['coords'], points[i]['coords'], points[i+1]['coords'])
-        points[i]['effective_area'] = area
-        heapq.heappush(areas_heap, (area, i))
-
-    while areas_heap:
-        min_area, min_index = heapq.heappop(areas_heap)
-        
-        # Check for stale entries in the heap (due to updates)
-        if min_index not in points or points[min_index]['effective_area'] > min_area:
-            continue
-            
-        # Stop condition: if the smallest effective area is above tolerance, we are done.
-        if min_area > area_tolerance:
-            break
-
-        prev_idx = points[min_index]['prev']
-        next_idx = points[min_index]['next']
-
-        # Remove the point
-        del points[min_index]
-
-        # Update the linked list
-        if prev_idx is not None:
-            points[prev_idx]['next'] = next_idx
-        if next_idx is not None:
-            points[next_idx]['prev'] = prev_idx
-
-        # Recalculate and propagate the effective area to neighbors
-        if prev_idx is not None:
-            # Get the new triangle vertices for the previous neighbor
-            new_prev_idx = points[prev_idx]['prev']
-            if new_prev_idx is not None:
-                new_area_prev = triangle_area_2d(points[new_prev_idx]['coords'], points[prev_idx]['coords'], points[next_idx]['coords'])
-                # The effective area of a point is the maximum of all triangle areas it forms.
-                propagated_area = max(points[prev_idx]['effective_area'], min_area)
-                points[prev_idx]['effective_area'] = max(propagated_area, new_area_prev)
-                heapq.heappush(areas_heap, (points[prev_idx]['effective_area'], prev_idx))
-
-        if next_idx is not None:
-            # Get the new triangle vertices for the next neighbor
-            new_next_idx = points[next_idx]['next']
-            if new_next_idx is not None:
-                new_area_next = triangle_area_2d(points[prev_idx]['coords'], points[next_idx]['coords'], points[new_next_idx]['coords'])
-                # Propagate the effective area
-                propagated_area = max(points[next_idx]['effective_area'], min_area)
-                points[next_idx]['effective_area'] = max(propagated_area, new_area_next)
-                heapq.heappush(areas_heap, (points[next_idx]['effective_area'], next_idx))
-
-    # Reconstruct the simplified line from the remaining points
-    simplified_coords = [p['coords'] for p in points.values()]
-    
-    return LineString(simplified_coords)
-
-
-def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
-    """
-    Hexagon-based line simplification.
-    
-    This algorithm proposed by Raposo :footcite:p:`raposo:2013` simplifies lines based on a
-    hexagonal tessellation. The algorithm also works for the simplification of the border of a polygon object.
-    The idea of the algorithm is to put a hexagonal tessallation on top of the line to simplify,
-    the size of the cells depending on the targeted granularity of the line.
-    Similarly to the Li-Openshaw algorithm, only one vertex is kept inside each cell.
-    This point can be the centroid of the removed vertices, or a projection on the initial line of this centroid.
-    The shapes obtained with this algorithm are less sharp than the ones obtained with other algorithms such as Douglas-Peucker.
-
-    The algorithm is dedicated to the smooth simplification of natural features such as rivers, forests, coastlines, lakes.
-
-    Parameters
-    ----------
-    line : LineString
-        The line to simplify.
-    initial_scale : float
-        Initial scale of the provided line (25000.0 for 1:25000 scale).
-    final_scale : float
-        Final scale of the simplified line.
-    centroid : bool, optional
-        If true, uses the center of the hexagonal cells as the new vertex,
-        if false, the center is projected on the nearest point in the initial line.
-    tobler : bool, optional
-        If True, compute cell resolution based on Tobler’s formula, else uses Raposo's formula
-
-    Returns
-    -------
-    LineString   
-
-    See Also
-    --------
-    douglas_peucker :
-        Distance-based line simplification.
-    visvalingam_whyatt :
-        Area-based line simplification.
-    li_openshaw :
-        Square grid-based line simplification.
-
-    Notes
-    -----
-    The Tobler based formula to compute hexagonal cell size is :math:`cellsize=5·l·s`
-    where :math:`l` is the width of the line in the map in meters
-    (*e.g.* 0.0005 for 0.5 mm), and :math:`s` is the target scale denominator.
-
-    Raposo’s formula to compute hexagonal cell size is :math:`cellsize={l/n}·{t/d}`
-    where :math:`l` is the length of the line, :math:`n` the number of vertices of the line,
-    :math:`t` the denominator of the target scale, and :math:`d` the denominator of the initial scale.
-
-    References
-    ----------
-    .. footbibliography::
-
-    Examples
-    --------
-    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> c4.raposo(line, 5000, 10000)
-    <LINESTRING (0 0, 1 0.3333333333333333, 5 3)>
-    """
-    width = 0
-    if tobler:
-        width = final_scale * 5 / 4000 
-    else:
-        firstFactor = line.length / (len(line.coords)-1)
-        secondFactor = final_scale / initial_scale
-        width = firstFactor * secondFactor
-
-    # compute hexagon tessellation
-    tessellation = HexagonalTessellation(line.envelope, width)
-
-    current_index = 0
-    final_coords = []
-    # append the first point of the line, but without the z coordinate
-    twod_point = transform(lambda *args: args[:2], Point(line.coords[0]))
-    final_coords.append(twod_point.coords[0])
-    previous_cell = None
-    while (current_index < len(line.coords)-1):
-        current_cell = None
-        # now loop on the vertices from current index
-        # builds a point cloud as a multi-point geometry with all line vertices
-        # contained in the current cell.
-        point_cloud = []
-        for i in range(current_index,len(line.coords)):
-            # get the cells containing the point
-            point = line.coords[i]
-            containing_cells = tessellation.get_containing_cells(point)
-            if(current_cell is None):
-                if(previous_cell in containing_cells):
-                    containing_cells.remove(previous_cell)
-                current_cell = containing_cells[0]
-                point_cloud.append(point)
-                continue
-
-            if (current_cell in containing_cells):
-                point_cloud.append(point)
-                current_index = i+1
-            else:
-                current_index = i
-                previous_cell = current_cell
-                break
-        multipoint = MultiPoint(point_cloud)
-        if (centroid):
-            # replace the points by the centroid of the vertices in the cell
-            final_coords.append(multipoint.centroid.coords[0])
-        else:
-            # find the nearest vertex to the centroid
-            nearest = nearest_points(multipoint,multipoint.centroid)
-            final_coords.append(nearest[0].coords[0])
-        if (current_index == len(line.coords) - 1):
-            twod_final_point = transform(lambda *args: args[:2], Point(line.coords[current_index]))
-            final_coords.append(twod_final_point.coords[0])
-    # add the final point if it is not in the line
-    twod_final_point = transform(lambda *args: args[:2], Point(line.coords[len(line.coords) - 1]))
-    if(twod_final_point.coords[0] not in final_coords):
-        final_coords.append(twod_final_point.coords[0])
-    
-    # print(final_coords)
-    return LineString(final_coords)
-
-def li_openshaw(line, cell_size):
-    """
-    Regular grid-based line simplification.
-
-    This algorithm proposed by Li & Openshaw :footcite:p:`li:1993` simplifies lines based on a
-    regular square grid. It first divide the line vertexes into groups partionned by a regular
-    grid, then each group of vertexes is replaced by their centroid.
-
-    Parameters
-    ----------
-    line : LineString
-        The line to simplify.
-    cell_size : float
-        The size of the regular grid used to divide the line.
-
-    Returns
-    -------
-    LineString   
-
-    See Also
-    --------
-    douglas_peucker :
-        Distance-based line simplification.
-    visvalingam_whyatt :
-        Area-based line simplification.
-    raposo :
-        Hexagon-based line simplification.
-
-    References
-    ----------
-    .. footbibliography::
-
-    Examples
-    --------
-    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> c4.li_openshaw(line, 1)
-    <LINESTRING (0 0, 0.5 0.5, 2 0, 5 3)>
-    """
-    vertexes = [ Point(x) for x in list(line.coords) ]
-
-    gdf = gpd.GeoDataFrame(geometry=vertexes)
-    groups, squares = partition_grid(gdf, cell_size)
-
-    simplified = []
-    gi_alrd_done = []
-    for i in range(0, len(vertexes)):
-        index = None
-        for gi, j in enumerate(groups):
-            if i in j:
-                index = gi
-        
-        if index is not None and index not in gi_alrd_done:
-            group = groups[index]
-            centroid = shapely.centroid(MultiPoint([ vertexes[v] for v in group ]))
-            simplified.append(centroid)
-            previous = index
-
-    if vertexes[0] != simplified[0]:
-        simplified.insert(0, vertexes[0])
-    if vertexes[-1] != simplified[-1]:
-        simplified.append(vertexes[-1])
-
-    return LineString(simplified)
-
-def gaussian_smoothing(geometry, sigma=30, sample=None, densify=True):
-    """
-    Smooth a line or a polygon and attenuate its inflexion points. Accept Multi geometries.
-    If a polygon is provided, it also apply the smoothing to its holes using the same parameters.
-
-    The gaussian smoothing has been studied by Babaud *et al.* :footcite:p:`babaud:1986`
-    for image processing, and by Plazanet :footcite:p:`plazanet:1996`
-    for the generalisation of cartographic features.
-
-    Parameters
-    ----------
-    geometry : LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
-        The line or polygon to smooth.
-        If a line is provided, the first and last vertexes are kept.
-        If a polygon is provided, every vertex is smoothed.
-    sigma : float, optional
-        Gaussian filter strength. Default value to 30, which is a high value.
-    sample : float, optional
-        The length in meter between each nodes after resampling the geometry.
-        If not provided, the sample is derived from the geometry and is the average distance between
-        each consecutive vertex.
-    densify : bool, optional
-        Whether the resulting geometry should keep the new vertex density. Default to True.
-
-    Returns
-    -------
-    LineString, Polygon, MultiLineString, MultiPolygon
-
-    References
-    ----------
-    .. footbibliography::
-
-    Examples
-    --------
-    >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> c4.gaussian_smoothing(line, 1)
-    <LINESTRING (0 0, 1.666666666666667 0.6051115971014416, 3.333333333333334 1.6051115971014418, 5 3)>
-
-    >>> polygon = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
-    >>> c4.gaussian_smoothing(polygon, 1)
-    <POLYGON ((0.1168459780814714 0.3005282653219513, ... 0.1168459780814714 0.3005282653219513))>
-    """
-    # Extend the given set of points at its first and last points of k points using central inversion.
-    def extend(line, interval):
-        # Compute the central inversion of a position. origin is the center of symmetry and p is the point to inverse.
-        def central_inversion(origin, p):
-            x = 2 * origin[0] - p[0]
-            y = 2 * origin[1] - p[1]
-            return (x,y)
-        
-        # Get the coordinates of the vertices
-        coords = list(line.coords)
-        # Get the first and last vertex
-        first, last = coords[0], coords[-1]
-
-        # Get the index of the penultimate vertex
-        # -2 is to avoid taking the last vertex
-        pen = len(coords) - 2
-
-        # Set the start of the line as the central inversion of n first vertices (n = interval)
-        result = [central_inversion(first, coords[i]) for i in range(interval, 0, -1)]
-
-        # Add the full line as the middle part of the line
-        result.extend(coords)
-
-        # Add the end of the line as the central inversion of n last vertices (n = interval)
-        result.extend([central_inversion(last, coords[i]) for i in range(pen, pen - interval, -1)])
-
-        return LineString(result)
-
-    multi = False
-    polygon = False
-    ring = None
-
-    interiors = []
-
-    geomtype = geometry.geom_type
-    if geomtype == 'LineString':
-        ring = geometry
-    elif geomtype == 'LinearRing':
-        polygon = True
-        ring = geometry
-    elif geomtype == 'Polygon':
-        polygon = True
-        ring = geometry.exterior
-        i = list(geometry.interiors)
-        if len(i) > 0:
-            for interior in i:
-                interiors.append(gaussian_smoothing(interior, sigma, sample, densify).exterior)
-    elif geomtype == 'MultiLineString':
-        result = []
-        for simple in geometry.geoms:
-            result.append(gaussian_smoothing(simple, sigma, sample, densify))
-        return MultiLineString(result)
-    elif geomtype == 'MultiPolygon':
-        result = []
-        for simple in geometry.geoms:
-            result.append(gaussian_smoothing(simple, sigma, sample, densify))
-        return MultiPolygon(result)
-    else:
-        raise Exception("{0} geometry cannot be smoothed.".format(geomtype))
-
-    coords = list(ring.coords)
-
-    if sample is None:
-        distances = []
-        for i in range(0, len(coords) - 1):
-            v1, v2 = coords[i], coords[i + 1]
-            distances.append(shapely.Point(v1).distance(shapely.Point(v2)))
-        avg = (sum(distances) / len(distances))
-        sample = avg
-
-    # First resample the line, making sure there is a maximum distance between two consecutive vertices
-    resampled = resample_line(ring, sample)
-
-    # Calculate the interval (number of vertex to take into consideration when smoothing)
-    interval = round(4 * sigma / sample)
-    # If the interval is longer than the input line, we change the interval and recalculate the sigma
-    if interval >= len(resampled.coords):
-        interval = len(resampled.coords) - 1
-        sigma = interval * sample / 4
-    
-    # Compute gaussian coefficients
-    c2 = -1.0 / (2.0 * sigma * sigma)
-    c1 = 1.0 / (sigma * np.sqrt(2.0 * np.pi))
-
-    # Compute the gaussian weights and their sum
-    weights = []
-    total = 0
-    for k in range (0, interval + 1):
-        weight = c1 * np.exp(c2 * k * k)
-        weights.append(weight)
-        total += weight
-        if k > 0:
-            total += weight
-    
-    rline = list(resampled.coords)
-    length = len(rline)
-
-    if polygon:
-        extended = LineString(rline[-interval:] + rline + rline[:interval])
-    else:
-        # Extend the line at its first and last points with central inversion
-        extended = extend(resampled, interval)
-
-    smoothed_coords = []
-    for i in range(0, length):
-        x, y = 0, 0
-        for k in range(-interval , interval + 1):
-            p1 = extended.coords[i - k + interval]
-            x += weights[abs(k)] * p1[0] / total
-            y += weights[abs(k)] * p1[1] / total
-        smoothed_coords.append((x,y))
-
-    if densify:
-        final_coords = smoothed_coords
-    else:
-        # Only return the points matching the input points in the resulting filtered line
-        final_coords = []
-        # Stores for index of already treated vertices
-        done = []
-        # Loop through initial vertices
-        for point in coords:
-            # Set the distance to infinite
-            distance = float("inf")
-            nearest = None
-            # Loop through smoothed coordinates
-            for i in range(len(smoothed_coords)):
-                # Check that the index has not been already added
-                if i not in done:
-                    # Calculate distance from the point
-                    d = Point(smoothed_coords[i]).distance(Point(point))
-                    if d < distance:
-                        # Update distance and nearest index if below existing
-                        distance, nearest = d, i
-
-            # If a nearest point has been found, add it to the new line
-            if nearest is not None:
-                final_coords.append(smoothed_coords[nearest])
-                # Add the index as treated already
-                done.append(nearest)
-            else:
-                final_coords.append(point)
-    
-    result = None
-    if polygon:
-        final_coords.append(final_coords[0])
-        if len(interiors) > 0:
-            result = Polygon(final_coords, interiors)
-        else:
-            result = Polygon(final_coords)
-    else:
-        # Replace first and last vertex by the line's original ones
-        final_coords[0] = Point(coords[0])
-        final_coords[-1] = Point(coords[-1])
-        result = LineString(final_coords)
-    
-    return result
 
 def get_bend_side(line):
     """
@@ -586,7 +35,7 @@ def get_bend_side(line):
     total = 0
 
     # Get the start point of the bend
-    start = shapely.Point(coords[0])
+    start = Point(coords[0])
 
     # Loop through the nodes of the linestring, starting on the seconde node
     for i in range(1, len(coords) - 1):
@@ -595,7 +44,7 @@ def get_bend_side(line):
         c2 = coords[i + 1]
 
         # Add to the total the angle between the starting point and those two nodes
-        angle = angle_3_pts(start, shapely.Point(c2), shapely.Point(c1))
+        angle = angle_3_pts(start, Point(c2), Point(c1))
 
         # Set the angle to be between 0 and 2*pi
         if angle % (2 * np.pi) >= 0:
@@ -619,7 +68,6 @@ def get_shortest_edge_length(geom):
     min_length = float('inf')
     segments = get_linestring_segments(geom)
     for segment in segments:
-        print(segment)
         length = Point(segment[0]).distance(Point(segment[1]))
         if(length < min_length):
             min_length = length
@@ -645,19 +93,19 @@ def to_2d(x, y, z):
 def array_to_2d(array):
     array_2d = []
     for tuple in array:
-       array_2d.append(to_2d(tuple[0],tuple[1],tuple[2]))
+        array_2d.append(to_2d(tuple[0],tuple[1],tuple[2]))
     return array_2d
 
 def polygons_3d_to_2d(polygons):
     polygons_2d = []
     for polygon in polygons:
-       # outer ring
-       coords_2d = array_to_2d(polygon.exterior.coords)
-       # inner rings
-       interiors = []
-       for interior in polygon.interiors:
-          interiors.append(array_to_2d(interior.coords))
-       polygons_2d.append(Polygon(coords_2d,interiors))
+        # outer ring
+        coords_2d = array_to_2d(polygon.exterior.coords)
+        # inner rings
+        interiors = []
+        for interior in polygon.interiors:
+            interiors.append(array_to_2d(interior.coords))
+        polygons_2d.append(Polygon(coords_2d,interiors))
     return polygons_2d
 
 def resample_line(line, step, keep_vertices=False):
@@ -746,23 +194,23 @@ def get_index_of_nearest_vertex(line, vertex):
     return nearest_index
 
 def geometry_flatten(geom):
-  if hasattr(geom, 'geoms'):  # Multi<Type> / GeometryCollection
-    for g in geom.geoms:
-      yield from geometry_flatten(g)
-  elif hasattr(geom, 'interiors'):  # Polygon
-    yield geom.exterior
-    yield from geom.interiors
-  else:  # Point / LineString
-    yield geom
+    if hasattr(geom, 'geoms'):  # Multi<Type> / GeometryCollection
+        for g in geom.geoms:
+            yield from geometry_flatten(g)
+    elif hasattr(geom, 'interiors'):  # Polygon
+        yield geom.exterior
+        yield from geom.interiors
+    else:  # Point / LineString
+        yield geom
 
 def geometry_len(geom):
-  return sum(len(g.coords) for g in geometry_flatten(geom))
+    return sum(len(g.coords) for g in geometry_flatten(geom))
 
 # Gets the nearest point of the geometry to a point. If the point is a vertex, it is not chosen.
 def get_nearest_vertex(geometry, point):
     min_dist = float('inf')
     nearest = None
-   
+
     for vertex in geometry.coords:
         vertex_pt = Point(vertex)
         distance = vertex_pt.distance(point)
