@@ -16,7 +16,7 @@ polygons = [
 
 simplified = c4.boundaries_visvalingam_whyatt(gpd.GeoDataFrame(geometry=polygons), 1500000000)
 
-fig = plt.figure(1, (6, 12))
+fig = plt.figure(1, (6, 10))
 
 sub1 = fig.add_subplot(211)
 sub1.set_aspect('equal')

@@ -16,7 +16,7 @@ polygons = [
 
 simplified = c4.boundaries_li_openshaw(gpd.GeoDataFrame(geometry=polygons), 60000)
 
-fig = plt.figure(1, (6, 12))
+fig = plt.figure(1, (6, 10))
 
 sub1 = fig.add_subplot(211)
 sub1.set_aspect('equal')
