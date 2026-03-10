@@ -1,4 +1,4 @@
-from shapely.ops import transform
+from shapely.ops import transform, nearest_points
 from shapely import Point, MultiPoint, LineString, MultiLineString
 
 from cartagen.utils.partitioning.tessellation import HexagonalTessellation
@@ -66,70 +66,75 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
 
     if line.geom_type not in ['LineString', 'MultiLineString']:
-        raise Exception('{0} geometry type cannot be simplified.'.format(line.geom_type))
+        raise ValueError(f'{line.geom_type} geometry type cannot be simplified.')
 
     if line.geom_type == 'MultiLineString':
-        geoms = []
-        for geom in list(line.geoms):
-            geoms.append(raposo(geom, initial_scale, final_scale, centroid, tobler))
+        geoms = [raposo(geom, initial_scale, final_scale, centroid, tobler) for geom in line.geoms]
         return MultiLineString(geoms)
 
-    width = 0
+    # Calculate hexagons width
     if tobler:
         width = final_scale * 5 / 4000 
     else:
-        firstFactor = line.length / (len(line.coords)-1)
-        secondFactor = final_scale / initial_scale
-        width = firstFactor * secondFactor
+        first_factor = line.length / (len(line.coords) - 1)
+        second_factor = final_scale / initial_scale
+        width = first_factor * second_factor
 
-    # compute hexagon tessellation
+    # Create the hex tesselation
     tessellation = HexagonalTessellation(line.envelope, width)
-
-    current_index = 0
-    final_coords = []
-    # append the first point of the line, but without the z coordinate
-    twod_point = transform(lambda *args: args[:2], Point(line.coords[0]))
-    final_coords.append(twod_point.coords[0])
-    previous_cell = None
-    while (current_index < len(line.coords)-1):
-        current_cell = None
-        # now loop on the vertices from current index
-        # builds a point cloud as a multi-point geometry with all line vertices
-        # contained in the current cell.
-        point_cloud = []
-        for i in range(current_index,len(line.coords)):
-            # get the cells containing the point
-            point = line.coords[i]
-            containing_cells = tessellation.get_containing_cells(point)
-            if(current_cell is None):
-                if(previous_cell in containing_cells):
-                    containing_cells.remove(previous_cell)
-                current_cell = containing_cells[0]
-                point_cloud.append(point)
-                continue
-
-            if (current_cell in containing_cells):
-                point_cloud.append(point)
-                current_index = i+1
-            else:
-                current_index = i
-                previous_cell = current_cell
-                break
-        multipoint = MultiPoint(point_cloud)
-        if (centroid):
-            # replace the points by the centroid of the vertices in the cell
-            final_coords.append(multipoint.centroid.coords[0])
-        else:
-            # find the nearest vertex to the centroid
-            nearest = nearest_points(multipoint,multipoint.centroid)
-            final_coords.append(nearest[0].coords[0])
-        if (current_index == len(line.coords) - 1):
-            twod_final_point = transform(lambda *args: args[:2], Point(line.coords[current_index]))
-            final_coords.append(twod_final_point.coords[0])
-    # add the final point if it is not in the line
-    twod_final_point = transform(lambda *args: args[:2], Point(line.coords[len(line.coords) - 1]))
-    if(twod_final_point.coords[0] not in final_coords):
-        final_coords.append(twod_final_point.coords[0])
     
-    # print(final_coords)
+    # Convert coords to 2d
+    coords_2d = [transform(lambda *args: args[:2], Point(c)).coords[0] for c in line.coords]
+    
+    # Initialize with first point
+    final_coords = [coords_2d[0]]
+    
+    i = 1
+    previous_cell = None
+    
+    while i < len(coords_2d):
+        # Find the cell containing the current point
+        containing_cells = tessellation.get_containing_cells(coords_2d[i])
+        
+        # Ignore previous cell if present
+        if previous_cell and previous_cell in containing_cells:
+            containing_cells.remove(previous_cell)
+        
+        if not containing_cells:
+            i += 1
+            continue
+            
+        current_cell = containing_cells[0]
+        
+        # Collect points inside the cell
+        point_cloud = []
+        j = i
+        
+        while j < len(coords_2d):
+            cells = tessellation.get_containing_cells(coords_2d[j])
+            
+            if current_cell in cells:
+                point_cloud.append(coords_2d[j])
+                j += 1
+            else:
+                break
+        
+        # Add the point representative of the cell
+        if point_cloud:
+            multipoint = MultiPoint(point_cloud)
+            
+            if centroid:
+                final_coords.append(multipoint.centroid.coords[0])
+            else:
+                # Find the point closest to centroid
+                nearest = nearest_points(multipoint, multipoint.centroid)
+                final_coords.append(nearest[0].coords[0])
+        
+        previous_cell = current_cell
+        i = j
+    
+    # Add the last point if not present
+    if coords_2d[-1] != final_coords[-1]:
+        final_coords.append(coords_2d[-1])
+    
     return LineString(final_coords)
