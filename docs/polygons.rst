@@ -32,6 +32,20 @@ Building blocks
     morphological_amalgamation
     boffet_areas
 
+Simplification
+--------------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    boundaries_douglas_peucker
+    boundaries_visvalingam_whyatt
+    boundaries_raposo
+    boundaries_li_openshaw
+
 Collapsing
 ----------
 
