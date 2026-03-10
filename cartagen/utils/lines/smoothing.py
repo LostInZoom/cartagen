@@ -1,5 +1,5 @@
 import numpy as np
-from shapely import Point, LineString, MultiLineString
+from shapely import Point, LineString, MultiLineString, Polygon, MultiPolygon
 
 from cartagen.utils.geometry.line import resample_line
 
