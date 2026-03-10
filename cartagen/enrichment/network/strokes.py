@@ -466,6 +466,8 @@ class StrokeNetwork:
         return self.reconstruct_strokes(self.strokes)
 
 class RiverStroke:
+    COUNTER = 0
+
     def __init__(self, network, section): 
         if type(section) is list:
             self.features = section 
@@ -474,6 +476,9 @@ class RiverStroke:
             self.features.append(section)
         self.network = network
         self.isBraided = None
+        self.horton = 0
+        self.id = RiverStroke.COUNTER
+        RiverStroke.COUNTER += 1
 
     def setBraided(self,isBraided) :
         self.isBraided = isBraided
@@ -486,7 +491,7 @@ class RiverStroke:
 
 class RiverStrokeNetwork:
     def __init__(self, lines, attributeName):
-        #Initialisation from a geopanda dataframe and the liste of desired attribute name
+        #Initialisation from a geopanda dataframe and the list of desired attribute name
         features = []
 
         if attributeName is None: 
@@ -533,7 +538,8 @@ class RiverStrokeNetwork:
             for succnode in ntx.successors(node):
                 if ntx.has_edge(node,succnode) :
                     temp=ntx[node][succnode]["elem"]
-                    dic_neighbours[node].append(temp)  
+                    dic_neighbours[node].append(temp) 
+        
         return dic_neighbours,dicentrant
 
 
@@ -549,7 +555,7 @@ class RiverStrokeNetwork:
         for stroke in upstreamStrokes :
             if (stroke.isBraided) :
                 continue
-            unbraided = stroke;
+            unbraided = stroke
             nb+=1
         if (nb == 1) :
             return unbraided
@@ -595,7 +601,7 @@ class RiverStrokeNetwork:
             if (math.cos(angle) < mini) :
                 mini = math.cos(angle)
                 best = stroke
-        return best;
+        return best
 
 
     def getUpstreamStrokes(self, node) :
@@ -616,7 +622,7 @@ class RiverStrokeNetwork:
             return orders[0]
         if (len(orders) == 0):
             return 1
-        maxi = max(orders);
+        maxi = max(orders)
         nbMax =orders.count(maxi)
         if (nbMax > 1) :
             return maxi + 1
@@ -771,7 +777,7 @@ class RiverStrokeNetwork:
                             section=max(section,self.strahlerOrders[seg['id']])
             multi_line = MultiLineString(listline)
             merged_line = ops.linemerge(multi_line)
-            array += [[i,merged_line,section]]
+            array += [[stroke.id,merged_line,stroke.horton]]
         return array
     
     def save_strokes_shp(self,path):
@@ -785,8 +791,8 @@ class RiverStrokeNetwork:
         strahlerL=[]
         strokeL=[]
         for i in gdf.index: 
-            strahlerL.append(self.strahlerOrders[gdf["id"][i]])
-            strokeid=self.getstrokeid(gdf["id"][i])
+            strahlerL.append(self.strahlerOrders[gdf['id'][i]])
+            strokeid=self.getstrokeid(gdf['id'][i])
             strokeL.append(strokeid)
         gdf['strahler'] = strahlerL
         gdf['stroke'] = strokeL
@@ -803,3 +809,15 @@ class RiverStrokeNetwork:
                     return i
             i+=1
         return -1
+    
+    def compute_horton_orders(self):
+        for stroke in self.strokes:
+            if stroke.isBraided:
+                stroke.horton = 0
+            else:
+                max_order = 0
+                for feat in stroke.features:
+                    order = self.strahlerOrders[feat['id']]
+                    if order > max_order:
+                        max_order = order
+                stroke.horton = max_order
