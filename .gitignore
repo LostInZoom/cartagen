@@ -13,6 +13,7 @@ cartagen.egg-info/
 
 test_scripts/
 test*.py
+river_generalization.py
 cartagen/test_scripts/
 
 # Remove qgis files
