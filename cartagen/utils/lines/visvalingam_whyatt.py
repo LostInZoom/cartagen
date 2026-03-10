@@ -60,7 +60,7 @@ def visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
             f"Got: threshold={threshold}, number={number}, ratio={ratio}"
         )
 
-    if line.geom_type not in ['LineString', 'MultiLineString']:
+    if line.geom_type not in ['LineString', 'MultiLineString', 'LinearRing']:
         raise Exception('{0} geometry type cannot be simplified.'.format(line.geom_type))
 
     if line.geom_type == 'MultiLineString':

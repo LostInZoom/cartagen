@@ -65,7 +65,7 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     <LINESTRING (0 0, 1 0.3333333333333333, 5 3)>
     """
 
-    if line.geom_type not in ['LineString', 'MultiLineString']:
+    if line.geom_type not in ['LineString', 'MultiLineString', 'LinearRing']:
         raise ValueError(f'{line.geom_type} geometry type cannot be simplified.')
 
     if line.geom_type == 'MultiLineString':

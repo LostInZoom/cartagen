@@ -46,7 +46,7 @@ def li_openshaw(line, cell_size, preserve_extremities=True):
     >>> c4.li_openshaw(line, 1)
     <LINESTRING (0 0, 0.5 0.5, 2 0, 5 3)>
     """
-    if line.geom_type not in ['LineString', 'MultiLineString']:
+    if line.geom_type not in ['LineString', 'MultiLineString', 'LinearRing']:
         raise ValueError(f'{line.geom_type} geometry type cannot be simplified.')
     
     if line.geom_type == 'MultiLineString':
