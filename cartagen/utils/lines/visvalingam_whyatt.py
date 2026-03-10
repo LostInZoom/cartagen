@@ -12,7 +12,7 @@ def visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
     rather than choosing the vertices to keep (in the Douglas and Peucker algorithm).
     To select the vertices to delete, there is an iterative process,
     and at each iteration, the triangles formed by three consecutive vertices are computed. If the area of the smallest
-    triangle is smaller than a threshold (“area_tolerance” parameter), the middle vertex is deleted, and another iteration starts.
+    triangle is smaller than a threshold, the middle vertex is deleted, and another iteration starts.
 
     The algorithm is relevant for the simplification of natural line or polygon features such as rivers, forests, or coastlines.
     This implementation was made by `Elliot Hallmark <https://github.com/Permafacture/Py-Visvalingam-Whyatt>`_.
