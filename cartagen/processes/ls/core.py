@@ -316,11 +316,11 @@ class LeastSquaresMethod:
         for i, p in enumerate(curvature):
             alpha, normp, normn = self.__calculate_curvature(p, points)
             # First value of the constraint is the angle formed by the previous, the current and the next point
-            Y[offset + i] = alpha
+            Y[offset + 3*i] = alpha
             # Second value is the norm of the vector formed by the previous and the current point
-            Y[offset + i + 1] = normp
+            Y[offset + 3*i + 1] = normp
             # Third value is the norm of the vector formed by the current and the next point
-            Y[offset + i + 2] = normn
+            Y[offset + 3*i + 2] = normn
 
         # Keep 0 for the spatial conflicts (nodes and links)
 
@@ -355,11 +355,11 @@ class LeastSquaresMethod:
         for i, p in enumerate(curvature):
             alpha, normp, normn = self.__calculate_curvature(p, points)
             # First value of the constraint is the angle formed by the previous, the current and the next point
-            S[offset + i] = alpha
+            S[offset + 3*i] = alpha
             # Second value is the norm of the vector formed by the previous and the current point
-            S[offset + i + 1] = normp
+            S[offset + 3*i + 1] = normp
             # Third value is the norm of the vector formed by the current and the next point
-            S[offset + i + 2] = normn
+            S[offset + 3*i + 2] = normn
 
         offset += 3 * len(curvature)
         for i, n in enumerate(nodes):
@@ -394,21 +394,21 @@ class LeastSquaresMethod:
             w = m[1]
             # Add the weight value to the movement list two times for x and y
             movement.extend([w, w])
-        constraints.append(np.full(len(movement), movement))
+        constraints.append(np.array(movement))
 
         stiffness = []
         # Loop through stiffness constrained points
         for s in self.__constraints['stiffness']:
             w = s[2]
             stiffness.extend([w, w])
-        constraints.append(np.full(len(stiffness), stiffness))
+        constraints.append(np.array(stiffness))
 
         curvature = [] 
         # Loop through curvature constrained points
         for c in self.__constraints['curvature']:
             w = c[3]
             curvature.extend([w, w, w])
-        constraints.append(np.full(len(curvature), curvature))
+        constraints.append(np.array(curvature))
 
         spatial = []
         # Loop through node to node conflicts
@@ -422,7 +422,7 @@ class LeastSquaresMethod:
             # Add the weight to the list
             spatial.append(w)
         # Create the spatial conflict weight matrix
-        constraints.append(np.full(len(spatial), spatial))
+        constraints.append(np.array(spatial))
 
         # Create the diagonal weighting matrix by concatenating all constraints matrices
         self.__W = np.diag(np.concatenate((constraints)))
@@ -512,6 +512,13 @@ class LeastSquaresMethod:
             y_yn = y - yn
             b = ((x_xp) * (x_xp) + (y_yp) * (y_yp))
             d = ((x_xn) * (x_xn) + (y_yn) * (y_yn))
+
+            # Avoid division by zero with an epsilon
+            eps = 1e-10
+            if b < eps or d < eps:
+                # Points are too close, skipping it
+                continue
+
             c = ((x_xp) * (y_yn) - (x_xn) * (y_yp))
             bd = b * d
             a = (bd) ** (-0.5)
@@ -532,6 +539,10 @@ class LeastSquaresMethod:
             # Calculate length of the previous and next segment
             lp = np.sqrt((x - xp) * (x - xp) + (y - yp) * (y - yp))
             ln = np.sqrt((xn - x) * (xn - x) + (yn - y) * (yn - y))
+
+            # Protect against division by zero
+            if lp < eps or ln < eps:
+                continue
 
             # Influence of the length of previous segment on the current point
             # x
@@ -566,6 +577,8 @@ class LeastSquaresMethod:
 
         # Create the matrix
         m = np.zeros((len(nodes) + len(links), 2 * len(points)))
+        # Epsilon to avoid division by zero
+        eps = 1e-10
 
         # Loop through all node to node conflicts
         for i, n in enumerate(nodes):
@@ -576,6 +589,10 @@ class LeastSquaresMethod:
             v = np.array([x2 - x1, y2 - y1])
             # Calculate the vector norm
             norm = np.linalg.norm(v)
+
+            # Protect against division by zero
+            if norm < eps:
+                continue
 
             # Calculate equations factors
             a = - ((x1 - x2) / norm)
@@ -597,6 +614,11 @@ class LeastSquaresMethod:
             x0, y0 = n0[0], n0[1]
             x1, y1 = n1[0], n1[1]
             x2, y2 = n2[0], n2[1]
+
+            # Avoid vertical lines
+            dx = x1 - x2
+            if abs(dx) < eps:
+                continue
 
             # Calculate the line formed by n1 and n2
             a = (y2 - y1) / (x1 - x2)
@@ -700,89 +722,70 @@ class LeastSquaresMethod:
 
     def __generate_point_list(self):
         """
-        Generate a list of points composed by a tuple of coordinates (x, y), the id of the object, the id of the shape of the object, and the id of the point inside the shape.
+        Generate a list of points composed by a tuple of coordinates (x, y),
+        the id of the object, the id of the shape of the object, and the id of the point inside the shape.
         Generate a nested list of objects composed of all points it is made of, sorted by shapes.
         Generate lists of points that will accept constraints
         """
         unique_points = []
-
-        def get_coordinates(self, shape):
-            """
-            Returns a list of coordinates from a shapely geometry.constraints
-            """
-            if shape.geom_type == 'Polygon':
-                # For Polygon type
-                return shape.exterior.coords
-            else:
-                # For LineString type
-                return shape.coords
+        # Dictionary for quick search
+        points_dict = {}
 
         def get_pid_if_duplicate(coordinates):
             """
-            Return True or False if those coordinates already exists.
+            Return True or False if those coordinates already exist.
             If they exist, return the index of the already existing point.
             """
-            for pid, c in enumerate(unique_points):
-                if c == coordinates:
-                    return True, pid
+            # Convert coordinates to tuple so they are hashable
+            coord_tuple = (round(coordinates[0], 10), round(coordinates[1], 10))
+            
+            if coord_tuple in points_dict:
+                return True, points_dict[coord_tuple]
             return False, None
+        
+        def add_unique_point(coordinates, point_id):
+            """
+            Add a point to the dictionary.
+            """
+            coord_tuple = (round(coordinates[0], 10), round(coordinates[1], 10))
+            points_dict[coord_tuple] = point_id
 
         point_id = 0
-        # Loop through each objects
         for oid, shapes in enumerate(self.__OBJECTS):
             o = []
-            # Loop through each shape of the object
             for sid, shape in shapes.iterrows():
                 geom = shape.geometry
-
                 s = []
-                # Retrieve the geometry type
                 geomtype = geom.geom_type
 
                 points = []
-                # Retrieve x, y of the points of the shape
                 if geomtype == 'Polygon':
-                    # For Polygon type
                     points = geom.exterior.coords
                 else:
-                    # For LineString type
                     points = geom.coords
 
-                # Retrieve first and last index of the shape
                 enclosing = [0, len(points) - 1]
 
-                # Loop through each points in the shape
                 for pid, p in enumerate(points):
-                    # Skipping the last point of a polygon as it is the same as the first one
                     if geomtype == 'Polygon' and pid == enclosing[1]:
                         continue
 
-                    # Stores the index of the point to apply constraints
                     cid = point_id
 
                     duplicate, dpid = get_pid_if_duplicate(p)
                     if duplicate:
-                        # Append the already existing point index to its shape
                         s.append(dpid)
-                        # Change the point index to the already existing one to add constraints
                         cid = dpid
                     else:
-                        # Append the point index to its shape
                         s.append(point_id)
-                        # Append the coordinates to the full list of points
                         unique_points.append(p)
-                        # Increment the point index if it's a new point
+                        add_unique_point(p, point_id)  # Add to dict
                         point_id += 1
                     
-                # Add the list of shapes to the object
                 o.append(s)
-            # Add the list of objects to the list
             self.__shapes.append(o)
 
-        # Stores unique points
         self.__points = unique_points
-
-        # Return an array of unique points
         return np.array(unique_points)
 
     def __setup_constraints(self, points):
