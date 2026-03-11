@@ -74,7 +74,7 @@ n1 = c4.collapse_branching_crossroads(network, crossroads)
 n2 = c4.collapse_roundabouts(n1, roundabouts, crossroads)
 
 carriageways = c4.detect_dual_carriageways(n2)
-n3 = c4.collapse_dual_carriageways(n2, carriageways, 5)
+n3 = c4.collapse_dual_carriageways(n2, carriageways, sigma=5)
 
 fig = plt.figure(1, (12, 4))
 
