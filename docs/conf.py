@@ -7,12 +7,13 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import os, sys
+import datetime
 sys.path.insert(0, os.path.abspath('..'))
 
 import cartagen
 
 project = 'cartagen'
-copyright = '2024, IGN, Univ Gustave Eiffel'
+copyright = f'{datetime.datetime.now().year}, IGN, Univ Gustave Eiffel'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial, Paul Bourcier'
 release = cartagen.__version__.split("+")[0]
 
