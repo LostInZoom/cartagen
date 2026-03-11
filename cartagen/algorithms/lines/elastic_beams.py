@@ -5,6 +5,86 @@ import math
 import matplotlib.pyplot as plt
 from itertools import combinations
 
+def beams_displacement(
+        lines, distance,
+        E=1.0, A=1.0, I=1.0, gamma=0.5, mu=0.1,
+        preserve_extremities=True, iterations=100, verbose=False
+    ):
+    """
+    Displace lines using the elastic beams algorithm.
+
+    This algorithm was proposed by Mats Bader during his PhD supervised by Mathieu Barrault
+    and Robert Weibel :footcite:p:`bader_cartographic_2001`. The algorithm models each polyline
+    as an elastic beam and computes displacements based on internal beam forces and external
+    proximity forces from other polylines. The forces are computed based on proximity between those line features.
+
+    Parameters
+    ----------
+    lines: GeoDataFrame of LineString
+        The lines to displace.
+    distance: float
+        The minimum distance that should separate each line in the output.
+    E: float, optional
+        Modulus of elasticity (material constant).
+    A: float, optional
+        Cross-sectional area of the beam.
+    I: float, optional
+        Moment of inertia of the beam.
+    gamma: float, optional
+        Time step / inertia factor.
+    mu: float, optional
+        Force multiplier.
+    preserve_extremities: bool, optional
+        Fix the first and last vertex of line if set to True.
+    iterations: int, optional
+        Number of iterations for convergence.
+    verbose: bool, optional
+        If True, prints iteration details.
+
+    Returns
+    ----------
+    GeoDataFrame of LineString
+    
+    References
+    ----------
+    .. footbibliography::
+    """
+    displaced_lines = lines.copy()
+
+    # create a dictionary to hold the forces
+    forces_dict = {idx: np.zeros(3 * len(line.geometry.coords)) for idx, line in displaced_lines.iterrows()}
+    
+    for line1, line2 in combinations(displaced_lines.iterrows(), 2):
+        # Calculate proximity forces between the two polylines
+        id1 = line1[0]
+        id2 = line2[0]
+        f1, f2 = _calculate_proximity_forces(line1[1]['geometry'], line2[1]['geometry'], distance)
+
+        # Accumulate forces for each polyline
+        if verbose:
+            print("Forces on line", id1, ":", f1)
+            print("Forces on line", id2, ":", f2)
+        forces_dict[id1] += f1
+        forces_dict[id2] += f2
+
+    for idx, line in displaced_lines.iterrows():    
+        f = forces_dict[idx]
+        if np.all(f == 0):
+            continue  # No forces to apply, skip displacement
+
+        if verbose:
+            print(f"Maximum force norm: {np.max(np.abs(f))}")
+        # Initialize elastic beam objects for the polyline
+        beam = ElasticBeamPolyline(line.geometry, E=E, A=A, I=I)
+        
+        # Solve for displacements
+        displaced_coords = beam._solve_for_displacement(f, gamma=gamma, mu=mu, fix_boundaries=preserve_extremities, iterations=iterations, verbose = verbose)
+        
+        # Update the geometries in the GeoDataFrame
+        displaced_lines.at[idx, 'geometry'] = LineString(displaced_coords)
+
+    return displaced_lines
+
 class ElasticBeamPolyline:
     """
     Implements the elastic beams algorithm for polyline displacement.
@@ -212,73 +292,6 @@ def _calculate_proximity_forces(polyline1: LineString, polyline2: LineString, mi
 
     return f1, f2
 
-
-def beams_displacement(lines_geodataframe, min_dist, E=1.0, A=1.0, I=1.0, gamma=0.5, mu=0.1, fix_boundaries=True, verbose=False, iterations=100):
-    """
-    Applies the elastic beams algorithm to a geodataframe of polyline features. The forces are computed based on proximity between those line features.
-
-    This algorithm was proposed by Mats Bader during his PhD supervised by Mathieu Barrault and Robert Weibel :footcite:p:`bader_cartographic_2001`. *
-    The algorithm models each polyline as an elastic beam and computes displacements based on internal beam forces and external proximity forces from other polylines.
-
-    Parameters
-    ----------
-        polylines: List of Shapely polylines to be displaced.
-        min_dist: The minimum distance that should separate each polyline.
-        E: Modulus of elasticity (material constant).
-        A: Cross-sectional area of the beam.
-        I: Moment of inertia of the beam.
-        gamma: Time step / inertia factor.
-        mu: Force multiplier.
-        fix_boundaries: True to fix the first and last node of each polyline.
-        verbose: If True, prints iteration details.
-        iterations: Number of iterations for convergence.
-
-    Returns
-    ----------
-        A new GeoDataFrame of displaced polylines.
-    
-    References
-    ----------
-    .. footbibliography::
-
-    """
-    displaced_lines = lines_geodataframe.copy()
-
-    # create a dictionary to hold the forces
-    forces_dict = {idx: np.zeros(3 * len(line.geometry.coords)) for idx, line in displaced_lines.iterrows()}
-    
-    for line1, line2 in combinations(displaced_lines.iterrows(), 2):
-        # Calculate proximity forces between the two polylines
-        id1 = line1[0]
-        id2 = line2[0]
-        f1, f2 = _calculate_proximity_forces(line1[1]['geometry'], line2[1]['geometry'], min_dist)
-
-        # Accumulate forces for each polyline
-        if verbose:
-            print("Forces on line", id1, ":", f1)
-            print("Forces on line", id2, ":", f2)
-        forces_dict[id1] += f1
-        forces_dict[id2] += f2
-
-    for idx, line in displaced_lines.iterrows():    
-        f = forces_dict[idx]
-        if np.all(f == 0):
-            continue  # No forces to apply, skip displacement
-
-        if verbose:
-            print(f"Maximum force norm: {np.max(np.abs(f))}")
-        # Initialize elastic beam objects for the polyline
-        beam = ElasticBeamPolyline(line.geometry, E=E, A=A, I=I)
-        
-        # Solve for displacements
-        displaced_coords = beam._solve_for_displacement(f, gamma=gamma, mu=mu, fix_boundaries=fix_boundaries, iterations=iterations, verbose = verbose)
-        
-        # Update the geometries in the GeoDataFrame
-        displaced_lines.at[idx, 'geometry'] = LineString(displaced_coords)
-
-    return displaced_lines
-
-
 def _test_beams():
     # Create a simple polyline for testing
     coords = [(0, 0), (10, 0), (20, 5), (30, 5)]
@@ -316,8 +329,9 @@ def _test_beams():
     # Display the force vector
     node_index = 2
     ax.arrow(coords[node_index][0], coords[node_index][1],
-             0, force_magnitude/10,  # The 10 is just a scaling factor for visualization
-             head_width=0.5, head_length=0.5, fc='k', ec='k', label='Applied Force')
+        0, force_magnitude/10,  # The 10 is just a scaling factor for visualization
+        head_width=0.5, head_length=0.5, fc='k', ec='k', label='Applied Force'
+    )
     
     ax.set_title("Polyline Displacement with Elastic Beams Algorithm")
     ax.set_xlabel("X Coordinate")
@@ -366,8 +380,3 @@ def _test_forces():
     plt.legend()
     plt.grid(True)
     plt.show()
- 
-
-# Example of use
-if __name__ == '__main__':
-    _test_forces()
