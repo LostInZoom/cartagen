@@ -235,11 +235,11 @@ def collapse_dual_carriageways(roads, carriageways, propagate_attributes=None, s
         crossroad = Crossroad(network, roads.sindex, face)
         crossroads.append(crossroad)
 
-        # Stores internal roads for removal
-        remove.extend(crossroad.internals)
-
         # If there are more than one external road to the crossroad
         if len(crossroad.externals) > 1:
+            # Stores internal roads for removal
+            remove.extend([ crossroad.original[x] for x in crossroad.internals])
+
             # Retrieve the id of the external roads that have not been changed by the conversion to a crossroad object
             unchanged = crossroad.get_unchanged_roads('externals')
 
