@@ -39,5 +39,5 @@ Displacement
     :nosignatures:
     :toctree: reference/
 
-    elastic_beams
+    beams_displacement
     crow_fly_propagation
