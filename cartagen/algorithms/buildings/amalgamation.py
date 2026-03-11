@@ -6,6 +6,44 @@ from cartagen.utils.math.morphology import close_multipolygon, open_polygon
 from cartagen.utils.math.vector import Vector2D
 from cartagen.utils.geometry.segment import get_segment_list
 
+def building_amalgamation(building1, building2):
+    """
+    Amalgamate two buildings by computing their most compact junction.
+    
+    The amalgamation algorithm was proposed by Nicolas Regnauld 
+    :footcite:p:`regnauld_generalisation_1998` (pp. 150-154). The algorithm is based on the edges 
+    of the convex hull that join both buildings. The algorithm chooses the links that
+    create the smallest joined polygons.
+
+    Parameters
+    ----------
+    building1 : Polygon
+        The first building to amalgamate.
+    building2 : Polygon
+        The second building to amalgamate.
+    
+    Returns
+    -------
+    Polygon
+
+    See Also
+    --------
+    morphological_amalgamation :
+        Amalgamate multiple close buildings.
+
+    References
+    ----------
+    .. footbibliography::
+    
+    Examples
+    --------
+    >>> buildings = [Polygon([(1, 0), (9, 0), (9, 6), (1, 6), (1, 0)]), Polygon([(10, 0), (17, 0), (17, 6), (10, 6), (10, 0)])]
+    >>> morphological_amalgamation(buildings, 1.0, 1.0)
+    <POLYGON ((1.207 1.983, 2.547 5.885, 16.768 4.282, 15.42 0.148, 1.207 1.983))>
+    """
+    agg = BuildingAggregator(building1, building2)
+    return agg.aggregate()
+
 def morphological_amalgamation(buildings, buffer, edge_length, threshold=0.2):
     """
     Amalgamate buildings using dilation and erosion.
@@ -296,38 +334,3 @@ class BuildingAggregator:
         except Exception as e:
             print("Error in the computation of intersections, return the convex hull.")
             return combined
-
-def building_amalgamation(building1, building2):
-    """
-    Amalgamate two buildings by computing the most compact junction between them.
-    
-    The amalgamation algorithm was proposed by Nicolas Regnauld 
-    :footcite:p:`regnauld_generalisation_1998` (pp. 150-154). The algorithm is based on the edges 
-    of the convex hull that join both buildings. The algorithm chooses the links that create the smallest joined polygons.
-
-    Parameters
-    ----------
-    building1 : the geometry of the first building to amalgamate.
-    building2 : the geometry of the second building to amalgamate.
-    
-    Returns
-    -------
-    a Polygon
-
-    See Also
-    --------
-    morphological_amalgamation :
-        Amalgamates a list of close buildings.
-
-    References
-    ----------
-    .. footbibliography::
-    
-    Examples
-    --------
-    >>> buildings = [Polygon([(1, 0), (9, 0), (9, 6), (1, 6), (1, 0)]), Polygon([(10, 0), (17, 0), (17, 6), (10, 6), (10, 0)])]
-    >>> morphological_amalgamation(buildings, 1.0, 1.0)
-    <POLYGON ((1.207 1.983, 2.547 5.885, 16.768 4.282, 15.42 0.148, 1.207 1.983))>
-    """
-    agg = BuildingAggregator(building1, building2)
-    return agg.aggregate()
