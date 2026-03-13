@@ -18,6 +18,7 @@ Buildings
     rectangle_transformation
     square_polygon_naive
     square_polygon_ls
+    building_amalgamation
     
 Building blocks
 ---------------
