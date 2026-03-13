@@ -3,6 +3,8 @@ from shapely.geometry import Point, LineString
 import numpy as np
 import pandas as pd
 
+from cartagen.utils.math.vector import interpolate_displacement_vectors
+
 # --- Constants & Parameters ---
 # The paper uses a cushioning parameter β (beta) in [0;1].
 # SizePZ = max_dep / beta + max_dep (Size of Propagation Zone) [cite: 132]
@@ -10,127 +12,45 @@ import pandas as pd
 # Let's use SizePZ as the direct input and calculate beta from it.
 # SizeIZ is derived from SizePZ for a given max_dep: SizeIZ = SizePZ - max_dep.
 
-def __calculate_size_iz(max_dep, propagation_distance):
-    """Calculate SizeIZ (Radius of Influence Zone) based on max_dep and SizePZ (propagation_distance)."""
-    # propagation_distance is SizePZ. SizeIZ = SizePZ - max_dep
-    return propagation_distance - max_dep
-
-def __get_vertices(gdf):
-    """Extract all unique vertices from a GeoDataFrame of (multi)lines/polygons."""
-    vertices = []
-    
-    # Placeholder for actual complex geometry iteration
-    # In a real implementation, you would iterate over all geometries,
-    # then over their components (exteriors, interiors, segments), and extract all unique points.
-    
-    for geom in gdf.geometry:
-        if geom.geom_type in ['LineString', 'Point']:
-            if geom.geom_type == 'Point':
-                vertices.append(geom)
-            else:
-                vertices.extend(list(geom.coords))
-        elif geom.geom_type in ['MultiLineString', 'MultiPolygon', 'Polygon']:
-            # This is where a lot of complexity lives for multi-geometries
-            pass # Skipping for conceptual implementation
-            
-    # Convert to a unique list of Shapely Points with an ID/index
-    # For this conceptual example, we'll return a simple structure.
-    
-    # Returning a GeoDataFrame of all vertices is necessary for join/spatial indexing
-    # We'll use a simplified list of coordinates for this conceptual part.
-    all_coords = []
-    # Simplified extraction for single LineStrings (common for roads)
-    for i, row in gdf.iterrows():
-        if row.geometry.geom_type == 'LineString':
-             all_coords.extend([(row.geometry.coords[j], i, j) for j in range(len(row.geometry.coords))]) # (coord, obj_idx, vertex_idx)
-    
-    # Create a DataFrame for easier processing
-    vertices_df = pd.DataFrame(all_coords, columns=['coords', 'obj_idx', 'vertex_idx'])
-    vertices_df[['x', 'y']] = vertices_df['coords'].apply(lambda c: pd.Series([c[0], c[1]]))
-    vertices_gdf = gpd.GeoDataFrame(
-        vertices_df, 
-        geometry=gpd.points_from_xy(vertices_df.x, vertices_df.y),
-        crs=gdf.crs
-    )
-    return vertices_gdf
-
-# --- Core Geometric Functions (Highly Simplified Placeholders) ---
-
-def __interpolate_displacement_vectors(initial_geom, final_geom, interval_distance, crs):
-    """
-    Computes initial displacement vectors using interpolation at regular intervals.
-    Origin point on initial_geom, extremity on final_geom (same curvilinear abscissa ratio).
-    
-    Returns a GeoDataFrame of LineStrings (vectors) and a Series of vector lengths.
-    """
-    # This function is non-trivial and requires geometry-specific interpolation logic.
-    # Placeholder: Assuming simple LineString initiators for demonstration.
-    
-    if initial_geom.geom_type != 'LineString' or final_geom.geom_type != 'LineString':
-        # Must handle complex types (e.g., MultiLineString) in a real implementation
-        return gpd.GeoDataFrame(), 0.0
-
-    # Simplified mock for a few vectors
-    vectors_data = []
-    num_steps = int(initial_geom.length / interval_distance)
-    
-    for i in range(num_steps + 1):
-        ratio = i / num_steps
-        
-        # Homolog points using same ratio of curvilinear abscissa [cite: 111]
-        p_initial = initial_geom.interpolate(initial_geom.length * ratio)
-        p_final = final_geom.interpolate(final_geom.length * ratio)
-        
-        vector = LineString([p_initial, p_final])
-        dep_ini = vector.length
-        
-        vectors_data.append({
-            'geometry': vector, 
-            'origin': p_initial, 
-            'dep_ini': dep_ini,
-            'direction': np.array([p_final.x - p_initial.x, p_final.y - p_initial.y]) / dep_ini if dep_ini > 0 else np.array([0.0, 0.0])
-        })
-    
-    vectors_gdf = gpd.GeoDataFrame(vectors_data, crs=crs)
-    max_dep = vectors_gdf['dep_ini'].max() if not vectors_gdf.empty else 0.0
-    return vectors_gdf, max_dep
-
-def __visibility_condition_check(vertex, vector_origin, initiator_geom):
-    """
-    Checks if the vector_origin is visible from the vertex, i.e., not hidden by any initiator object. 
-    This is a ray-tracing-like operation, highly complex for general geometries.
-    Placeholder: always True for conceptual demo. TODO: Implement actual visibility check.
-    """
-    return True
-
 # --- Main Propagation Logic ---
 
-def compute_propagation_crow_flies(
-    movable_objects_gdf: gpd.GeoDataFrame, 
-    initiator_initial_gdf: gpd.GeoDataFrame, 
-    initiator_final_gdf: gpd.GeoDataFrame,
-    frozen_objects_gdf: gpd.GeoDataFrame,
-    propagation_distance: float,
-    interval_distance=2.0) -> gpd.GeoDataFrame:
+def propagation_crow_flies(objects, initiator_start, initiator_end, frozen_objects, distance, interval=2.0):
     """
+    Propagate a displacement using the method "as the crow flies".
+
     Implementation of the displacement propagation algorithm "as the crow flies", by Legrand *et al.* :footcite:p:`legrand:2005`.
     This function propagates the displacement defined by the movement of initiator objects to nearby movable objects,
     while respecting frozen objects that should not be moved.
 
-    Be careful, the initiators should be simple LineStrings, and not MultiLineString objects.
+    Be careful, the initiators should be LineString, not MultiLineString objects.
 
     Parameters
     ----------
-        movable_objects_gdf : The geopandas Geodataframe containing the movable objects.
-        initiator_initial_gdf : The geopandas Geodataframe containing the initial geometry of the initiators.
-        initiator_final_gdf : The geopandas Geodataframe containing the final geometry of the initiators.
-        frozen_objects_gdf : The geopandas Geodataframe containing the frozen objects, on which no propagation is carried out.
-        propagation_distance : SizePZ in the paper by Legrand et al., i.e. the distance around the initiator to propagate displacement.
-        interval_distance : For initial vector calculation.
+    objects : GeoDataFrame of Point or LineString
+        The objects modified by the propagation.
+    initiator_start : LineString
+        The origin of the propagation before displacement.
+    initiator_end : LineString
+        The origin of the propagation after displacement.
+    frozen : GeoDataFrame of Point or LineString
+        The objects that should not be modified by the propagation.
+    distance : float
+        The distance around the initiator to propagate displacement.
+        It corresponds to SizePZ in the paper by Legrand et al.
+    interval : float, optional
+        Interval used for the interpolation during the initial displacement vector calculation.
+
+    Implementation of the displacement propagation algorithm "as the crow flies", by Legrand *et al.* :footcite:p:`legrand:2005`.
+    This function propagates the displacement defined by the movement of initiator objects to nearby movable objects,
+    while respecting frozen objects that should not be moved.
+
+    Warning
+    -------
+    Be careful, the initiators should be LineString, and not MultiLineString.
     
     Returns
     -------
-    A geopandas GeoDataFrame with the same structure as `movable_objects_gdf`, but with updated geometries after propagation.
+    GeoDataFrame, same as input but with displaced geometries
 
     References
     ----------
@@ -138,35 +58,30 @@ def compute_propagation_crow_flies(
     """
     # 1. Compute Initial Displacement Vectors and Max Displacement
     # Assuming one initiator for simplicity; in reality, iterate over all.
-    initiator_initial = initiator_initial_gdf.iloc[0].geometry
-    initiator_final = initiator_final_gdf.iloc[0].geometry
-    
-    initial_vectors_gdf, max_dep = __interpolate_displacement_vectors(
-        initiator_initial, initiator_final, interval_distance, crs=movable_objects_gdf.crs
-    )
+    initial_vectors_gdf, max_dep = interpolate_displacement_vectors(initiator_start, initiator_end, interval, crs=objects.crs)
     
     if max_dep == 0.0:
-        return movable_objects_gdf.copy() # No displacement to propagate
+        return objects.copy() # No displacement to propagate
 
     # Calculate Influence Zone Radius (SizeIZ) [cite: 150]
     # Note: SizePZ = propagation_distance [cite: 132]
-    size_iz = __calculate_size_iz(max_dep, propagation_distance)
+    size_iz = __calculate_size_iz(max_dep, distance)
     
     # 2. Compute Propagation Zone (Buffer)
-    propagation_zone = initiator_initial.buffer(propagation_distance) # [cite: 127]
+    propagation_zone = initiator_start.buffer(distance) # [cite: 127]
     
     # 3. Identify Movable Vertices within the Propagation Zone
-    movable_vertices_gdf = __get_vertices(movable_objects_gdf)
+    movable_vertices_gdf = __get_vertices(objects)
     
     # Filter vertices *outside* the propagation zone (no displacement)
     vertices_in_zone = movable_vertices_gdf.clip(propagation_zone)
     
     # Exclude vertices of frozen objects (null displacement) 
     # This simplified version just uses the *geometry* of frozen objects to filter
-    if not frozen_objects_gdf.empty:
-         # Use spatial join or overlay difference to exclude
-         # Note: A proper check should see if the vertex *belongs* to a frozen object edge/node.
-         vertices_in_zone = vertices_in_zone[~vertices_in_zone.geometry.intersects(frozen_objects_gdf.geometry.unary_union)]
+    if not frozen_objects.empty:
+        # Use spatial join or overlay difference to exclude
+        # Note: A proper check should see if the vertex *belongs* to a frozen object edge/node.
+        vertices_in_zone = vertices_in_zone[~vertices_in_zone.geometry.intersects(frozen_objects.geometry.unary_union)]
 
     # 4. Compute Propagation for each Vertex
     propagated_vertices_data = []
@@ -185,7 +100,7 @@ def compute_propagation_crow_flies(
         
         for v_idx, vector_row in influencing_vectors.iterrows():
             # 4.1. Visibility Condition (Skipping for conceptual demo, see placeholder)
-            if not __visibility_condition_check(vertex, vector_row.origin, initiator_initial):
+            if not __visibility_condition_check(vertex, vector_row.origin, initiator_start):
                 continue
 
             dist_i_vertex = vertex.distance(vector_row.origin)
@@ -241,16 +156,16 @@ def compute_propagation_crow_flies(
     propagated_vertices_df = pd.DataFrame(propagated_vertices_data)
     
     # Merge the new positions back into the original movable_objects structure
-    new_geometries = movable_objects_gdf.copy()
+    new_geometries = objects.copy()
     
     # Placeholder for geometry reconstruction
     # This involves:
-    # 1. Iterating through the original geometries of 'movable_objects_gdf'.
+    # 1. Iterating through the original geometries of 'objects'.
     # 2. For each geometry, collecting its vertices' new positions from 'propagated_vertices_df'.
     # 3. Creating a new Shapely geometry (LineString, Polygon, etc.) from these new points.
     
     for obj_idx, obj_group in propagated_vertices_df.groupby('obj_idx'):
-        original_line = movable_objects_gdf.loc[obj_idx].geometry
+        original_line = objects.loc[obj_idx].geometry
         new_coords = []
         
         # Reconstruct coordinates in original order
@@ -279,3 +194,57 @@ def compute_propagation_crow_flies(
                 new_geometries.at[obj_idx, 'geometry'] = new_geom
     
     return new_geometries
+
+def __calculate_size_iz(max_dep, propagation_distance):
+    """Calculate SizeIZ (Radius of Influence Zone) based on max_dep and SizePZ (propagation_distance)."""
+    # propagation_distance is SizePZ. SizeIZ = SizePZ - max_dep
+    return propagation_distance - max_dep
+
+def __get_vertices(gdf):
+    """Extract all unique vertices from a GeoDataFrame of (multi)lines/polygons."""
+    vertices = []
+    
+    # Placeholder for actual complex geometry iteration
+    # In a real implementation, you would iterate over all geometries,
+    # then over their components (exteriors, interiors, segments), and extract all unique points.
+    
+    for geom in gdf.geometry:
+        if geom.geom_type in ['LineString', 'Point']:
+            if geom.geom_type == 'Point':
+                vertices.append(geom)
+            else:
+                vertices.extend(list(geom.coords))
+        elif geom.geom_type in ['MultiLineString', 'MultiPolygon', 'Polygon']:
+            # This is where a lot of complexity lives for multi-geometries
+            pass # Skipping for conceptual implementation
+            
+    # Convert to a unique list of Shapely Points with an ID/index
+    # For this conceptual example, we'll return a simple structure.
+    
+    # Returning a GeoDataFrame of all vertices is necessary for join/spatial indexing
+    # We'll use a simplified list of coordinates for this conceptual part.
+    all_coords = []
+    # Simplified extraction for single LineStrings (common for roads)
+    for i, row in gdf.iterrows():
+        if row.geometry.geom_type == 'LineString':
+            all_coords.extend([(row.geometry.coords[j], i, j) for j in range(len(row.geometry.coords))]) # (coord, obj_idx, vertex_idx)
+    
+    # Create a DataFrame for easier processing
+    vertices_df = pd.DataFrame(all_coords, columns=['coords', 'obj_idx', 'vertex_idx'])
+    vertices_df[['x', 'y']] = vertices_df['coords'].apply(lambda c: pd.Series([c[0], c[1]]))
+    vertices_gdf = gpd.GeoDataFrame(
+        vertices_df, 
+        geometry=gpd.points_from_xy(vertices_df.x, vertices_df.y),
+        crs=gdf.crs
+    )
+    return vertices_gdf
+
+# --- Core Geometric Functions (Highly Simplified Placeholders) ---
+
+def __visibility_condition_check(vertex, vector_origin, initiator_geom):
+    """
+    Checks if the vector_origin is visible from the vertex, i.e., not hidden by any initiator object. 
+    This is a ray-tracing-like operation, highly complex for general geometries.
+    Placeholder: always True for conceptual demo. TODO: Implement actual visibility check.
+    """
+    return True
