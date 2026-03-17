@@ -39,7 +39,7 @@ def accordion(line, width, sigma=30, sample=None):
     --------
     schematization :
         Remove bends from series of bends to simplify it.
-    gaussian_smoothing :
+    smooth_gaussian :
         Smooth a line and attenuate its inflexion points.
 
     References
@@ -222,7 +222,7 @@ def schematization(line, sigma=30, sample=None):
     --------
     accordion :
         Stretch a series of bends to enlarge each bend.
-    gaussian_smoothing :
+    smooth_gaussian :
         Smooth a line and attenuate its inflexion points.
     inflexion_points :
         Extract inflexion points from a sinuous line.

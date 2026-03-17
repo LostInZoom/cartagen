@@ -2,7 +2,7 @@ import shapely, networkx
 
 from cartagen.utils.geometry.dilation import dilate_line, offset_line, reconstruct_line
 from cartagen.utils.geometry.line import get_bend_side, merge_linestrings
-from cartagen.utils.lines.smoothing import gaussian_smoothing
+from cartagen.utils.lines.smoothing import smooth_gaussian
 from cartagen.utils.geometry.skeletonization import SkeletonTIN
 
 def max_break(line, offset, exaggeration=1.0):
@@ -86,7 +86,7 @@ def min_break(line, offset, sigma=30, sample=None):
         Splits a line into parts when coalescence is detected.
     max_break :
         Spread a road bend and keep its shape.
-    gaussian_smoothing :
+    smooth_gaussian :
         Smooth a line and attenuate its inflexion points.
 
     References
@@ -205,7 +205,7 @@ def min_break(line, offset, sigma=30, sample=None):
         newline = shapely.LineString(coords)
 
         # Apply a gaussian smoothing to the line before offset
-        newline = gaussian_smoothing(newline, sigma, sample)
+        newline = smooth_gaussian(newline, sigma, sample)
 
         # Calculate the offset points along the skeleton
         groups1 = offset_line(newline, offset)

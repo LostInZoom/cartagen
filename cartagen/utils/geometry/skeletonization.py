@@ -2,7 +2,7 @@ import shapely, itertools
 import numpy as np
 from shapely.geometry import LineString
 from copy import deepcopy
-from cartagen.utils.lines.smoothing import gaussian_smoothing
+from cartagen.utils.lines.smoothing import smooth_gaussian
 from cartagen.utils.geometry.line import get_segment_center, merge_linestrings
 
 def skeletonize_natural(polygon, threshold_range=(0.7, 1.4)):
@@ -479,7 +479,7 @@ class SkeletonTIN:
         if sigma is not None and blend_smoothing is False:
             smoothed = []
             for n in network:
-                smoothed.append(gaussian_smoothing(n, sigma=sigma))
+                smoothed.append(smooth_gaussian(n, sigma=sigma))
             network = smoothed
 
         remove = []
@@ -555,7 +555,7 @@ class SkeletonTIN:
                 if touches and not inside:
                     continue
 
-                blended[i]['geometry'] = gaussian_smoothing(geom, sigma=sigma)
+                blended[i]['geometry'] = smooth_gaussian(geom, sigma=sigma)
 
         self.blended = blended
         return blended

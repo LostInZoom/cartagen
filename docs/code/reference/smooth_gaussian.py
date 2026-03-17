@@ -15,8 +15,8 @@ from cartagen.utils.debug import plot_debug, geojson_debug, geojson_to_variable
 polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
 line = polygon.boundary
 
-lsmoothed = c4.gaussian_smoothing(line, 5, 1)
-psmoothed = c4.gaussian_smoothing(polygon, 5, 1)
+lsmoothed = c4.smooth_gaussian(line, 5, 1)
+psmoothed = c4.smooth_gaussian(polygon, 5, 1)
 
 fig = plt.figure(1, (10, 10))
 

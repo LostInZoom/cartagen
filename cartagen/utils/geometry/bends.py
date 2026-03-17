@@ -1,7 +1,7 @@
 import numpy as np
 from shapely import Point, LineString
 
-from cartagen.utils.lines.smoothing import gaussian_smoothing
+from cartagen.utils.lines.smoothing import smooth_gaussian
 from cartagen.utils.geometry.angle import get_curvature
 from cartagen.utils.geometry.line import get_bend_side, inflexion_points
 
@@ -71,7 +71,7 @@ class Bend:
             return self.summit
         
         # Smooth the bend
-        smoothed = gaussian_smoothing(self.bend, densify=False)
+        smoothed = smooth_gaussian(self.bend, densify=False)
         # Get the vertices list
         scoords = list(smoothed.coords)
 
@@ -161,7 +161,7 @@ class BendSerie:
     """
     def __init__(self, line, sigma=30, sample=None):
         # Smooth the line to avoid unnecessary micro inflexion points
-        smoothed = gaussian_smoothing(line, sigma, sample, densify=False)
+        smoothed = smooth_gaussian(line, sigma, sample, densify=False)
 
         # Get inflexion points without first and last
         inflexion = inflexion_points(smoothed)[1:-1]

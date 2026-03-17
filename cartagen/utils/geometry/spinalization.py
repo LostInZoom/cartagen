@@ -5,7 +5,7 @@ from shapely.ops import unary_union, linemerge
 
 from cartagen.utils.geometry.distances import group_intersecting
 from cartagen.utils.geometry.line import get_line_middle_point, merge_linestrings, resample_line
-from cartagen.utils.lines.smoothing import gaussian_smoothing
+from cartagen.utils.lines.smoothing import smooth_gaussian
 from cartagen.utils.network.graph import create_graph
 
 def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structural=None):
@@ -72,7 +72,7 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
         Collapse multiple polgygons into one or multiple lines.
     resample_line :
         Densify a line by adding vertices.
-    gaussian_smoothing:
+    smooth_gaussian:
         Smooth a line and attenuate its inflexion points.
 
     References
@@ -224,7 +224,7 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
             if len(real_structural) > 0:
                 smoothed = __keep_structural(s, real_structural, sigma)
             else:
-                smoothed = gaussian_smoothing(s, sigma)
+                smoothed = smooth_gaussian(s, sigma)
             result.append(smoothed)
         else:
             result.append(s)
@@ -358,9 +358,9 @@ def spinalize_polygons(polygons, densify=None, sigma=None, entries=None, structu
                 if len(intersecting) > 0:
                     spines = [ __keep_structural(line, intersecting, sigma) for line in spines ]
                 else:
-                    spines = [ gaussian_smoothing(line, sigma) for line in spines ]
+                    spines = [ smooth_gaussian(line, sigma) for line in spines ]
             else:
-                spines = [ gaussian_smoothing(line, sigma) for line in spines ]
+                spines = [ smooth_gaussian(line, sigma) for line in spines ]
         
         result += spines
 
@@ -392,10 +392,10 @@ def __keep_structural(line, structural, sigma):
             current = [c]
     broken.append(current)
 
-    smoothed = gaussian_smoothing(shapely.LineString(broken[0]), sigma)
+    smoothed = smooth_gaussian(shapely.LineString(broken[0]), sigma)
     
     for ib in range(1, len(broken)):
-        gaussian = gaussian_smoothing(shapely.LineString(broken[ib]), sigma)
+        gaussian = smooth_gaussian(shapely.LineString(broken[ib]), sigma)
         smoothed = merge_linestrings(smoothed, gaussian)
 
     return smoothed
