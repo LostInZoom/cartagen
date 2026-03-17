@@ -5,7 +5,7 @@ import geopandas as gpd
 import numpy
 import random
 
-def plot_debug(geom, *geoms):
+def plot_debug(*geoms):
     """
     Plot geometries for debugging purposes.
     """
@@ -29,22 +29,9 @@ def plot_debug(geom, *geoms):
 
     fig = plt.figure(1)
     sub = fig.add_subplot(111)
+    sub.set_aspect('equal')
     sub.axes.get_xaxis().set_visible(False)
     sub.axes.get_yaxis().set_visible(False)
-
-    color1 = "#"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])
-    color2 = "#"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])
-    if isinstance(geom, list):
-        for g in geom:
-            if isinstance(g, dict):
-                add(sub, g['geometry'], color1, color2)
-            else:
-                add(sub, g, color1, color2)
-    elif isinstance(geom, gpd.GeoDataFrame):
-        for g in geom.geometry:
-            add(sub, g, color1, color2)
-    else:
-        add(sub, geom, color1, color2)
     
     for geom in geoms:
         color1 = "#"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])
@@ -58,6 +45,8 @@ def plot_debug(geom, *geoms):
         elif isinstance(geom, gpd.GeoDataFrame):
             for g in geom.geometry:
                 add(sub, g, color1, color2)
+        elif isinstance(geom, str):
+            sub.set_title(geom, pad=10, family='sans-serif')
         else:
             add(sub, geom, color1, color2)
 
