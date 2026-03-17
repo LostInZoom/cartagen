@@ -28,7 +28,8 @@ Smoothing
     :nosignatures:
     :toctree: reference/
 
-    gaussian_smoothing
+    smooth_gaussian
+    smooth_platre
 
 
 Displacement
