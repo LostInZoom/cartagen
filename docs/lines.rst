@@ -42,4 +42,4 @@ Displacement
     :toctree: reference/
 
     beams_displacement
-    crow_fly_propagation
+    propagation_crow_flies

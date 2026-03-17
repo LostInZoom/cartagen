@@ -8,7 +8,7 @@ Changelog
 
 - **New features**:
    #. New line smoothing algorithm :func:`smooth_platre <cartagen.smooth_platre>`.
-   #. New line simplification algorithm :func:`wirlpool_simplification <cartagen.wirlpool_simplification>`.
+   #. New line simplification algorithm :func:`whirlpool_simplification <cartagen.whirlpool_simplification>`.
    #. New line displacement algorithm :func:`beams_displacement <cartagen.beams_displacement>`.
    #. New line displacement algorithm :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
    #. New buildings algorithm :func:`building_amalgamation <cartagen.building_amalgamation>` to merge two buildings.
@@ -25,7 +25,7 @@ Changelog
       along with all its related algorithms using numpy arrays.
    #. Handle MultiLineString input on line simplification algorithms.
    #. Optimize tesselation algorithm, now the spatial index is only calculated once.
-   #. Enhanced :func:`visvlingam_whyatt <cartagen.visvlingam_whyatt>` using an external code made by
+   #. Enhanced :func:`visvalingam_whyatt <cartagen.visvalingam_whyatt>` using an external code made by
       `Elliot Hallmark. <https://github.com/Permafacture/Py-Visvalingam-Whyatt>`_
    #. Update :func:`strokes_rivers <cartagen.strokes_rivers>` to facilitate their generalization.
 
