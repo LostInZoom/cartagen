@@ -275,13 +275,4 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
 
     chunks.append({ 'coalescence': state, 'geometry': LineString(current) })
 
-    # result = []
-
-    # for chunk in chunks:
-    #     length = chunk['geometry'].length
-    #     print(length)
-
-    # from cartagen.utils.debug import plot_debug
-    # plot_debug(*[s['geometry'] for s in chunks], [ Point(l['geometry']) for l in left[1] ], [ Point(l['geometry']) for l in right[1] ])
-
     return chunks
