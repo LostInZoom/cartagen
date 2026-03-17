@@ -31,3 +31,4 @@ Miscellaneous
     circle_interpolation
     inflexion_points
     tessellate
+    interpolate_displacement_vectors

@@ -9,11 +9,13 @@ Multiple algorithms for line simplification are available, including:
 - :func:`Douglas-Peucker <cartagen.douglas_peucker>` :footcite:p:`douglas:1973`
 - :func:`Visvalingam-Whyatt <cartagen.visvalingam_whyatt>` :footcite:p:`visvalingam:1993`
 - :func:`Raposo <cartagen.raposo>`  :footcite:p:`raposo:2013`
+- :func:`Li-Openshaw <cartagen.li_openshaw>`  :footcite:p:`li:1993`
+- :func:`Whirlpool <cartagen.whirlpool_simplification>`  :footcite:p:`dougenik:1979`
 
 Those line simplification algorithm are used for different purposes and their computational
 time differs. For example, Douglas-Peucker and Visvalingam-Whyatt are often used to
 simplify roads or surfaces borders such as forests.
-On the other hand, Raposo and Li-Openshaw are usually applied to simplify
+On the other hand, Raposo, Li-Openshaw and Whirlpool are usually applied to simplify
 natural lines like the hydrographic network.
 You can read more about them in the API Reference section.
 

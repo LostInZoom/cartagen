@@ -17,6 +17,7 @@ Simplification
     visvalingam_whyatt
     raposo
     li_openshaw
+    whirlpool_simplification
 
 Smoothing
 ---------
