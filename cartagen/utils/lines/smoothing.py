@@ -237,6 +237,10 @@ def smooth_platre(line, sigma=2, curvature=0.05):
     smooth_gaussian :
         Smooth a line or a polygon and attenuate its inflexion points.
 
+    References
+    ----------
+    .. footbibliography::
+
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
