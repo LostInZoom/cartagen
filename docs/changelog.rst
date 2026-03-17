@@ -3,6 +3,37 @@
 Changelog
 #########
 
+1.1 - next version
+==================
+
+- **New features**:
+   #. New line smoothing algorithm :func:`smooth_platre <cartagen.smooth_platre>`.
+   #. New line simplification algorithm :func:`wirlpool_simplification <cartagen.wirlpool_simplification>`.
+   #. New line displacement algorithm :func:`beams_displacement <cartagen.beams_displacement>`.
+   #. New line displacement algorithm :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
+   #. New buildings algorithm :func:`building_amalgamation <cartagen.building_amalgamation>` to merge two buildings.
+   #. New line simplification algorithms designed to work on polygon boundaries and keep their topology:
+
+      - :func:`boundaries_douglas_peucker <cartagen.boundaries_douglas_peucker>`
+      - :func:`boundaries_visvalingam_whyatt <cartagen.boundaries_visvalingam_whyatt>`
+      - :func:`boundaries_raposo <cartagen.boundaries_raposo>`
+      - :func:`boundaries_li_openshaw <cartagen.boundaries_li_openshaw>`
+
+- **Improvements**:
+   #. Renamed :func:`gaussian_smoothing <cartagen.smooth_gaussian>` to :func:`smooth_gaussian <cartagen.smooth_gaussian>`.
+   #. Optimization of the :func:`coalescence_splitting <cartagen.coalescence_splitting>` algorithm
+      along with all its related algorithms using numpy arrays.
+   #. Handle MultiLineString input on line simplification algorithms.
+   #. Optimize tesselation algorithm, now the spatial index is only calculated once.
+   #. Enhanced :func:`visvlingam_whyatt <cartagen.visvlingam_whyatt>` using an external code made by
+      `Elliot Hallmark. <https://github.com/Permafacture/Py-Visvalingam-Whyatt>`_
+   #. Update :func:`strokes_rivers <cartagen.strokes_rivers>` to facilitate their generalization.
+
+- **Bug Fixes**:
+   #. Fixed the :func:`collapse_dual_carriageways <cartagen.collapse_dual_carriageways>` algorithm to treat
+      polygons connected by their short side.
+   #. Fixed the :func:`LeastSquaresMethod <cartagen.LeastSquaresMethod>`, some matrices were wrongly built.
+
 1.0.2
 =====
 
