@@ -3,7 +3,7 @@ from shapely import Point, MultiPoint, LineString, MultiLineString
 
 from cartagen.utils.partitioning.tessellation import HexagonalTessellation
 
-def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
+def simplify_raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     """
     Hexagon-based line simplification.
     
@@ -37,12 +37,18 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
 
     See Also
     --------
-    douglas_peucker :
+    simplify_douglas_peucker :
         Distance-based line simplification.
-    visvalingam_whyatt :
-        Area-based line simplification.
-    li_openshaw :
+    simplify_lang :
+        Look-ahead distance-based line simplification.
+    simplify_li_openshaw :
         Square grid-based line simplification.
+    simplify_reumann_witkam :
+        Directional distance-based line simplification.
+    simplify_visvalingam_whyatt :
+        Area-based line simplification.
+    simplify_whirlpool :
+        Epsilon-circle based line simplification.
 
     Notes
     -----
@@ -61,7 +67,7 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> c4.raposo(line, 5000, 10000)
+    >>> c4.simplify_raposo(line, 5000, 10000)
     <LINESTRING (0 0, 1 0.3333333333333333, 5 3)>
     """
 
@@ -69,7 +75,7 @@ def raposo(line, initial_scale, final_scale, centroid=True, tobler=False):
         raise ValueError(f'{line.geom_type} geometry type cannot be simplified.')
 
     if line.geom_type == 'MultiLineString':
-        geoms = [raposo(geom, initial_scale, final_scale, centroid, tobler) for geom in line.geoms]
+        geoms = [simplify_raposo(geom, initial_scale, final_scale, centroid, tobler) for geom in line.geoms]
         return MultiLineString(geoms)
 
     # Calculate hexagons width

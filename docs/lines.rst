@@ -13,11 +13,13 @@ Simplification
     :nosignatures:
     :toctree: reference/
 
-    douglas_peucker
-    visvalingam_whyatt
-    raposo
-    li_openshaw
-    whirlpool_simplification
+    simplify_douglas_peucker
+    simplify_lang
+    simplify_li_openshaw
+    simplify_raposo
+    simplify_reumann_witkam
+    simplify_visvalingam_whyatt
+    simplify_whirlpool
 
 Smoothing
 ---------

@@ -1,5 +1,5 @@
 from cartagen.utils.geometry.topo_map import TopoMap
-from cartagen.utils.lines import visvalingam_whyatt, douglas_peucker, raposo, li_openshaw
+from cartagen.utils.lines import simplify_visvalingam_whyatt, simplify_douglas_peucker, simplify_raposo, simplify_li_openshaw
 from cartagen.utils.geometry.polygon import surfacic_distance
 
 def boundaries_douglas_peucker(polygons, threshold, preserve_topology=True):
@@ -31,7 +31,7 @@ def boundaries_douglas_peucker(polygons, threshold, preserve_topology=True):
 
     See Also
     --------
-    douglas_peucker :
+    simplify_douglas_peucker :
         Distance-based line simplification.
     boundaries_visvalingam_whyatt :
         Apply the Visvalingam-Whyatt line simplification to the boundaries of polygons.
@@ -59,7 +59,7 @@ def boundaries_douglas_peucker(polygons, threshold, preserve_topology=True):
     # then loop on all arcs of the TopoMap
     for aid, arc in tm.arcs.items():
         geom = arc.geom
-        simplified = douglas_peucker(geom, threshold, preserve_topology)
+        simplified = simplify_douglas_peucker(geom, threshold, preserve_topology)
         tm.arcs[aid].geom = simplified
 
     # update the TopoMap with the simplified arcs
@@ -115,7 +115,7 @@ def boundaries_visvalingam_whyatt(polygons, threshold):
 
     See Also
     --------
-    visvalingam_whyatt :
+    simplify_visvalingam_whyatt :
         Area-based line simplification.
     boundaries_raposo :
         Apply the Raposo line simplification to the boundaries of polygons.
@@ -143,7 +143,7 @@ def boundaries_visvalingam_whyatt(polygons, threshold):
     # then loop on all arcs of the TopoMap
     for aid, arc in tm.arcs.items():
         geom = arc.geom
-        simplified = visvalingam_whyatt(geom, threshold=threshold)
+        simplified = simplify_visvalingam_whyatt(geom, threshold=threshold)
         tm.arcs[aid].geom = simplified
 
     # update the TopoMap with the simplified arcs
@@ -204,7 +204,7 @@ def boundaries_raposo(polygons, initial_scale, final_scale, centroid=True, toble
 
     See Also
     --------
-    raposo :
+    simplify_raposo :
         Hexagon-based line simplification.
     boundaries_douglas_peucker :
         Apply the Douglas-Peucker line simplification to the boundaries of polygons.
@@ -232,7 +232,7 @@ def boundaries_raposo(polygons, initial_scale, final_scale, centroid=True, toble
     # then loop on all arcs of the TopoMap
     for aid, arc in tm.arcs.items():
         geom = arc.geom
-        simplified = raposo(geom, initial_scale, final_scale, centroid, tobler)
+        simplified = simplify_raposo(geom, initial_scale, final_scale, centroid, tobler)
         tm.arcs[aid].geom = simplified
 
     # update the TopoMap with the simplified arcs
@@ -287,7 +287,7 @@ def boundaries_li_openshaw(polygons, cell_size):
 
     See Also
     --------
-    li_openshaw :
+    simplify_li_openshaw :
         Square grid-based line simplification.
     boundaries_douglas_peucker :
         Applies the Douglas-Peucker line simplification to the boundaries of polygons.
@@ -315,7 +315,7 @@ def boundaries_li_openshaw(polygons, cell_size):
     # then loop on all arcs of the TopoMap
     for aid, arc in tm.arcs.items():
         geom = arc.geom
-        simplified = li_openshaw(geom, cell_size)
+        simplified = simplify_li_openshaw(geom, cell_size)
         tm.arcs[aid].geom = simplified
 
     # update the TopoMap with the simplified arcs

@@ -8,7 +8,9 @@ Changelog
 
 - **New features**:
    #. New line smoothing algorithm :func:`smooth_platre <cartagen.smooth_platre>`.
-   #. New line simplification algorithm :func:`whirlpool_simplification <cartagen.whirlpool_simplification>`.
+   #. New line simplification algorithm :func:`simplify_whirlpool <cartagen.simplify_whirlpool>`.
+   #. New line simplification algorithm :func:`simplify_lang <cartagen.simplify_lang>`.
+   #. New line simplification algorithm :func:`simplify_reumann_witkam <cartagen.simplify_reumann_witkam>`.
    #. New line displacement algorithm :func:`beams_displacement <cartagen.beams_displacement>`.
    #. New line displacement algorithm :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
    #. New buildings algorithm :func:`building_amalgamation <cartagen.building_amalgamation>` to merge two buildings.
@@ -25,7 +27,7 @@ Changelog
       along with all its related algorithms using numpy arrays.
    #. Handle MultiLineString input on line simplification algorithms.
    #. Optimize tesselation algorithm, now the spatial index is only calculated once.
-   #. Enhanced :func:`visvalingam_whyatt <cartagen.visvalingam_whyatt>` using an external code made by
+   #. Enhanced :func:`visvalingam_whyatt <cartagen.simplify_visvalingam_whyatt>` using an external code made by
       `Elliot Hallmark. <https://github.com/Permafacture/Py-Visvalingam-Whyatt>`_
    #. Update :func:`strokes_rivers <cartagen.strokes_rivers>` to facilitate their generalization.
 
@@ -73,7 +75,7 @@ Changelog
 
 - **Bug fixes**:
 
-  #. Fixed an issue in :func:`li_openshaw <cartagen.li_openshaw>`. :pr:`14` (:user:`gowestmen`)
+  #. Fixed an issue in :func:`li_openshaw <cartagen.simplify_li_openshaw>`. :pr:`14` (:user:`gowestmen`)
 
   #. Fixed an issue in :func:`collapse_branching_crossroads <cartagen.collapse_branching_crossroads>`
      when splitting a line by a point which causes problems of floating points in Shapely.
@@ -123,7 +125,7 @@ Changelog
 
 - **New features**:
 
-  #. Added :func:`li_openshaw <cartagen.li_openshaw>` to simplify lines. (:user:`jberli`)
+  #. Added :func:`li_openshaw <cartagen.simplify_li_openshaw>` to simplify lines. (:user:`jberli`)
 
   #. Added :func:`square_polygon_naive <cartagen.square_polygon_naive>` to square polygons. (:user:`jberli`)
 

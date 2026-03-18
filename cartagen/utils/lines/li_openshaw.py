@@ -5,7 +5,7 @@ from shapely.geometry import Point, MultiPoint, LineString, MultiLineString
 
 from cartagen.utils.partitioning import partition_grid
 
-def li_openshaw(line, cell_size, preserve_extremities=True):
+def simplify_li_openshaw(line, cell_size, preserve_extremities=True):
     """
     Regular grid-based line simplification.
 
@@ -29,12 +29,18 @@ def li_openshaw(line, cell_size, preserve_extremities=True):
 
     See Also
     --------
-    douglas_peucker :
+    simplify_douglas_peucker :
         Distance-based line simplification.
-    visvalingam_whyatt :
-        Area-based line simplification.
-    raposo :
+    simplify_lang :
+        Look-ahead distance-based line simplification.
+    simplify_raposo :
         Hexagon-based line simplification.
+    simplify_reumann_witkam :
+        Directional distance-based line simplification.
+    simplify_visvalingam_whyatt :
+        Area-based line simplification.
+    simplify_whirlpool :
+        Epsilon-circle based line simplification.
 
     References
     ----------
@@ -43,14 +49,14 @@ def li_openshaw(line, cell_size, preserve_extremities=True):
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> c4.li_openshaw(line, 1)
+    >>> c4.simplify_li_openshaw(line, 1)
     <LINESTRING (0 0, 0.5 0.5, 2 0, 5 3)>
     """
     if line.geom_type not in ['LineString', 'MultiLineString', 'LinearRing']:
         raise ValueError(f'{line.geom_type} geometry type cannot be simplified.')
     
     if line.geom_type == 'MultiLineString':
-        geoms = [li_openshaw(geom, cell_size) for geom in line.geoms]
+        geoms = [simplify_li_openshaw(geom, cell_size) for geom in line.geoms]
         return MultiLineString(geoms)
     
     coords = np.array(line.coords)

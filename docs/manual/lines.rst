@@ -6,11 +6,13 @@ Simplification
 
 Multiple algorithms for line simplification are available, including:
 
-- :func:`Douglas-Peucker <cartagen.douglas_peucker>` :footcite:p:`douglas:1973`
-- :func:`Visvalingam-Whyatt <cartagen.visvalingam_whyatt>` :footcite:p:`visvalingam:1993`
-- :func:`Raposo <cartagen.raposo>`  :footcite:p:`raposo:2013`
-- :func:`Li-Openshaw <cartagen.li_openshaw>`  :footcite:p:`li:1993`
-- :func:`Whirlpool <cartagen.whirlpool_simplification>`  :footcite:p:`dougenik:1979`
+- :func:`Douglas-Peucker <cartagen.simplify_douglas_peucker>` :footcite:p:`douglas:1973`
+- :func:`Lang <cartagen.simplify_lang>`  :footcite:p:`lang:1969`
+- :func:`Li-Openshaw <cartagen.simplify_li_openshaw>`  :footcite:p:`li:1993`
+- :func:`Raposo <cartagen.simplify_raposo>`  :footcite:p:`raposo:2013`
+- :func:`Reumann-Witkam <cartagen.simplify_reumann_witkam>`  :footcite:p:`reumann:1974`
+- :func:`Visvalingam-Whyatt <cartagen.simplify_visvalingam_whyatt>` :footcite:p:`visvalingam:1993`
+- :func:`Whirlpool <cartagen.simplify_whirlpool>`  :footcite:p:`dougenik:1979`
 
 Those line simplification algorithm are used for different purposes and their computational
 time differs. For example, Douglas-Peucker and Visvalingam-Whyatt are often used to

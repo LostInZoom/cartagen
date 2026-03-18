@@ -1,8 +1,8 @@
-﻿cartagen.li_openshaw
+﻿cartagen.simplify_li_openshaw
 ====================
 
 .. currentmodule:: cartagen
 
-.. autofunction:: li_openshaw
+.. autofunction:: simplify_li_openshaw
 
-.. plot:: code/reference/li_openshaw.py
+.. plot:: code/reference/simplify_li_openshaw.py

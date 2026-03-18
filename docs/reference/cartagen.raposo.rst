@@ -1,8 +1,8 @@
-﻿cartagen.raposo
+﻿cartagen.simplify_raposo
 ===============
 
 .. currentmodule:: cartagen
 
-.. autofunction:: raposo
+.. autofunction:: simplify_raposo
 
-.. plot:: code/reference/raposo.py
+.. plot:: code/reference/simplify_raposo.py

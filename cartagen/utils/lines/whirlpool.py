@@ -1,7 +1,7 @@
 import numpy as np
 from shapely.geometry import LineString
 
-def whirlpool_simplification(line, threshold):
+def simplify_whirlpool(line, threshold):
     """
     Epsilon-circle based line simplification.
 
@@ -27,13 +27,17 @@ def whirlpool_simplification(line, threshold):
 
     See Also
     --------
-    douglas_peucker :
+    simplify_douglas_peucker :
         Distance-based line simplification.
-    raposo :
-        Hexagon-based line simplification.
-    li_openshaw :
+    simplify_lang :
+        Look-ahead distance-based line simplification.
+    simplify_li_openshaw :
         Square grid-based line simplification.
-    visvalingam_whyatt :
+    simplify_raposo :
+        Hexagon-based line simplification.
+    simplify_reumann_witkam :
+        Directional distance-based line simplification.
+    simplify_visvalingam_whyatt :
         Area-based line simplification.
 
     References
@@ -43,7 +47,7 @@ def whirlpool_simplification(line, threshold):
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> whirlpool_simplification(line, threshold=2.0)
+    >>> simplify_whirlpool(line, threshold=2.0)
     <LINESTRING (0 0, 5 3)>
     """
     if line.is_empty:
@@ -53,7 +57,7 @@ def whirlpool_simplification(line, threshold):
         raise ValueError(f'{line.geom_type} geometry type cannot be simplified.')
 
     if line.geom_type == 'MultiLineString':
-        geoms = [whirlpool_simplification(geom, threshold) for geom in line.geoms]
+        geoms = [simplify_whirlpool(geom, threshold) for geom in line.geoms]
         return MultiLineString(geoms)
 
     coords = list(line.coords)

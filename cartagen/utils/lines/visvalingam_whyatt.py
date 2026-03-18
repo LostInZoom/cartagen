@@ -2,7 +2,7 @@ from numpy import array, argmin
 import numpy as np
 from shapely import LineString, MultiLineString
 
-def visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
+def simplify_visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
     """
     Area-based line simplification.
 
@@ -36,12 +36,18 @@ def visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
 
     See Also
     --------
-    douglas_peucker :
+    simplify_douglas_peucker :
         Distance-based line simplification.
-    raposo :
-        Hexagon-based line simplification.
-    li_openshaw :
+    simplify_lang :
+        Look-ahead distance-based line simplification.
+    simplify_li_openshaw :
         Square grid-based line simplification.
+    simplify_raposo :
+        Hexagon-based line simplification.
+    simplify_reumann_witkam :
+        Directional distance-based line simplification.
+    simplify_whirlpool :
+        Epsilon-circle based line simplification.
 
     References
     ----------
@@ -50,7 +56,7 @@ def visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> visvalingam_whyatt(line, threshold=5.0)
+    >>> simplify_visvalingam_whyatt(line, threshold=5.0)
     <LINESTRING (0 0, 2 0, 5 3)>
     """
     params = [threshold, number, ratio]
@@ -66,7 +72,7 @@ def visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
     if line.geom_type == 'MultiLineString':
         geoms = []
         for geom in list(line.geoms):
-            geoms.append(visvalingam_whyatt(geom, threshold, number, ratio))
+            geoms.append(simplify_visvalingam_whyatt(geom, threshold, number, ratio))
         return MultiLineString(geoms)
 
     points = array(line.coords)

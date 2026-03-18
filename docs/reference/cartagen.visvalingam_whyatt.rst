@@ -1,8 +1,8 @@
-﻿cartagen.visvalingam_whyatt
+﻿cartagen.simplify_visvalingam_whyatt
 ===========================
 
 .. currentmodule:: cartagen
 
-.. autofunction:: visvalingam_whyatt
+.. autofunction:: simplify_visvalingam_whyatt
 
-.. plot:: code/reference/visvalingam_whyatt.py
+.. plot:: code/reference/simplify_visvalingam_whyatt.py

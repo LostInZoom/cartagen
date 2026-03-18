@@ -1,6 +1,6 @@
 from shapely import simplify
 
-def douglas_peucker(line, threshold, preserve_topology=True):
+def simplify_douglas_peucker(line, threshold, preserve_topology=True):
     """
     Distance-based line simplification.
 
@@ -33,12 +33,19 @@ def douglas_peucker(line, threshold, preserve_topology=True):
 
     See Also
     --------
-    visvalingam_whyatt :
-        Area-based line simplification.
-    raposo :
-        Hexagon-based line simplification.
-    li_openshaw :
+    simplify_lang :
+        Look-ahead distance-based line simplification.
+    simplify_li_openshaw :
         Square grid-based line simplification.
+    simplify_raposo :
+        Hexagon-based line simplification.
+    simplify_reumann_witkam :
+        Directional distance-based line simplification.
+    simplify_visvalingam_whyatt :
+        Area-based line simplification.
+    simplify_whirlpool :
+        Epsilon-circle based line simplification.
+
 
     References
     ----------
@@ -47,7 +54,7 @@ def douglas_peucker(line, threshold, preserve_topology=True):
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (5, 3)])
-    >>> douglas_peucker(line, 1.0)
+    >>> simplify_douglas_peucker(line, 1.0)
     <LINESTRING (0 0, 2 0, 5 3)>
     """
     return simplify(line, threshold, preserve_topology=preserve_topology)

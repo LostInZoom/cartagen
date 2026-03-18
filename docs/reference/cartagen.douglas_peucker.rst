@@ -1,8 +1,8 @@
-﻿cartagen.douglas_peucker
+﻿cartagen.simplify_douglas_peucker
 ========================
 
 .. currentmodule:: cartagen
 
-.. autofunction:: douglas_peucker
+.. autofunction:: simplify_douglas_peucker
 
-.. plot:: code/reference/douglas_peucker.py
+.. plot:: code/reference/simplify_douglas_peucker.py
