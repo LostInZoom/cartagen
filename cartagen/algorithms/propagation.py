@@ -40,17 +40,14 @@ def propagation_crow_flies(objects, initiator_start, initiator_end, frozen_objec
     interval : float, optional
         Interval used for the interpolation during the initial displacement vector calculation.
 
-    Implementation of the displacement propagation algorithm "as the crow flies", by Legrand *et al.* :footcite:p:`legrand:2005`.
-    This function propagates the displacement defined by the movement of initiator objects to nearby movable objects,
-    while respecting frozen objects that should not be moved.
-
     Warning
     -------
     Be careful, the initiators should be LineString, and not MultiLineString.
     
     Returns
     -------
-    GeoDataFrame, same as input but with displaced geometries
+    GeoDataFrame :
+        Same as input but with displaced geometries
 
     References
     ----------
