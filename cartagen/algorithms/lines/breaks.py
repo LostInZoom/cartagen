@@ -1,4 +1,5 @@
 import shapely, networkx
+import numpy as np
 
 from cartagen.utils.geometry.dilation import dilate_line, offset_line, reconstruct_line
 from cartagen.utils.geometry.line import get_bend_side, merge_linestrings
@@ -222,7 +223,23 @@ def min_break(line, offset, sigma=30, sample=None):
         right.reverse()
 
         # Return the line formed by the merging of left and right dilation
-        return shapely.LineString(left + right)
+        final_line = shapely.LineString(left + right)
+
+        # --- Vérification de l'orientation ---
+        # On compare la distance entre le départ original et le nouveau départ/fin
+        original_start = line.coords[0]
+        new_start = final_line.coords[0]
+        new_end = final_line.coords[-1]
+
+        dist_to_start = np.sqrt((original_start[0] - new_start[0])**2 + (original_start[1] - new_start[1])**2)
+        dist_to_end = np.sqrt((original_start[0] - new_end[0])**2 + (original_start[1] - new_end[1])**2)
+
+        if dist_to_end < dist_to_start:
+            # La ligne est inversée, on la remet dans le bon sens
+            final_line = shapely.LineString(list(final_line.coords)[::-1])
+        # ------------------------------------------
+
+        return final_line
 
     else:
         return line
