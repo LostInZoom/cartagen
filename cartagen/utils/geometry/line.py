@@ -347,66 +347,65 @@ def inflexion_points(line, min_dir=120.0):
     >>> c4.inflexion_points(line)
     [2, 3]
     """
+    coords = np.array(line.coords)
+    n = len(coords)
 
-    coords = list(line.coords)
-
-    # Storage for inflexion points
+    # Early return for lines too short
+    if n < 3:
+        return []
+    
+    # Vectorized computation of all angles
+    vectors = np.diff(coords, axis=0)
+    angles = np.arctan2(vectors[:, 1], vectors[:, 0])
+    directions = np.degrees(angles) % 360
+    
+    # Calculate turning angles at each interior vertex
+    # alpha[i] represents the turn at vertex i+1
+    alpha = np.diff(angles)
+    
+    # Normalize to [-π, π]
+    alpha = np.where(alpha > np.pi, alpha - 2 * np.pi, alpha)
+    alpha = np.where(alpha < -np.pi, alpha + 2 * np.pi, alpha)
+    
+    # Determine turn direction at each interior vertex
+    turn_signs = np.sign(alpha)  # 1 for left, -1 for right, 0 for straight
+    
+    # Find where turn direction changes (potential inflexion points)
+    sign_changes = np.diff(turn_signs) != 0
+    
+    # Get indices of potential inflexion points (offset by 1 for interior vertices)
+    potential_inflexions = np.where(sign_changes)[0] + 1
+    
+    if len(potential_inflexions) == 0:
+        return []
+    
+    # Filter out micro-inflexions
     inflexion = []
-
-    # Storage for parts to check when micro inflexion points are detected
-    part = []
-
-    # Stores for the previous angle and the previous direction
-    prevangle = None
-    prevdir = None
-
-    # Loop through vertices
-    for i in range(1, len(coords) - 1):
-        # Get previous, current and next point
-        p1, p2, p3 = coords[i - 1], coords[i], coords[i + 1]
-
-        # Calculate angles formed by p1 and p2, and p1 and p3
-        a1 = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
-        a2 = np.arctan2(p3[1] - p1[1], p3[0] - p1[0])
-
-        # Calculate the direction of p1 p2
-        direction = np.degrees(a1) % 360
-        # Calculate the angle formed by the three points
-        alpha = a2 - a1
-
-        # Store if angle is positive or negative
-        angle = 1 if alpha > 0 else -1
-
-        # Check that previous angle has been calculated
-        if prevangle is not None:
-            # Check if the angle is not the same as the previous -> inflexion point
-            if angle != prevangle:
-                # Check that the previous direction has been calculated
-                if prevdir is not None:
-                    # If the absolute difference between the previous direction and
-                    # the current one is above the direction threshold
-                    # It means that this is not a micro inflexion
-                    if abs(prevdir - direction) > min_dir:
-                        # Adding the middle of the part list, i.e. the middle of the micro inflexions
-                        inflexion.append(part[len(part) // 2])
-                        # Restart the part list with the current inflexion point
-                        part = [i]
-                    else:
-                        # Add the current point to the part list
-                        part.append(i)
-                # If not, append the point to the part
-                else:
-                    part.append(i)
-
-                # Set the previous angle as the direction of the current 
-                prevdir = direction
+    part = [potential_inflexions[0]]
+    prevdir = directions[potential_inflexions[0] - 1]
+    
+    for idx in potential_inflexions[1:]:
+        direction = directions[idx - 1]
         
-        # Set previous angle as current
-        prevangle = angle
-
-    # Append the last part's middle point
-    inflexion.append(part[len(part) // 2])
-
+        # Calculate direction change with wraparound handling
+        dir_change = abs(prevdir - direction)
+        if dir_change > 180:
+            dir_change = 360 - dir_change
+        
+        if dir_change > min_dir:
+            # Significant inflexion
+            if part:
+                inflexion.append(part[len(part) // 2])
+            part = [idx]
+            prevdir = direction
+        else:
+            # Micro-inflexion
+            part.append(idx)
+    
+    # Add the last part's middle point
+    if part:
+        inflexion.append(part[len(part) // 2])
+    
     return inflexion
 
 def split_line_at_vertex(line, point):
