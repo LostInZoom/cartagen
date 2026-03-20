@@ -234,6 +234,9 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
     lconflicts = __treat_side(line, tolerance, coords, left)
     rconflicts = __treat_side(line, -tolerance, coords, right)
 
+    print(lconflicts)
+    print(rconflicts)
+
     # Sort the conflicts by node number and distance from the node
     conflicts = sorted(rconflicts + lconflicts, key=lambda s: (s['node'], s['distance']))
 
@@ -273,6 +276,21 @@ def coalescence_splitting(line, tolerance, cap_style='round', quad_segs=8):
                 else:
                     state -= 1
 
-    chunks.append({ 'coalescence': state, 'geometry': LineString(current) })
+    # print({ 'coalescence': state, 'geometry': current })
+
+    try:
+        chunks.append({ 'coalescence': state, 'geometry': LineString(current) })
+    except:
+        from cartagen.utils.debug import plot_debug
+        plot_debug(line, left[0], right[0])
+
+    result = []
+
+    # for chunk in chunks:
+    #     length = chunk['geometry'].length
+    #     print(length)
+
+    # from cartagen.utils.debug import plot_debug
+    # plot_debug(*[s['geometry'] for s in chunks], [ Point(l['geometry']) for l in left[1] ], [ Point(l['geometry']) for l in right[1] ])
 
     return chunks
