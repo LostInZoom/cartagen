@@ -46,11 +46,15 @@ def accordion(line, width, sigma=30, sample=None):
     ----------
     .. footbibliography::
     """
+    # Gestion des cas limites
+    if line is None or line.is_empty or line.length < width:
+        return line
+
     # Detect individual bends inside the smoothed line
     bs = BendSerie(line, sigma, sample)
 
-    # Storage for the future distorded individual lines
-    distorded = []
+    # Storage for the future distorted individual lines
+    distorted = []
     
     for b in bs.bends:
         # Get the translation vector
@@ -58,12 +62,20 @@ def accordion(line, width, sigma=30, sample=None):
 
         # If the vector could not be found, keep the original bend
         if v is None:
-            distorded.append(b.bend)
+            distorted.append(b.bend)
             continue
 
-        # Retrieve start and end of bend coordinates
+        # Retrieve bend coordinates
         coords = list(b.bend.coords)
-        start, end = Point(coords[0]), Point(coords[-1])
+        
+        # Vérifier qu'il y a assez de points
+        if len(coords) < 2:
+            distorted.append(b.bend)
+            continue
+        
+        # Précalculer les Points
+        points = [Point(c) for c in coords]
+        start, end = points[0], points[-1]
 
         # Calculate the vector formed by the start and end point of the bend
         vab = Vector2D.from_points(start, end)
@@ -88,123 +100,110 @@ def accordion(line, width, sigma=30, sample=None):
         # Check that the closed bend is clockwise
         clockwise = not shapely.is_ccw(LineString(coords + [coords[0]]))
 
-        # Inverse the vector by comparating product and clockwise flag
-        if clockwise and product > 0:
-            v = v.opposite()
-        elif clockwise is False and product < 0:
+        # Inverse the vector by comparing product and clockwise flag
+        if (clockwise and product > 0) or (not clockwise and product < 0):
             v = v.opposite()
 
-        # Storage for the translated points
-        translated = []
-
-        total = 0
+        # Calculer la longueur totale et les distances entre points
         length = b.bend.length
-        # Loop through coordinates of the bend vertices starting from the end
-        for i in range(len(coords) - 1, -1, -1):
-            # Get the coordinates of the current point
-            p = Point(coords[i])
-            # If it's the end point of the bend
-            if i == len(coords) - 1:
-                # Displace the point by the full vector
-                translated.append(v.translate(p))
-            else:
-                # Here, it's not the end point
-                # Increment the current processed length of the line
-                total += Point(p).distance(Point(coords[i + 1]))
-                # Copy the vector
-                vdist = v.copy()
-                # Calculate the portion of the processed length
-                factor = (length - total) / length
-                # Reduce the vector
-                vdist.scalar_multiplication(factor)
-                # Displace the point by the reduced vector and add it at the start of the list
-                translated.insert(0, vdist.translate(p))
+        
+        # Calculer les distances cumulées depuis la FIN (comme l'original)
+        cumulative_from_end = [0.0]
+        for i in range(len(points) - 1, 0, -1):
+            cumulative_from_end.insert(0, cumulative_from_end[0] + points[i].distance(points[i - 1]))
+
+        # Translation avec facteur progressif (décroissant depuis la fin)
+        translated = []
+        for i, p in enumerate(points):
+            factor = (length - cumulative_from_end[i]) / length
+            vdist = v.copy()
+            vdist.scalar_multiplication(factor)
+            translated.append(vdist.translate(p))
         
         # Add the list of translated points to the full list of the whole bend serie
-        distorded.append(LineString(translated))
+        distorted.append(LineString(translated))
 
-    # Set the displaced line to be the first distorded line
-    displaced = distorded[0]
-    # Set the next start to be the end of the first line
-    lstart = displaced.coords[-1]
+    # Fusion optimisée des lignes
+    if not distorted:
+        return line
+    
+    all_coords = list(distorted[0].coords)
+    for dline in distorted[1:]:
+        # Calculer l'offset une seule fois
+        offset = (all_coords[-1][0] - dline.coords[0][0], 
+                  all_coords[-1][1] - dline.coords[0][1])
+        # Ajouter directement les coordonnées décalées (sans le premier point)
+        all_coords.extend((x + offset[0], y + offset[1]) for x, y in dline.coords[1:])
 
-    # Loop through remaining distorded lines
-    for i in range(1, len(distorded)):
-        # Get the line
-        dline = distorded[i]
-        # Get the start of the line
-        dstart = dline.coords[0]
-        # Translate the line with dx and dy which are the difference between line start and end of previous line
-        tline = shapely.affinity.translate(dline, lstart[0] - dstart[0], lstart[1] - dstart[1])
-        # Merge the displaced lines with the current displaced line
-        displaced = merge_linestrings(displaced, tline)
-        # Set the last start as the current displaced line end point 
-        lstart = displaced.coords[-1]
+    displaced = LineString(all_coords)
 
     # Get the middle of the provided bend serie
     bm = get_line_middle_point(line)
-    # Get the middle of the distorded line
+    # Get the middle of the distorted line
     dm = get_line_middle_point(displaced)
 
-    # Translate the distorded line by the difference between both middle points
+    # Translate the distorted line by the difference between both middle points
     return shapely.affinity.translate(displaced, bm.x - dm.x, bm.y - dm.y)
 
+
 def __get_vector(bend, width):
-    # Check on both sides if the translation crosses the bend
-    def check_translation(base, bend, width, angle, v):
+    """
+    Calculate the translation vector for a bend.
+    
+    Parameters
+    ----------
+    bend : Bend
+        The bend object.
+    width : float
+        The width in meters of the casing of the symbol.
+    
+    Returns
+    -------
+    Vector2D or None
+        The translation vector, or None if it cannot be calculated.
+    """
+    # Calculate the angle perpendicular from the orientation of the bend
+    o = bend.get_orientation()
+    angle = o + np.pi / 2 if o < np.pi else o - np.pi / 2
+    
+    # Create the vector from the angle and the norm
+    w = bend.get_width()
+    v = Vector2D.from_angle(angle, w * 2)
+    
+    # Essayer d'abord le point de départ, puis le point de fin
+    for base_coord in [bend.bend.coords[0], bend.bend.coords[-1]]:
+        base = Point(base_coord)
+        
         # Translate the base point using the vector
         tpoint = v.translate(base)
         # Calculate the line between the base point and the translated point
-        tline = LineString([Point(base), tpoint])
+        tline = LineString([base, tpoint])
         # Extend the line by twice the width of the bend on both sides
-        eline = extend_line_by_length(tline, bend.width * 2)
+        eline = extend_line_by_length(tline, w * 2)
 
         # Create the bend without the base vertex to avoid intersection there
-        crossline = LineString([ x for x in list(bend.bend.coords) if x != base ])
+        crossline = LineString([x for x in bend.bend.coords if x != base_coord])
         # Calculate the intersection
         intersection = shapely.intersection(eline, crossline)
 
-        # Check that intersection is a point.
+        # Check that intersection is a point
         if intersection.geom_type == 'Point':
-            # Get the distance between the base point and the intersection
-            dist = Point(base).distance(intersection)
-            v2 = v.change_norm(width - dist)
-            return v2
-        else:
-            # If the interseection is not a point
-            # Check that the end point has not been tried already
-            if base == list(bend.bend.coords)[-1]:
-                # Here, no intersection where found
-                return None
-            else:
-                # Restart the function using the end point as the base
-                return check_translation(Point(bend.bend.coords[-1]), bend, width, angle, v)
-
-    # Calculate the angle perpendicular from the orientation of the bend
-    o = bend.get_orientation()
-    if o < np.pi:
-        angle = o + np.pi / 2
-    else:
-        angle = o - np.pi / 2
-   
-    # Create the vector from the angle and the norm
-    w = bend.get_width()
-    v = Vector2D.from_angle(angle, w*2)
-
-    return check_translation(Point(bend.bend.coords[0]), bend, width, angle, v)
+            return v.change_norm(width)
+    
+    return None
 
 def schematization(line, sigma=30, sample=None):
     """
     Remove bends from series of bends to simplify it.
-
+ 
     This algorithm proposed by Lecordix *et al.* :footcite:p:`lecordix:1997`
     is a caricature algorithm that removes one (or more) bend of a
     series while preserving the global shape of the bend series.
-
+ 
     Bends in the series are identified using inflexion points, and when the middle
     bends are removed, the inflexion points are displaced along the axis of the series,
     the road is distorted to cushion the displacement of the inflexion points.
-
+ 
     Parameters
     ----------
     line : LineString
@@ -213,11 +212,11 @@ def schematization(line, sigma=30, sample=None):
         Gaussian smoothing strength.
     sample : int, optional
         Gaussian smoothing sample size.
-
+ 
     Returns
     -------
     LineString
-
+ 
     See Also
     --------
     accordion :
@@ -226,119 +225,144 @@ def schematization(line, sigma=30, sample=None):
         Smooth a line and attenuate its inflexion points.
     inflexion_points :
         Extract inflexion points from a sinuous line.
-
+ 
     References
     ----------
     .. footbibliography::
     """
-    # Treat a part of the schematization
+    
     def schematize_part(coords, wpoint, summits, length):
+        """
+        Apply schematization to a part of the line.
+        
+        OPTIMIZATIONS:
+        - Pre-compute segment lengths
+        - Use set for O(1) summit lookup
+        - Reduce redundant Point() creations
+        - Cache vector calculations
+        """
         # Get the start vertex and create the translation vector
         start = Point(coords[0])
         vector = Vector2D.from_points(start, wpoint)
-
+ 
         # Get the orientation of the first segment of the part
         main = Segment(coords[0], coords[1]).orientation()
         # Get the perpendicular orientation
         perp = main + np.pi / 2
-        # Get it between 0 & 2pi
+        # Normalize to [0, 2π)
         if perp > (2 * np.pi):
             perp -= 2 * np.pi
-
+ 
         # Project the vector on the main and perpendicular orientation
         vmain = vector.project(main)
         vperp = vector.project(perp)
-
+ 
+        # Convert summits to set for O(1) lookup instead of O(n)
+        summits_set = set(summits)
+ 
+        # Pre-compute segment lengths to avoid redundant calculations
+        n_coords = len(coords)
+        segment_lengths = np.zeros(n_coords - 1)
+        for i in range(1, n_coords):
+            segment_lengths[i - 1] = LineString([coords[i], coords[i - 1]]).length
+ 
         # Isolate the first half of the first bend of part 1
-        lasthalf = []
+        lasthalf_set = set()
         halflength = 0
         # Loop through points starting at the penultimate vertex towards the start
-        for i in range(1, len(coords)):
-            # Get the point coordinates
+        for i in range(1, n_coords):
             point = coords[i]
-            # Calculate the length of the segment using the previous point
-            halflength += LineString([point, coords[i - 1]]).length
+            halflength += segment_lengths[i - 1]
             # Break when reaching the 1st summit
-            if point in summits:
+            if point in summits_set:
                 break
-            # Append the point to the list
-            lasthalf.append(point)
-
+            lasthalf_set.add(point)
+ 
         schematized = []
         total = 0
+        
+        # Pre-compute constants
+        inv_halflength = 1.0 / halflength if halflength > 0 else 0
+        inv_length = 1.0 / length if length > 0 else 0
+        vmain_norm = vmain.get_norm()
+        vperp_norm = vperp.get_norm()
+        
         # Loop again starting at the penultimate vertex
-        for i in range(1, len(coords)):
+        for i in range(1, n_coords):
             point = coords[i]
             # Increment the total length with the current segment length
-            total += LineString([point, coords[i - 1]]).length
+            total += segment_lengths[i - 1]
+            
             # Get the current point
             projected = Point(point)
+            
             # If the point is in the first half of the first bend
-            if point in lasthalf:
-                # Cushion the point using the main vector, i.e. the orientation of the last semgent
-                vect = vmain.change_norm(vmain.get_norm() * (1 - total / halflength))
+            if point in lasthalf_set:
+                # Cushion the point using the main vector
+                factor_main = vmain_norm * (1 - total * inv_halflength)
+                vect = vmain.change_norm(factor_main)
                 projected = vect.translate(projected)
-            # Then, for every point, cushion the translation using also the perpendicular vector
-            vect = vperp.change_norm(vperp.get_norm() * (1 - total / length))
+            
+            # Cushion the translation using the perpendicular vector
+            factor_perp = vperp_norm * (1 - total * inv_length)
+            vect = vperp.change_norm(factor_perp)
             projected = vect.translate(projected)
-            # Add the point to the start of the list
+            
+            # Add the point to the list
             schematized.append(projected)
         
         return schematized
-
-    schematized = []
-
+ 
     # Detect individual bends inside the smoothed line
     bs = BendSerie(line, sigma, sample)
     bends = bs.bends
-
-    # If there are less than 3 bends, do not schematize
-    if len(bends) < 3:
-        return line
-    
-    # If there are more than 3 bends, keep the first and the last
-    if len(bends) > 3:
-        schematized = [ bends[0].bend, bends[-1].bend ]
-
-    length = shape = size = 0
-    # Loop through bends
-    lengths, shapes, sizes = [], [], []
-    for b in bends:
-        # Increment by the length of the bend
-        le = b.bend.length
-        length += le
-        lengths.append(le)
-        # Increment the shape and size measures
-        height, width = b.get_height(), b.get_width()
-        sh = (4 * height + width) / 5
-        shape += sh
-        shapes.append(sh)
-        si = (4 * height * width + height * width) / 5
-        size += si
-        sizes.append(si)
-
-    # List for index to remove by indices and size
-    indiceremove, sizeremove = [], []
-
-    # Loop through bends
     nb = len(bends)
+ 
+    # Early return if there are less than 3 bends
+    if nb < 3:
+        return line
+ 
+    # Pre-compute all bend metrics in a single pass
+    lengths = np.zeros(nb)
+    shapes = np.zeros(nb)
+    sizes = np.zeros(nb)
+    
     for i, b in enumerate(bends):
-        # Make sure the bend is to be schematized (not the first, not the last)
-        if i in [0, nb - 1] and len(bends) != 5:
+        lengths[i] = b.bend.length
+        height, width = b.get_height(), b.get_width()
+        shapes[i] = (4 * height + width) / 5
+        sizes[i] = (4 * height * width + height * width) / 5
+ 
+    # Compute totals using numpy for efficiency
+    length_total = np.sum(lengths)
+    shape_total = np.sum(shapes)
+    size_total = np.sum(sizes)
+    
+    # Avoid division by zero
+    inv_length = 1.0 / length_total if length_total > 0 else 0
+    inv_shape = 1.0 / shape_total if shape_total > 0 else 0
+    inv_size = 1.0 / size_total if size_total > 0 else 0
+ 
+    # Calculate indices for all candidate bends
+    indiceremove = []
+    sizeremove = []
+ 
+    for i, b in enumerate(bends):
+        # Skip first and last bend unless there are exactly 5 bends
+        if i in [0, nb - 1] and nb != 5:
             continue
-
-        indice = 0
-        # Calculate the indice depending on the number of bends inside the bend serie
+ 
+        # Calculate the indice depending on the number of bends
         if nb < 6:
-            indice = (2 * shapes[i] / shape + sizes[i] / size + lengths[i] / length) / 4
+            indice = (2 * shapes[i] * inv_shape + sizes[i] * inv_size + lengths[i] * inv_length) / 4
         else:
             symetry = b.get_symetry()
             if nb < 11:
-                indice = (shapes[i] / shape + sizes[i] / size + lengths[i] / length + symetry) / 4
+                indice = (shapes[i] * inv_shape + sizes[i] * inv_size + lengths[i] * inv_length + symetry) / 4
             else:
-                indice = (shapes[i] / shape + 2 * sizes[i] / size + 0.5 * lengths[i] / length + 0.5 * symetry) / 4
+                indice = (shapes[i] * inv_shape + 2 * sizes[i] * inv_size + 0.5 * lengths[i] * inv_length + 0.5 * symetry) / 4
         
-        # Add the bend with index, indice and size
+        # Store bend information
         indiceremove.append({
             'bend': b,
             'index': i,
@@ -347,100 +371,101 @@ def schematization(line, sigma=30, sample=None):
         sizeremove.append({
             'bend': b,
             'index': i,
-            'size': sizes[i] / size
+            'size': sizes[i] * inv_size
         })
-        
-    # Order both list by indice and size
-    indiceremove = sorted(indiceremove, key=lambda d: d['indice'])
-    sizeremove = sorted(sizeremove, key=lambda d: d['size'])
-
-    # Handle particular case
-    if len(bends) > 4:
-        i = sizeremove[-1]['index']
-        topop = None
-        for j, idx in enumerate(indiceremove):
-            if idx['index'] == i:
-                topop = j
-        
-        if topop is not None:
-            indiceremove.pop(topop)
-
-    bend1, bend2 = None, None
-
-    # If the number of bends to remove is only one or zero,
-    # schematization should not be used, returning the original line.
+    
+    # Early return if not enough bends to remove
     if len(indiceremove) < 2:
         return line
-
-    # If only 2 bends are to be remove, set them to be the removed ones
+        
+    # Sort both lists by indice and size
+    indiceremove.sort(key=lambda d: d['indice'])
+    sizeremove.sort(key=lambda d: d['size'])
+ 
+    # Handle particular case: remove largest bend from indiceremove
+    if nb > 4:
+        largest_index = sizeremove[-1]['index']
+        # Use list comprehension instead of loop + pop
+        indiceremove = [idx for idx in indiceremove if idx['index'] != largest_index]
+ 
+    # Early return if not enough bends remain
+    if len(indiceremove) < 2:
+        return line
+ 
+    # Find two consecutive bends to remove
+    bend1, bend2 = None, None
+ 
     if len(indiceremove) == 2:
-        bend1 = indiceremove[0]
-        bend2 = indiceremove[1]
+        bend1, bend2 = indiceremove[0], indiceremove[1]
     else:
         b1 = indiceremove[0]
-        # Loop through bends to remove avoiding the first one
-        for i in range(1, len(indiceremove)):
-            # Get the original bend id
-            cid = indiceremove[i]['index']
-            # If this bend id is directly after the first one
-            if cid == b1['index'] + 1:
-                # Set both of them as bends to remove
-                bend1 = b1
-                bend2 = indiceremove[i]
-                # Two bends to remove were found, breaking the loop
+        b1_idx = b1['index']
+        
+        # Use a more efficient search for consecutive bends
+        for candidate in indiceremove[1:]:
+            cid = candidate['index']
+            if cid == b1_idx + 1:
+                bend1, bend2 = b1, candidate
                 break
-            # If this bend id is directly before the first one, invert the two
-            elif cid == b1['index'] - 1:
-                bend1 = indiceremove[i]
-                bend2 = b1
+            elif cid == b1_idx - 1:
+                bend1, bend2 = candidate, b1
                 break
-
+    
+    # If no consecutive bends found, return original line
+    if bend1 is None or bend2 is None:
+        return line
+ 
+    # Build coordinate lists for both parts
     coords1, coords2 = [], []
     summit1, summit2 = [], []
-
-    # Populate part 1 and part 2 of the discontinuous linestring
+ 
+    bend1_idx = bend1['index']
+    bend2_idx = bend2['index']
+ 
     for i, b in enumerate(bends):
-        if i < bend1['index']:
+        if i < bend1_idx:
             summit1.append(b.get_summit())
             coords1.extend(b.bend.coords)
-            continue
-        if i > bend2['index']:
+        elif i > bend2_idx:
             summit2.append(b.get_summit())
             coords2.extend(b.bend.coords)
     
     # Calculate length of part 1 and 2
-    length1, length2 = LineString(coords1).length, LineString(coords2).length
-    # Calculate the ratio of those two lengths
+    length1 = LineString(coords1).length
+    length2 = LineString(coords2).length
+    
+    # Avoid division by zero
+    if length2 == 0:
+        return line
+        
     ratio = length1 / length2
-
-    # Get start and end point of the line formed by the last vertex 
-    # of part 1 and the first vertex of part 2
-    start, end = Point(coords1[-1]), Point(coords2[0])
-    # Create the line
+ 
+    # Get start and end point of the joining line
+    start = Point(coords1[-1])
+    end = Point(coords2[0])
     linejoin = LineString([start, end])
-
+ 
     # Create the vector from those two points
     v = Vector2D.from_points(start, end)
-
-    # Depending on the ratio of both lengths, weight the vector accordingly
+ 
+    # Weight the vector according to the ratio
     if ratio == 1:
         wpoint = linejoin.interpolate(linejoin.length / 2)
     elif ratio < 1:
-        v.scalar_multiplication(ratio/2)
+        v.scalar_multiplication(ratio / 2)
+        wpoint = v.translate(start)
     else:
-        v.scalar_multiplication(3/(2*ratio))
-
-    # Create the anchor point
-    wpoint = v.translate(start)
-
+        v.scalar_multiplication(3 / (2 * ratio))
+        wpoint = v.translate(start)
+ 
     # Reverse the first part to match the order
     coords1.reverse()
-
-    # Schematize the first part
+ 
+    # Schematize both parts
     part1 = schematize_part(coords1, wpoint, summit1, length1)
     part2 = schematize_part(coords2, wpoint, summit2, length2)
     part1.reverse()
-
+ 
     coords = list(line.coords)
     
     # Return the constructed linestring, keeping the original start and end point
