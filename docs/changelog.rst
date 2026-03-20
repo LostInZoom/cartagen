@@ -30,6 +30,9 @@ Changelog
    #. Enhanced :func:`visvalingam_whyatt <cartagen.simplify_visvalingam_whyatt>` using an external code made by
       `Elliot Hallmark. <https://github.com/Permafacture/Py-Visvalingam-Whyatt>`_
    #. Update :func:`strokes_rivers <cartagen.strokes_rivers>` to facilitate their generalization.
+   #. Optimized :func:`accordion <cartagen.accordion>` algorithm.
+   #. Optimized :func:`schematization <cartagen.schematization>` algorithm.
+   #. Optimized :func:`inflexion_points <cartagen.inflexion_points>` algorithm.
 
 - **Bug Fixes**:
    #. Fixed the :func:`collapse_dual_carriageways <cartagen.collapse_dual_carriageways>` algorithm to treat
