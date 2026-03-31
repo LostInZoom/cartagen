@@ -1,3 +1,19 @@
+# from matplotlib import pyplot as plt
+# from matplotlib.path import Path
+# from matplotlib.patches import PathPatch
+
+# import numpy
+# import geopandas as gpd
+# from shapely.wkt import loads
+# import cartagen as c4
+
+# from cartagen.utils.debug import plot_debug
+
+# mountain = gpd.GeoDataFrame().from_file('cartagen/data/mountain.geojson')
+# generalized = c4.galbe(mountain, 60)
+
+
+
 from matplotlib import pyplot as plt
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
@@ -25,72 +41,72 @@ sub1.autoscale_view()
 
 sub2 = fig.add_subplot(422)
 sub2.set_aspect('equal')
-sub2.set_title('b) Visvalingam-Whyatt', pad=10, family='sans-serif')
+sub2.set_title('b) Lang', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_visvalingam_whyatt(line, 1000).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_lang(line, 1000).coords)[:, :2])
 sub2.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub2.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub2.autoscale_view()
 
 sub3 = fig.add_subplot(423)
 sub3.set_aspect('equal')
-sub3.set_title('c) Raposo', pad=10, family='sans-serif')
+sub3.set_title('c) Li-Openshaw', pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_raposo(line, 25000, 160000).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_li_openshaw(line, 80).coords)[:, :2])
 sub3.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub3.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub3.autoscale_view()
 
 sub4 = fig.add_subplot(424)
 sub4.set_aspect('equal')
-sub4.set_title('d) Li-Openshaw', pad=10, family='sans-serif')
+sub4.set_title('d) Raposo', pad=10, family='sans-serif')
 sub4.axes.get_xaxis().set_visible(False)
 sub4.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_li_openshaw(line, 80).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_raposo(line, 25000, 160000).coords)[:, :2])
 sub4.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub4.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub4.autoscale_view()
 
 sub5 = fig.add_subplot(425)
 sub5.set_aspect('equal')
-sub5.set_title('d) Whirlpool', pad=10, family='sans-serif')
+sub5.set_title('e) Reumann-Witkam', pad=10, family='sans-serif')
 sub5.axes.get_xaxis().set_visible(False)
 sub5.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_whirlpool(line, 50).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_reumann_witkam(line, 15).coords)[:, :2])
 sub5.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub5.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub5.autoscale_view()
 
 sub5 = fig.add_subplot(426)
 sub5.set_aspect('equal')
-sub5.set_title('d) Whirlpool', pad=10, family='sans-serif')
+sub5.set_title('f) Visvalingam-Whyatt', pad=10, family='sans-serif')
 sub5.axes.get_xaxis().set_visible(False)
 sub5.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_whirlpool(line, 50).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_visvalingam_whyatt(line, 500).coords)[:, :2])
 sub5.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub5.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub5.autoscale_view()
 
 sub5 = fig.add_subplot(427)
 sub5.set_aspect('equal')
-sub5.set_title('d) Whirlpool', pad=10, family='sans-serif')
+sub5.set_title('g) Whirlpool', pad=10, family='sans-serif')
 sub5.axes.get_xaxis().set_visible(False)
 sub5.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_whirlpool(line, 50).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_whirlpool(line, 70).coords)[:, :2])
 sub5.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub5.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub5.autoscale_view()
