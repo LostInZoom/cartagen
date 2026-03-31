@@ -1,5 +1,5 @@
 ﻿cartagen.simplify_douglas_peucker
-========================
+=================================
 
 .. currentmodule:: cartagen
 

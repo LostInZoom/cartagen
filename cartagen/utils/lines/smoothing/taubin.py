@@ -3,7 +3,7 @@ from shapely.geometry import (
     LineString, MultiLineString, LinearRing, Polygon, MultiPolygon
 )
 
-def smooth_taubin(geometry, iterations=10, lamb=0.5, mu=-0.53):
+def smooth_taubin(geometry, iterations=10, smoothing=0.5, inflation=-0.53):
     """
     Smooth a line or polygon and prevent shrinkage.
     
@@ -27,12 +27,12 @@ def smooth_taubin(geometry, iterations=10, lamb=0.5, mu=-0.53):
     iterations : int, optional
         Number of smoothing iterations. Default is 10.
         More iterations result in stronger smoothing.
-    lamb : float, optional
+    smoothing : float, optional
         Smoothing factor for the first pass. Default is 0.5.
         Should be positive and typically between 0 and 1.
-    mu : float, optional
+    inflation : float, optional
         Inflation factor for the second pass. Default is -0.53.
-        Should be negative with |mu| slightly larger than lambda to prevent shrinkage.
+        Should be negative with inflation slightly larger than smoothing to prevent shrinkage.
     
     Returns
     -------
@@ -57,34 +57,34 @@ def smooth_taubin(geometry, iterations=10, lamb=0.5, mu=-0.53):
     Examples
     --------
     >>> line = LineString([(0, 0), (1, 1), (2, 0), (3, 1), (4, 0)])
-    >>> smooth_taubin(line, lamb=0.5, iterations=5)
+    >>> smooth_taubin(line, smoothing=0.5, iterations=5)
     <LINESTRING (0 0, 1.2 0.8, 2 0.3, 2.8 0.8, 4 0)>
     
     >>> polygon = Polygon([(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)])
-    >>> smooth_taubin(polygon, lamb=0.3, iterations=10)
+    >>> smooth_taubin(polygon, smoothing=0.3, iterations=10)
     <POLYGON ((0.2 0.2, 0.2 1.8, 1.8 1.8, 1.8 0.2, 0.2 0.2))>
     """
     # Handle different geometry types
     if isinstance(geometry, MultiLineString):
         return MultiLineString([
-            smooth_taubin(line, lamb, mu, iterations)
+            smooth_taubin(line, smoothing, inflation, iterations)
             for line in geometry.geoms
         ])
     
     if isinstance(geometry, MultiPolygon):
         return MultiPolygon([
-            smooth_taubin(poly, lamb, mu, iterations)
+            smooth_taubin(poly, smoothing, inflation, iterations)
             for poly in geometry.geoms
         ])
     
     if isinstance(geometry, Polygon):
         # Smooth exterior ring
         exterior = smooth_taubin(
-            geometry.exterior, lamb, mu, iterations
+            geometry.exterior, smoothing, inflation, iterations
         )
         # Smooth interior rings (holes)
         interiors = [
-            smooth_taubin(interior, lamb, mu, iterations)
+            smooth_taubin(interior, smoothing, inflation, iterations)
             for interior in geometry.interiors
         ]
         return Polygon(exterior, interiors)
@@ -94,7 +94,7 @@ def smooth_taubin(geometry, iterations=10, lamb=0.5, mu=-0.53):
     is_closed = np.array_equal(coords[0], coords[-1])
     
     # Apply Taubin smoothing
-    factors = [lamb, mu]
+    factors = [smoothing, inflation]
     
     for _ in range(iterations):
         for factor in factors:

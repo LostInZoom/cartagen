@@ -1,5 +1,5 @@
 ﻿cartagen.smooth_gaussian
-===========================
+========================
 
 .. currentmodule:: cartagen
 

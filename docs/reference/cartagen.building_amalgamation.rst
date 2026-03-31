@@ -1,5 +1,5 @@
 ﻿cartagen.building_amalgamation
-======================
+==============================
 
 .. currentmodule:: cartagen
 

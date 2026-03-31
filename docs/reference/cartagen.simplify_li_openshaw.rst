@@ -1,5 +1,5 @@
 ﻿cartagen.simplify_li_openshaw
-====================
+=============================
 
 .. currentmodule:: cartagen
 

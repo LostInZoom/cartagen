@@ -7,9 +7,9 @@ import geopandas as gpd
 from shapely.wkt import loads
 import cartagen as c4
 
-a = (1, 1)
-b = (1, 2)
-c = (2, 1)
+a = numpy.array([1, 1])
+b = numpy.array([1, 2])
+c = numpy.array([2, 1])
 
 interpolation = c4.circle_interpolation(a, b, c, quad_segs=8)
 

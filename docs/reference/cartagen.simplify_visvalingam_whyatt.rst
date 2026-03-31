@@ -1,5 +1,5 @@
 ﻿cartagen.simplify_visvalingam_whyatt
-===========================
+====================================
 
 .. currentmodule:: cartagen
 

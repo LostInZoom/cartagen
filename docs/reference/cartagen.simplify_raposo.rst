@@ -1,5 +1,5 @@
 ﻿cartagen.simplify_raposo
-===============
+========================
 
 .. currentmodule:: cartagen
 
