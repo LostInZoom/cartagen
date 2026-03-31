@@ -7,6 +7,9 @@ Changelog
 ==================
 
 - **New features**:
+   #. New line smoothing algorithm :func:`smooth_catmull_rom <cartagen.smooth_catmull_rom>`.
+   #. New line smoothing algorithm :func:`smooth_chaikin <cartagen.smooth_chaikin>`.
+   #. New line smoothing algorithm :func:`smooth_taubin <cartagen.smooth_taubin>`.
    #. New line smoothing algorithm :func:`smooth_platre <cartagen.smooth_platre>`.
    #. New line simplification algorithm :func:`simplify_whirlpool <cartagen.simplify_whirlpool>`.
    #. New line simplification algorithm :func:`simplify_lang <cartagen.simplify_lang>`.
