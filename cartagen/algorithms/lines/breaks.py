@@ -3,7 +3,7 @@ import numpy as np
 
 from cartagen.utils.geometry.dilation import dilate_line, offset_line, reconstruct_line
 from cartagen.utils.geometry.line import get_bend_side, merge_linestrings
-from cartagen.utils.lines.smoothing import smooth_gaussian
+from cartagen.utils.lines.smoothing.gaussian import smooth_gaussian
 from cartagen.utils.geometry.skeletonization import SkeletonTIN
 
 def max_break(line, offset, exaggeration=1.0):

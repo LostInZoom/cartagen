@@ -6,7 +6,8 @@ from cartagen.algorithms.lines.bends import accordion, schematization
 from cartagen.algorithms.lines.breaks import max_break, min_break
 from cartagen.algorithms.lines.coalescence import coalescence_splitting
 from cartagen.algorithms.propagation.network import network_propagation, network_propagation_batch
-from cartagen.utils.lines.smoothing import smooth_gaussian, smooth_platre
+from cartagen.utils.lines.smoothing.gaussian import smooth_gaussian
+from cartagen.utils.lines.smoothing.platre import smooth_platre
 
 def galbe(
     network: gpd.GeoDataFrame,
