@@ -30,12 +30,14 @@ Smoothing
     :nosignatures:
     :toctree: reference/
 
+    smooth_catmull_rom
+    smooth_chaikin
     smooth_gaussian
     smooth_platre
-
+    smooth_taubin
 
 Displacement
----------
+------------
 
 .. currentmodule:: cartagen
 
