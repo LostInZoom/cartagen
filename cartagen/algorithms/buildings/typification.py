@@ -20,7 +20,7 @@ def typify_buildings(buildings, initial_scale=25000, final_scale=50000,
     
     Parameters
     ----------
-    buildings : GeoDataFrame of Polygons or MultiPolygons
+    buildings : GeoDataFrame of Polygon or MultiPolygon
         The buildings to typify
     initial_scale : int, optional
         Source map scale denominator (default: 25000)
@@ -38,7 +38,7 @@ def typify_buildings(buildings, initial_scale=25000, final_scale=50000,
     
     Returns
     -------
-    GeoDataFrame of Polygons or MultiPolygons
+    GeoDataFrame of Polygon or MultiPolygon
         Typified buildings with transferred attributes
     
     References
