@@ -7,6 +7,7 @@ Changelog
 ==================
 
 - **New features**:
+   #. New building typification algorithm :func:`typify_buildings <cartagen.typify_buildings>`.
    #. New line smoothing algorithm :func:`smooth_catmull_rom <cartagen.smooth_catmull_rom>`.
    #. New line smoothing algorithm :func:`smooth_chaikin <cartagen.smooth_chaikin>`.
    #. New line smoothing algorithm :func:`smooth_taubin <cartagen.smooth_taubin>`.
