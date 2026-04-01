@@ -20,25 +20,25 @@ def typify_buildings(buildings, initial_scale=25000, final_scale=50000,
     
     Parameters
     ----------
-    buildings : gpd.GeoDataFrame
-        GeoDataFrame containing building polygons or multipolygons
-    initial_scale : int
+    buildings : GeoDataFrame of Polygons or MultiPolygons
+        The buildings to typify
+    initial_scale : int, optional
         Source map scale denominator (default: 25000)
-    final_scale : int
+    final_scale : int, optional
         Target map scale denominator (default: 50000)
-    ratio : float
+    ratio : float, optional
         Ratio between source and target number of buildings (e.g., 0.5 to reduce by half)
         If None, will be computed from initial_scale and final_scale
-    road_network : gpd.GeoDataFrame, optional
+    road_network : GeoDataFrame of LineString, optional
         Road network for spatial partitioning. If None, simple grid partitioning is used
     attributes : List[str], optional
         List of attribute names to transfer from largest building in each cluster
-    distance : float
+    distance : float, optional
         Minimum separate distance for building harmonization (in map units)
     
     Returns
     -------
-    gpd.GeoDataFrame
+    GeoDataFrame of Polygons or MultiPolygons
         Typified buildings with transferred attributes
     
     References
