@@ -5,15 +5,8 @@ from shapely.ops import unary_union
 from typing import List, Optional
 import pandas as pd
 
-def typify_buildings(
-    buildings: gpd.GeoDataFrame,
-    initial_scale: int = 25000,
-    final_scale: int = 50000,
-    ratio: float = None,
-    road_network: Optional[gpd.GeoDataFrame] = None,
-    attributes: Optional[List[str]] = None,
-    distance: float = 20.0
-) -> gpd.GeoDataFrame:
+def typify_buildings(buildings, initial_scale=25000, final_scale=50000,
+    ratio=None, road_network=None, attributes=None, distance=20.0):
     """
     Typify buildings through iterative merging.
 
