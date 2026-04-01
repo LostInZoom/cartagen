@@ -16,7 +16,7 @@ def typify_buildings(buildings, initial_scale=25000, final_scale=50000,
     The algorithm follows three main steps: First, it finds the number of
     buildings using improved radical law. Second, it calculates the position
     and representation through iterative merging. Finally, building sizes
-    are harmmonized.
+    are harmonized.
     
     Parameters
     ----------
