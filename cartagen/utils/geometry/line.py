@@ -28,41 +28,34 @@ def get_bend_side(line):
     >>> get_bend_side(line)
     right
     """
-    # Get the list of nodes
     coords = list(line.coords)
-
-    # The total angle of the bend
-    total = 0
-
-    # Get the start point of the bend
-    start = Point(coords[0])
-
-    # Loop through the nodes of the linestring, starting on the seconde node
-    for i in range(1, len(coords) - 1):
-        # Get the current and the next node coordinates
-        c1 = coords[i]
-        c2 = coords[i + 1]
-
-        # Add to the total the angle between the starting point and those two nodes
-        angle = angle_3_pts(start, Point(c2), Point(c1))
-
-        # Set the angle to be between 0 and 2*pi
-        if angle % (2 * np.pi) >= 0:
-            angle = abs(angle % (2 * np.pi))
-        else:
-            angle = angle % (2 * np.pi) + 2 * np.pi
-
-        # Set the angle to be between -pi and pi
-        if angle > np.pi:
-            angle = angle - 2 * np.pi
-
-        total += angle
-
-    # If the total is above 0, the bend is left sided, otherwise it right sided
-    if total < 0:
-        return 'right'
-    else:
+    
+    if len(coords) < 3:
         return 'left'
+    
+    first = Point(coords[0])
+    angle_sum = 0.0
+    
+    for i in range(1, len(coords) - 1):
+        point1 = Point(coords[i])
+        point2 = Point(coords[i + 1])
+        
+        # Calculate angle using three points
+        # Vector from first to point1
+        v1 = np.array([point1.x - first.x, point1.y - first.y])
+        # Vector from first to point2
+        v2 = np.array([point2.x - first.x, point2.y - first.y])
+        
+        # Calculate angle
+        angle_value = np.arctan2(v2[1], v2[0]) - np.arctan2(v1[1], v1[0])
+        
+        # Normalize to [-pi, pi]
+        if angle_value > np.pi:
+            angle_value = angle_value - 2 * np.pi
+        
+        angle_sum += angle_value
+    
+    return 'right' if angle_sum < 0.0 else 'left'
 
 def get_shortest_edge_length(geom):
     min_length = float('inf')
