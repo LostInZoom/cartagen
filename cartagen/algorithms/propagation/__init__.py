@@ -1,2 +1,2 @@
 from cartagen.algorithms.propagation.crow_flies import propagation_crow_flies
-from cartagen.algorithms.propagation.network import network_propagation, network_propagation_batch
+from cartagen.algorithms.propagation.network import propagation_network, propagation_network_batch
