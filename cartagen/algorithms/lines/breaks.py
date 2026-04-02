@@ -1,5 +1,7 @@
 import shapely, networkx
 import numpy as np
+from shapely import MultiLineString
+from shapely import offset_curve
 
 from cartagen.utils.geometry.dilation import dilate_line, offset_line, reconstruct_line
 from cartagen.utils.geometry.line import get_bend_side, merge_linestrings
@@ -44,19 +46,27 @@ def max_break(line, offset, exaggeration=1.0):
     >>> max_break(line, 1.0)
     <LINESTRING (-0.707 0.707, 2.293 3.707, 2.426 3.819...)>
     """
-    # Dilate the bend
-    left, right = dilate_line(line, offset*exaggeration, cap_style='flat', quad_segs=8)
+    if offset == 0 and exaggeration == 1.0:
+        return line
+
+    if isinstance(line, MultiLineString):
+        line = line.geoms[0]
 
     # Get the side of the bend
     side = get_bend_side(line)
 
     # Change the offset in case of left sided bend
     if side == 'left':
-        return left[0]
-    else:
-        return right[0]
+        offset = -offset
 
-def min_break(line, offset, sigma=30, sample=None):
+    dilated = offset_curve(line, offset)
+    
+    if dilated.geom_type == 'MultiLineString':
+        dilated = dilated.geoms[0]
+
+    return dilated
+
+def min_break(line, offset, sigma=15.0, sample=None):
     """
     Spread a road bend and minimize its extent.
 
