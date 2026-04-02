@@ -45,7 +45,7 @@ def plot_debug(*geoms):
         elif isinstance(geom, gpd.GeoDataFrame):
             for g in geom.geometry:
                 add(sub, g, color1, color2)
-        elif isinstance(geom, str):
+        elif isinstance(geom, str) or isinstance(geom, int) or isinstance(geom, float):
             sub.set_title(geom, pad=10, family='sans-serif')
         else:
             add(sub, geom, color1, color2)
