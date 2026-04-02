@@ -39,15 +39,20 @@ def propagation_crow_flies(objects, initiator_start, initiator_end, frozen_objec
         It corresponds to SizePZ in the paper by Legrand et al.
     interval : float, optional
         Interval used for the interpolation during the initial displacement vector calculation.
-
-    Warning
-    -------
-    Be careful, the initiators should be LineString, and not MultiLineString.
     
     Returns
     -------
     GeoDataFrame :
         Same as input but with displaced geometries
+
+    Warning
+    -------
+    Be careful, the initiators should be LineString, and not MultiLineString.
+
+    See Also
+    --------
+    propagation_network :
+        Propagate a displacement along the network.
 
     References
     ----------
