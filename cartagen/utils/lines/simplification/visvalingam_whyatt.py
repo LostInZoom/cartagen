@@ -1,8 +1,8 @@
 from numpy import array, argmin
 import numpy as np
-from shapely import LineString, MultiLineString
+from shapely import LineString, MultiLineString, Polygon, MultiPolygon
 
-def simplify_visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
+def simplify_visvalingam_whyatt(geometry, threshold=None, number=None, ratio=None):
     """
     Area-based line simplification.
 
@@ -19,8 +19,8 @@ def simplify_visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
 
     Parameters
     ----------
-    line : LineString, MultiLineString
-        The line to simplify.
+    geometry : LineString, MultiLineString
+        The geometry to simplify.
     threshold : float, optional
         The minimum triangle area to keep a vertex in the line.
         Higher values = more points kept (less aggressive simplification).
@@ -66,16 +66,31 @@ def simplify_visvalingam_whyatt(line, threshold=None, number=None, ratio=None):
             f"Got: threshold={threshold}, number={number}, ratio={ratio}"
         )
 
-    if line.geom_type not in ['LineString', 'MultiLineString', 'LinearRing']:
-        raise Exception('{0} geometry type cannot be simplified.'.format(line.geom_type))
+    if geometry.geom_type not in ['LineString', 'MultiLineString', 'LinearRing', 'Polygon', 'MultiPolygon']:
+        raise Exception('{0} geometry type cannot be simplified.'.format(geometry.geom_type))
 
-    if line.geom_type == 'MultiLineString':
+    if geometry.geom_type == 'MultiLineString':
         geoms = []
-        for geom in list(line.geoms):
+        for geom in list(geometry.geoms):
             geoms.append(simplify_visvalingam_whyatt(geom, threshold, number, ratio))
         return MultiLineString(geoms)
 
-    points = array(line.coords)
+    if geometry.geom_type == 'Polygon':
+        ring = geometry.exterior
+        i = list(geometry.interiors)
+        interiors = []
+        if len(i) > 0:
+            for interior in i:
+                interiors.append(simplify_visvalingam_whyatt(interior, threshold, number, ratio).exterior)
+        return Polygon(simplify_visvalingam_whyatt(ring, threshold, number, ratio), interiors)
+    
+    if geometry.geom_type == 'MultiPolygon':
+        polygons = []
+        for p in geometry.geoms:
+            polygons.append(simplify_visvalingam_whyatt(p, threshold, number, ratio))
+        return MultiPolygon(polygons)
+
+    points = array(geometry.coords)
     simplifier = VWSimplifier(points)
     
     if threshold is not None:
