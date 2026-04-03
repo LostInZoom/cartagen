@@ -19,7 +19,7 @@ def simplify_visvalingam_whyatt(geometry, threshold=None, number=None, ratio=Non
 
     Parameters
     ----------
-    geometry : LineString, MultiLineString
+    geometry : LineString, MultiLineString, Polygon, MultiPolygon
         The geometry to simplify.
     threshold : float, optional
         The minimum triangle area to keep a vertex in the line.
@@ -32,7 +32,7 @@ def simplify_visvalingam_whyatt(geometry, threshold=None, number=None, ratio=Non
 
     Returns
     -------
-    LineString, MultiLineString
+    LineString, MultiLineString, Polygon, MultiPolygon
 
     See Also
     --------
