@@ -20,7 +20,7 @@ def plot_debug(*geoms):
     def add_to_plot(sub, geom, color1, color2, linewidth=1):
         if geom.geom_type == 'Polygon':
             poly1 = Path.make_compound_path(Path(numpy.asarray(geom.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in geom.interiors])
-            sub.add_patch(PathPatch(poly1, facecolor=color1, edgecolor=color2, linewidth=linewidth))
+            sub.add_patch(PathPatch(poly1, facecolor=color1, edgecolor=color2, linewidth=linewidth, alpha=0.5))
         elif geom.geom_type == 'LineString':
             path = Path(numpy.asarray(geom.coords)[:, :2])
             sub.add_patch(PathPatch(path, facecolor="none", edgecolor=color1, linewidth=linewidth))
