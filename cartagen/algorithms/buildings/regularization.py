@@ -1,6 +1,6 @@
 import shapely
 import numpy as np
-from shapely import Point, Polygon, LineString
+from shapely import Point, Polygon, LineString, MultiPolygon
 
 from cartagen.utils.geometry.angle import angle_2_pts
 from cartagen.utils.math.vector import Vector2D
@@ -293,16 +293,22 @@ def recursive_regression(polygon, sigma):
                     # Uneven sides always are orthogonal to the current side
                     else:
                         suborientation = orientation - 90
-                        # If the obtained orientation is below -90, switch back to 180
+                        # Normalize in [-90, 90]
                         if suborientation < -90:
-                            suborientation = 180
+                            suborientation += 180
                     
                     # Continuing the recursive subdivision
                     __recursive_division(unrotated, suborientation)
 
+    if polygon.geom_type == 'MultiPolygon':
+        parts = []
+        for p in polygon.geoms:
+            parts.append(recursive_regression(p, sigma))
+        return MultiPolygon(parts)
+
     # Reverse the polygon if counter clockwise
     if shapely.is_ccw(polygon.boundary):
-        polygon.reverse()
+        polygon = polygon.reverse()
 
     # Calculate the minimum rotated rectangle touching one side of the building
     mbr = enclosing_rectangle(polygon, mode='input')
@@ -380,6 +386,10 @@ def recursive_regression(polygon, sigma):
         __recursive_division(side, side_angle)
 
     intersections = []
+
+    # Flag to check if both lines are parallel
+    parallel = False
+
     # Reconstruct the polygon side by side
     for index in range(0, len(regressions)):
         # Get current segment and following one
@@ -405,9 +415,22 @@ def recursive_regression(polygon, sigma):
         dy = a1 * c2 - c1 * a2
 
         # Calculate the line intersections
-        if d != 0:
+        if abs(d) > 1e-10:
             x, y = dx / d, dy / d
-            intersections.append(Point(x, y))
+
+            if parallel and index > 0:
+                parallel = False
+                if d > 0:
+                    newpoint = Point(intersections[-1].x, y)
+                    intersections.append(newpoint)
+                else:
+                    newpoint = Point(x, intersections[-1].y)
+                    intersections[-1] = newpoint
+                    intersections.append(Point(x, y))
+            else:
+                intersections.append(Point(x, y))
+        else:
+            parallel = True
     
     # Add the intersection between the last and first segment
     # as the first vertex of the polygon
