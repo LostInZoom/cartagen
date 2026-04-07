@@ -201,7 +201,7 @@ def __get_vector(bend, width):
     
     return None
 
-def schematization(line, sigma=15.0, sample=None):
+def schematization(line, sigma=30, sample=None):
     """
     Remove bends from series of bends to simplify it.
 
