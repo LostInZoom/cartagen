@@ -39,6 +39,16 @@ class Bend:
         self.id = Bend._counter
         Bend._counter += 1
     
+    def get_geom(self) -> LineString:
+        """
+        Get the geometry of the bend.
+                
+        Returns
+        -------
+        LineString
+        """
+        return self.bend
+
     def get_bend_side(self) -> str:
         """
         Get the side of the interior of the bend regarding the line direction.
