@@ -111,7 +111,7 @@ buildings = [
 ]
 
 gdf = gpd.GeoDataFrame(geometry=buildings, crs=3857)
-typified = c4.typify_buildings(gdf, 25000, 50000)
+typified = c4.typify_buildings_matching(gdf, 25000, 50000)
 
 fig = plt.figure(1, (12, 6))
 

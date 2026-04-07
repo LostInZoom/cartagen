@@ -32,7 +32,7 @@ Building blocks
     random_displacement
     morphological_amalgamation
     boffet_areas
-    typify_buildings
+    typify_buildings_matching
 
 Simplification
 --------------

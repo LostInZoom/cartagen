@@ -73,7 +73,7 @@ and recreate the building blocks.
 
     Morphological amalgamation of buildings into building blocks
 
-In dense suburban areas, you might want to use :func:`building typification <cartagen.typify_buildings>` :footcite:p:`li:2005`
+In dense suburban areas, you might want to use :func:`building typification <cartagen.typify_buildings_matching>` :footcite:p:`li:2005`
 to enhance the legibility of the map.
 
 .. plot:: code/manual/buildings_typification.py

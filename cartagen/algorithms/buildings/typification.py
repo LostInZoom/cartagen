@@ -5,10 +5,10 @@ from shapely.ops import unary_union
 from typing import List, Optional
 import pandas as pd
 
-def typify_buildings(buildings, initial_scale=25000, final_scale=50000,
+def typify_buildings_matching(buildings, initial_scale=25000, final_scale=50000,
     ratio=None, road_network=None, attributes=None, distance=20.0):
     """
-    Typify buildings through iterative merging.
+    Typify buildings using the matching-based algorithm for web mapping.
 
     This algorithm was proposed by Li *et al.* :footcite:p:`li:2005` and
     replace tight groups of buildings with a single representative building.
