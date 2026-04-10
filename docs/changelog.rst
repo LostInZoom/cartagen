@@ -3,10 +3,11 @@
 Changelog
 #########
 
-1.1 - next version
-==================
+1.1
+===
 
 - **New features**:
+   #. New building regularization algorithm :func:`regularize_building_fer <cartagen.regularize_building_fer>`.
    #. New building typification algorithm :func:`typify_buildings_matching <cartagen.typify_buildings_matching>`.
    #. New line smoothing algorithm :func:`smooth_catmull_rom <cartagen.smooth_catmull_rom>`.
    #. New line smoothing algorithm :func:`smooth_chaikin <cartagen.smooth_chaikin>`.
