@@ -18,24 +18,33 @@ flat, right, or at 45 degrees, using:
 
     Building squaring algorithms
 
-If you want to modify further the geometry of the building, you can use more
-drastic algorithms, such as:
+If you want to modify further the geometry of the building, you can use simplification algorithms,
+such as:
 
 - :func:`Building simplification <cartagen.simplify_building>` :footcite:p:`ruas:1999`
-- :func:`Recursive regression <cartagen.regularize_building_regression>` :footcite:p:`bayer:2009` :footcite:p:`yang:2024`
-- :func:`Rectangle transformation <cartagen.regularize_building_rectangle>`
 
 .. plot:: code/manual/buildings_simplification.py
 
-    Building generalisation algorithms
+    Building simplification
 
-As you can see on the image above, those different algorithms can be used to
-address different issues. The building simplification is used to
-reduce the complexity of the buildings. The recursive regression can be
-quite destructive and is mainly used to correct buildings automatically created
-from aerial or satellite imagery. On the other hand, the rectangle
-transformation is mostly used inside more complex algorithms, such as AGENT
-as a possible branch inside a decision tree.
+The building simplification algorithm is a simple algorithm design to reduce the complexity
+of buildings by removing edges.
+
+CartAGen contains algorithms designed to process buildings computed from segmentation of
+aerial or satellite images. Those algorithms can drastically 
+
+- :func:`Rectangle transformation <cartagen.regularize_building_rectangle>`
+- :func:`Recursive regression <cartagen.regularize_building_regression>` :footcite:p:`bayer:2009` :footcite:p:`yang:2024`
+- :func:`Feature Edge Reconstruction (FER) <cartagen.regularize_building_fer>` :footcite:p:`yang:2024`
+
+.. plot:: code/manual/buildings_regularization.py
+
+    Building regularization algorithms
+
+Recursive regression can be quite destructive and is will always return 45 degrees angles.
+On the other hand, the rectangle transformation is mostly used inside more complex algorithms, such as AGENT
+as a possible branch inside a decision tree. Feature edge reconstruction is a complex algorithm
+with a decision tree that is design to keep the overall shape of the building.
 
 CartAGen also contains algorithms that process several buildings at a time,
 usually to create amalgamated representation of buildings.
