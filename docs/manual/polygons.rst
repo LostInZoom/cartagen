@@ -49,7 +49,7 @@ with a decision tree that is design to keep the overall shape of the building.
 CartAGen also contains algorithms that process several buildings at a time,
 usually to create amalgamated representation of buildings.
 
-- :func:`Building amalgamation <cartagen.building_amalgamation>` :footcite:p:`regnauld_generalisation_1998`
+- :func:`Building amalgamation <cartagen.amalgamate_buildings>` :footcite:p:`regnauld_generalisation_1998`
 
 .. plot:: code/reference/amalgamate_buildings.py
 

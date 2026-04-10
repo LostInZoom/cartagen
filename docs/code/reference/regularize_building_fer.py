@@ -97,7 +97,7 @@ sub2.axes.get_yaxis().set_visible(False)
 
 for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
-    sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='darkgray'))
+    sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='black'))
 
     generalized = c4.regularize_building_fer(building)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
