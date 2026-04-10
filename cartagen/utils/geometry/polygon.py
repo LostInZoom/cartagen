@@ -118,8 +118,8 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
         The type of enclosing rectangle wanted.
         In 'hull' mode, a rectangle is calculated for every side of the convex
         hull to return the right one.
-        In 'input' mode, a rectangle is calculated only if the side of the convex
-        hull is also the side of the provided polygon
+        In 'input' mode, a rectangle is calculated only for the longest edge
+        shared between the convex hull and the input polygon.
     property : str, optional
         Which geometric property to consider to return the rectangle.
         This value can be 'minimum area', 'maximum area', 'minimum length', 'maximum length'.
@@ -148,7 +148,7 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     <POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))>
     """
     # Storage for allowed modes and properties
-    modes = ['hull', 'input']
+    modes = ['hull', 'input', 'input-first']
     properties = ['minimum area', 'maximum area', 'minimum length', 'maximum length']
 
     # Raise exceptions in case of wrong input
@@ -191,12 +191,29 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     # Compute the length of the polygon
     length = polygon.length
 
+    # In input mode, find the longest shared edge between the convex hull and the polygon
+    edgelength = 0
+    edgeindex = None
+    if mode == 'input':
+        for i in range(0, len(hcoords) - 1):
+            vertex1 = hcoords[i]
+            vertex2 = hcoords[i + 1]
+            if [vertex1, vertex2] in segments:
+                l = LineString([vertex1, vertex2]).length
+                if l > edgelength:
+                    edgelength = l
+                    edgeindex = i
+
     # The value will be the area or the length depending on the user choice
     value = None
     # Storage for the resulting rectangle
     bounding_rectangle = None
     # Loop through the coordinates of the convex hull vertexes
     for i in range(0, len(hcoords) - 1):
+        # Continue if input mode and not the longest shared edge
+        if mode == 'input' and edgeindex != i:
+            continue
+
         # Get the current and next vertex
         # Avoid the last as it's the same as the first
         vertex1 = hcoords[i]
@@ -206,9 +223,9 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
         # Create the segment between both points
         segment = LineString([point1, point2])
 
-        # If the mode is input, make sure the segment is contained
+        # If the mode is input-first, make sure the segment is contained
         # within the polygon boundary before continuing
-        if mode == 'input':
+        if mode == 'input-first':
             if [vertex1, vertex2] not in segments:
                 continue
         
