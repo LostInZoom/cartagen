@@ -54,6 +54,13 @@ class Vector2D:
         """
         return Point(point.x + self.x, point.y + self.y)
 
+    def get_angle(self):
+        """
+        Calcule l'angle du vecteur en radians par rapport à l'axe X positif.
+        L'angle retourné est compris dans l'intervalle $(-\pi, \pi]$.
+        """
+        return np.arctan2(self.y, self.x)
+
     def get_norm(self):
         """
         Return the norm of the vector.

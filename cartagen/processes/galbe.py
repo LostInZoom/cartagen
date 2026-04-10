@@ -194,36 +194,21 @@ from cartagen.algorithms.propagation.network import propagation_network, propaga
 from cartagen.utils.lines.smoothing.gaussian import smooth_gaussian
 from cartagen.utils.lines.smoothing.platre import smooth_platre
 
+def __chain_line(lines):
+    if len(lines) == 0:
+        return []
 
-def chain_line_parts(parts: List[LineString]) -> LineString:
-    """
-    Chain multiple line parts back into a single line.
-    
-    Parameters
-    ----------
-    parts : List[LineString]
-        List of line parts to chain together.
-    
-    Returns
-    -------
-    LineString
-        The chained line.
-    """
-    if not parts:
-        return LineString()
-    if len(parts) == 1:
-        return parts[0]
-    
-    all_coords = []
-    for part in parts:
-        coords = list(part.coords)
-        if all_coords and coords[0] == all_coords[-1]:
-            # Avoid duplicate point at junction
-            coords = coords[1:]
-        all_coords.extend(coords)
-    
-    return LineString(all_coords)
+    if len(lines) == 1:
+        return lines[0]
 
+    line = []
+    for i, l in enumerate(lines):
+        if i == 0 or i == len(lines) - 1:
+            line.extend(l.coords)
+        else:
+            line.extend(l.coords[1:-1])
+    
+    return LineString(line)
 
 def galbe(
     network: gpd.GeoDataFrame,
@@ -232,6 +217,7 @@ def galbe(
     legibility_factor: float = 1.7,
     sigma_smooth: float = 5,
     sigma_platre: float = 1,
+    curvature_platre: float = 0.03,
     hausdorff_threshold: Optional[float] = 100.0,
     sample: Optional[int] = None,
     propagation_distance: Optional[float] = None,
@@ -317,8 +303,6 @@ def galbe(
         if not isinstance(line, LineString) or line.is_empty:
             continue
         
-        original_line = line
-        
         # Step 1: Detect coalescence and split the line
         parts, coalescence_types = coalescence_splitting(line, width, legibility_factor)
         
@@ -338,44 +322,39 @@ def galbe(
             
             if coal_type == 'none':
                 # No coalescence: apply Gaussian smoothing (non-destructive)
-                processed_part = smooth_gaussian(part, sigma_smooth, sample)
+                processed_parts[part_idx] = smooth_gaussian(part, sigma_smooth, sample)
             
             elif coal_type in ['left', 'right']:
                 # One-sided coalescence: use max_break (destructive)
-                print('max_break')
                 processed_part = max_break(part, width, exaggeration)
                 
                 # Propagate displacement to other parts if needed
                 if not processed_part.equals(original_part):
-                    print('prop')
-                    processed_parts = propagation_network(processed_parts, part_idx, processed_part, propagation_distance, damping, tolerance)
-            
+                    print('max_break')
+                    newparts = propagation_network(processed_parts, part_idx, processed_part, propagation_distance, damping, tolerance, inplace=True)
+                    processed_parts = newparts
+
             elif coal_type == 'both':
                 # Two-sided coalescence: bend series
                 print('accordion')
-                
+
                 # Try accordion first (destructive)
                 accordion_result = accordion(part, width, exaggeration)
+                plot_debug(part, accordion_result)
                 
-                # Check Hausdorff distance if threshold is specified
-                if hausdorff_threshold is not None:
-                    hd = hausdorff_distance(part, accordion_result)
-                    
-                    if hd > hausdorff_threshold:
-                        # Accordion degrades planimetry too much
-                        # Apply schematization first, then accordion again
-                        print('schematization')
-                        schematized = schematization(part)
-                        processed_part = accordion(schematized, width, exaggeration)
-                    else:
-                        processed_part = accordion_result
+                # Check Hausdorff distance
+                temp = processed_parts.copy()
+                propagation_network(temp, part_idx, accordion_result, propagation_distance, damping, tolerance, inplace=True)
+                hd = hausdorff_distance(line, __chain_line(temp))
+                
+                if hd > hausdorff_threshold:
+                    # Accordion degrades planimetry too much
+                    # Apply schematization first, then accordion again
+                    print('schematization')
+                    schematized = schematization(part)
+                    processed_part = accordion(schematized, width, exaggeration)
                 else:
                     processed_part = accordion_result
-
-                # Propagate displacement after accordion
-                if not processed_part.equals(original_part):
-                    print('prop')
-                    processed_parts = propagation_network(processed_parts, part_idx, processed_part, propagation_distance, damping, tolerance)
                 
                 # Re-detect coalescence on the processed bend series
                 # to handle residual coalescence at bend summits
@@ -394,42 +373,27 @@ def galbe(
                         # Propagate displacement to other sub-parts
                         if not sub_processed_part.equals(original_sub_part):
                             print('prop')
-                            sub_processed = propagation_network(sub_processed, sub_idx, sub_processed_part, propagation_distance, damping, tolerance)
+                            propagation_network(sub_processed, sub_idx, sub_processed_part, propagation_distance, damping, tolerance, inplace=True)
                 
-                processed_part = chain_line_parts(sub_processed)
-            
-            else:
-                # Unknown type: keep original
-                processed_part = part
-            
-            processed_parts[part_idx] = processed_part
-        
+                processed_part = __chain_line(sub_processed)
+                processed_parts[part_idx] = processed_part
+
         # Step 3: Chain processed parts back together
-        chained_line = chain_line_parts(processed_parts)
+        chained_line = __chain_line(processed_parts)
         
         # Step 4: Apply light Platre smoothing to remove artifacts from chaining
-        final_line = smooth_platre(chained_line, sigma=sigma_platre)
+        final_line = smooth_platre(chained_line, sigma=sigma_platre, curvature=curvature_platre)
         
-        # Step 5: Check for self-intersection (topology error)
-        if not final_line.is_simple:
-            print('topology_error')
-            # Topology error detected: keep original line
-            final_line = original_line
+        # # Step 5: Check for self-intersection (topology error)
+        # if not final_line.is_simple:
+        #     print('topology_error')
+        #     # Topology error detected: keep original line
+        #     final_line = line
         
         # Store modification for final batch propagation
-        if not final_line.equals(original_line):
+        if not final_line.equals(line):
+            print('validating')
             final_modifications.append((idx, final_line))
             network.at[idx, 'geometry'] = final_line
-    
-    # # Step 6: Final propagation of displacements through the entire network
-    # if final_modifications and propagation_distance is not None:
-    #     network = propagation_network_batch(
-    #         network,
-    #         final_modifications,
-    #         propagation_distance=propagation_distance,
-    #         damping=damping,
-    #         tolerance=tolerance,
-    #         inplace=True
-    #     )
     
     return network

@@ -55,6 +55,10 @@ def accordion(line, width, exaggeration=1.0, sigma=15.0, sample=None):
 
     # Detect individual bends inside the smoothed line
     bs = BendSeries(line, sigma, sample)
+    print(len(bs.get_bends()))
+
+    # from cartagen.utils.debug import plot_debug
+    # plot_debug(*[b.get_geom() for b in bs.get_bends()])
 
     # Storage for the future distorted individual lines
     distorted = []
@@ -86,6 +90,8 @@ def accordion(line, width, exaggeration=1.0, sigma=15.0, sample=None):
         # Calculate the scalar product between the translation vector
         # and the vector formed by the start and end point of the bend
         scalar = v.scalar_product(vab)
+
+        inverted = False
 
         # If the scalar product is negative, inverse the translation vector
         if scalar < 0:
