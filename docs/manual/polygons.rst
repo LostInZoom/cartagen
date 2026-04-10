@@ -22,8 +22,8 @@ If you want to modify further the geometry of the building, you can use more
 drastic algorithms, such as:
 
 - :func:`Building simplification <cartagen.simplify_building>` :footcite:p:`ruas:1999`
-- :func:`Recursive regression <cartagen.recursive_regression>` :footcite:p:`bayer:2009` :footcite:p:`yang:2024`
-- :func:`Rectangle transformation <cartagen.rectangle_transformation>`
+- :func:`Recursive regression <cartagen.regularize_building_regression>` :footcite:p:`bayer:2009` :footcite:p:`yang:2024`
+- :func:`Rectangle transformation <cartagen.regularize_building_rectangle>`
 
 .. plot:: code/manual/buildings_simplification.py
 
@@ -42,7 +42,7 @@ usually to create amalgamated representation of buildings.
 
 - :func:`Building amalgamation <cartagen.building_amalgamation>` :footcite:p:`regnauld_generalisation_1998`
 
-.. plot:: code/reference/building_amalgamation.py
+.. plot:: code/reference/amalgamate_buildings.py
 
     Building amalgamation algorithm
 
@@ -66,7 +66,7 @@ Still at large scale, sometimes there is not enough space inside the building bl
 the buildings around. It often is the case in urban areas, where buildings are touching each other.
 So, you may want to aggregate those buildings into a representation of the building blocks that takes
 into consideration the shapes of the individual buildings. For that purpose, you can use the
-:func:`morphological amalgamation <cartagen.morphological_amalgamation>` :footcite:p:`damen:2008`
+:func:`morphological amalgamation <cartagen.amalgamate_buildings_morphological>` :footcite:p:`damen:2008`
 and recreate the building blocks.
 
 .. plot:: code/manual/buildings_amalgamation.py

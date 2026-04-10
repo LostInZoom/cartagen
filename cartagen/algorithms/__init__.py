@@ -1,3 +1,4 @@
+from cartagen.algorithms.blocks import *
 from cartagen.algorithms.buildings import *
 from cartagen.algorithms.lines import *
 from cartagen.algorithms.network import *

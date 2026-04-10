@@ -1,0 +1,1 @@
+from cartagen.algorithms.buildings.typification.matching import typify_buildings_matching

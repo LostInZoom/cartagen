@@ -127,7 +127,7 @@ sub2.set_aspect('equal')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-generalized = c4.morphological_amalgamation(buildings, 1.0, 1.0)
+generalized = c4.amalgamate_buildings_morphological(buildings, 1.0, 1.0)
 
 for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])

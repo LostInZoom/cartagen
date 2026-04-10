@@ -1,60 +1,11 @@
 import shapely
 import numpy as np
-from shapely import Point, Polygon, LineString, MultiPolygon
+from shapely import Point, Polygon, LineString
 
 from cartagen.utils.geometry.angle import angle_2_pts
-from cartagen.utils.math.vector import Vector2D
-from cartagen.utils.geometry.polygon import enclosing_rectangle, orientation
-from cartagen.algorithms.buildings.squaring import square_polygon_naive
+from cartagen.utils.geometry.polygon import enclosing_rectangle
 
-def rectangle_transformation(polygon, factor=1.0, method='mbr'):
-    """
-    Transform a polygon into a rectangle.
-
-    This function transforms a polygon to a rectangle using
-    the minimum rotated rectangle and scale it up or down.
-
-    Parameters
-    ----------
-    polygon : Polygon
-        The polygon to regularize.
-    factor : float, optional
-        The scaling factor to apply.
-    method : str, optional
-        The method to calculate the rectangle:
-
-        - **'mbr'** calculate the minimum rotated bounding rectangle.
-        - **'mbtr'** calculate minimum rotated bounding touching rectangle.
-          It is the same as the mbr but the rectangle and the polygon
-          must have at least one side in common.
-
-    Returns
-    -------
-    Polygon
-
-    See Also
-    --------
-    recursive_regression :
-        Regularize a polygon using recursive linear regression.
-    feature_edge_reconstruction :
-        Regularize a polygon using feature edge reconstruction.
-
-    Examples
-    --------
-    >>> polygon = Polygon([(0, 0), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (0, 0)])
-    >>> rectangle_transformation(polygon)
-    <POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))>
-    """
-    if method == 'mbr':
-        mbr = enclosing_rectangle(polygon, mode='hull')
-    elif method == 'mbtr':
-        mbr = enclosing_rectangle(polygon, mode='input')
-    else:
-        raise Exception('Selected method does not exists: {0}'.format(method))
-
-    return shapely.affinity.scale(mbr, xfact=factor, yfact=factor, origin=mbr.centroid)
-
-def recursive_regression(polygon, sigma):
+def regularize_building_regression(polygon, sigma):
     """
     Regularize a polygon using recursive linear regression.
 
@@ -83,9 +34,9 @@ def recursive_regression(polygon, sigma):
     --------
     enclosing_rectangle :
         Construct an enclosing rectangle from a polygon.
-    rectangle_transformation :
+    regularize_building_rectangle :
         Transform a polygon into a rectangle.
-    feature_edge_reconstruction :
+    regularize_building_fer :
         Regularize a polygon using feature edge reconstruction.
 
     Notes
@@ -100,7 +51,7 @@ def recursive_regression(polygon, sigma):
     Examples
     --------
     >>> polygon = Polygon([(0, 0), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (0, 0)])
-    >>> recursive_regression(polygon, 1.0)
+    >>> regularize_building_regression(polygon, 1.0)
     <POLYGON ((0 0, 0 2, 1.5 2, 1.5 0, 0 0))>
     """
     regressions = []
@@ -303,7 +254,7 @@ def recursive_regression(polygon, sigma):
     if polygon.geom_type == 'MultiPolygon':
         parts = []
         for p in polygon.geoms:
-            parts.append(recursive_regression(p, sigma))
+            parts.append(regularize_building_regression(p, sigma))
         return MultiPolygon(parts)
 
     # Reverse the polygon if counter clockwise
@@ -441,48 +392,3 @@ def recursive_regression(polygon, sigma):
 
     # Rotate the polygon back its original position
     return shapely.affinity.rotate(unrotated, original_angle, origin=mbr_coords[0], use_radians=True)
-
-def feature_edge_reconstruction(polygon, length=20, orient='swo', angle_tolerance=20, correct_tolerance=0.6):
-    """
-    Regularize a polygon using feature edge reconstruction.
-
-    This algorithm was proposed by Yang :footcite:p:`yang:2024`
-
-    References
-    ----------
-    .. footbibliography::
-    """
-    # Naively square the polygon
-    squared = square_polygon_naive(polygon, orient, angle_tolerance, correct_tolerance)
-
-    o = orientation(polygon, orient)
-    vo = Vector2D.from_angle(o, 1)
-
-    coords = squared.exterior.coords
-    edges = [ (coords[i], coords[i + 1]) for i in range(0, len(coords) - 1) ]
-    # Calculate the average edge length
-    lengths = [ LineString([e[0], e[1]]).length for e in edges ]
-    average = np.mean(lengths)
-
-    feature_edges = []
-    # Loop through edges
-    for i in range(0, len(edges)):
-        # If its length is above the average length, it is a feature edge
-        if lengths[i] > average:
-            feature_edges.append(i)
-            continue
-            
-        e = edges[i]
-        angle = angle_2_pts(Point(e[0]), Point(e[1]))
-
-        # if abs(np.pi/2 - abs(angle)) <= correct_tolerance:
-        #     print(np.rad2deg(angle))
-
-    # # Get a list of the vertex
-    # coords = list(polygon.boundary.coords)
-
-    # edges = []
-    # for i, v1 in enumerate(coords):
-    #     if i < len(coords) - 1:
-    #         v2 = coords[i + 1]
-    #         edges.append(LineString([v1, v2]))

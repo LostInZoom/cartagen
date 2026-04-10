@@ -1,0 +1,3 @@
+from cartagen.algorithms.buildings.regularization.feature_edge_reconstruction import regularize_building_fer
+from cartagen.algorithms.buildings.regularization.rectangle_transformation import regularize_building_rectangle
+from cartagen.algorithms.buildings.regularization.recursive_regression import regularize_building_regression

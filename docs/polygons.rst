@@ -4,36 +4,6 @@
 Polygons
 ========
 
-Buildings
----------
-
-.. currentmodule:: cartagen
-
-.. autosummary::
-    :nosignatures:
-    :toctree: reference/
-
-    simplify_building
-    recursive_regression
-    rectangle_transformation
-    square_polygon_naive
-    square_polygon_ls
-    building_amalgamation
-    
-Building blocks
----------------
-
-.. currentmodule:: cartagen
-
-.. autosummary::
-    :nosignatures:
-    :toctree: reference/
-
-    random_displacement
-    morphological_amalgamation
-    boffet_areas
-    typify_buildings_matching
-
 Simplification
 --------------
 

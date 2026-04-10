@@ -37,7 +37,7 @@ for building in buildings:
     sub1.add_patch(PathPatch(poly, facecolor="gray", edgecolor='none'))
     
 for building in buildings:
-    generalized = c4.recursive_regression(building, 3)
+    generalized = c4.regularize_building_regression(building, 3)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="#306998ff", edgecolor='none', linewidth=1.5))
 

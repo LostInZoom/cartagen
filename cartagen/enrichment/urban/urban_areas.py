@@ -29,7 +29,7 @@ def boffet_areas(buildings, buffer, erosion, simplification_distance=2.0):
 
     See Also
     --------
-    morphological_amalgamation :
+    amalgamate_buildings_morphological :
         Amalgamate buildings using dilation and erosion. Useful for larger scale maps.
 
     References

@@ -165,6 +165,7 @@ Enrich your cartographic data
    points
    lines
    polygons
+   buildings
    networks
    bends
    processes

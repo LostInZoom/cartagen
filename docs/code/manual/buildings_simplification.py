@@ -51,11 +51,11 @@ for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
-    generalized = c4.recursive_regression(building, 3)
+    generalized = c4.regularize_building_regression(building, 3)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
-    generalized = c4.rectangle_transformation(building, 0.7)
+    generalized = c4.regularize_building_rectangle(building, 0.7)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub3.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 

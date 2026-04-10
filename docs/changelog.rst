@@ -173,7 +173,7 @@ Changelog
 
 - **Bug fixes**:
 
-  #. Fixed the :func:`morphological_amalgamation <cartagen.morphological_amalgamation>` issues function caused by:
+  #. Fixed the :func:`morphological_amalgamation <cartagen.amalgamate_buildings_morphological>` issues function caused by:
 
      - The ``__edge_removal`` function. The function was reworked.
      - The ``straight_line_intersection`` method of the ``Segment`` class crashed

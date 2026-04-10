@@ -1,0 +1,2 @@
+from cartagen.algorithms.buildings.amalgamation.close_buildings import amalgamate_buildings
+from cartagen.algorithms.buildings.amalgamation.morphological import amalgamate_buildings_morphological

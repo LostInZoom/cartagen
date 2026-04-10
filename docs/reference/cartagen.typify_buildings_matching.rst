@@ -1,5 +1,5 @@
 ﻿cartagen.typify_buildings_matching
-=========================
+==================================
 
 .. currentmodule:: cartagen
 
