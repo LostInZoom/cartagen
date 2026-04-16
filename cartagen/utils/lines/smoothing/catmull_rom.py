@@ -1,7 +1,7 @@
 import numpy as np
-from shapely.geometry import LineString, Polygon, MultiLineString, MultiPolygon, LinearRing
+from shapely.geometry import LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
 
-def smooth_catmull_rom(geometry, subdivisions=10, alpha=0.5,):
+def smooth_catmull_rom(geometry, subdivisions=10, alpha=0.5):
     """
     Smooth a line or polygon and preserve vertexes.
     
@@ -50,6 +50,8 @@ def smooth_catmull_rom(geometry, subdivisions=10, alpha=0.5,):
         Smooth a line and preserve the integrity of sharp turns.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
+    smooth_wma :
+        Smooth a line or polygon using a low-pass filter.
 
     References
     ----------
@@ -65,28 +67,47 @@ def smooth_catmull_rom(geometry, subdivisions=10, alpha=0.5,):
     >>> smooth_catmull_rom(polygon, alpha=0.5, subdivisions=20)
     <POLYGON ((0 0.1, ... 0 0.1))>
     """
-    # Handle different geometry types
-    if isinstance(geometry, MultiLineString):
-        return MultiLineString([
-            smooth_catmull_rom(line, alpha, subdivisions)
-            for line in geometry.geoms
-        ])
-    
-    if isinstance(geometry, MultiPolygon):
-        return MultiPolygon([
-            smooth_catmull_rom(poly, alpha, subdivisions)
-            for poly in geometry.geoms
-        ])
-    
-    if isinstance(geometry, Polygon):
-        # Smooth exterior ring
-        exterior = smooth_catmull_rom(geometry.exterior, alpha, subdivisions)
-        # Smooth interior rings (holes)
-        interiors = [
-            smooth_catmull_rom(interior, alpha, subdivisions)
-            for interior in geometry.interiors
-        ]
-        return Polygon(exterior, interiors)
+    # --- 1. Recursive handling for Multi-geometries ---
+    if geometry.geom_type == 'MultiLineString':
+        geoms = [smooth_catmull_rom(geometry, subdivisions, alpha) for g in geometry.geoms]
+        return MultiLineString(geoms)
+
+    if geometry.geom_type == 'MultiPolygon':
+        geoms = [smooth_catmull_rom(geometry, subdivisions, alpha) for g in geometry.geoms]
+        return MultiPolygon(geoms)
+
+    # --- 2. Handling Polygons ---
+    if geometry.geom_type == 'Polygon':
+        # Simplify the exterior ring
+        simplified_exterior = smooth_catmull_rom(geometry.exterior, subdivisions, alpha)
+        
+        # VALIDITY CHECK: A LinearRing must have at least 4 coordinates
+        if len(simplified_exterior.coords) < 4:
+            # Option A: Return an empty geometry (it will be filtered out in the main loop)
+            return Polygon() 
+            # Option B: return geom (if you want to keep the original instead of deleting it)
+        
+        # Ensure it's a LinearRing (closed)
+        exterior_ring = LinearRing(simplified_exterior.coords)
+
+        # Simplify interior rings (holes)
+        simplified_interiors = []
+        for interior in geometry.interiors:
+            s_int = smooth_catmull_rom(interior, subdivisions, alpha)
+            # Only keep holes that are still large enough to be rings
+            if len(s_int.coords) >= 4:
+                simplified_interiors.append(LinearRing(s_int.coords))
+        
+        poly = Polygon(exterior_ring, simplified_interiors)
+        
+        # Final topological repair
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+        return poly
+
+    # --- 3. Core Linear Logic (for LineString, LinearRing, etc.) ---
+    if geometry.geom_type not in ['LineString', 'LinearRing']:
+        raise ValueError(f'{geometry.geom_type} geometry type cannot be simplified.')
     
     # Process LineString or LinearRing
     coords = list(geometry.coords)

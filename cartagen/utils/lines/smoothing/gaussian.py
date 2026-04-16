@@ -1,5 +1,5 @@
 import numpy as np
-from shapely import Point, LineString, MultiLineString, Polygon, MultiPolygon
+from shapely.geometry import Point, LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
 
 from cartagen.utils.geometry.line import resample_line
 
@@ -17,7 +17,7 @@ def smooth_gaussian(geometry, sigma=30, sample=None, densify=True):
     Parameters
     ----------
     geometry : LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
-        The line or polygon to smooth.
+        The geometry to smooth.
         If a line is provided, the first and last vertexes are kept.
         If a polygon is provided, every vertex is smoothed.
     sigma : float, optional
@@ -43,6 +43,8 @@ def smooth_gaussian(geometry, sigma=30, sample=None, densify=True):
         Smooth a line and preserve the integrity of sharp turns.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
+    smooth_wma :
+        Smooth a line or polygon using a low-pass filter.
 
     References
     ----------
@@ -86,39 +88,49 @@ def smooth_gaussian(geometry, sigma=30, sample=None, densify=True):
 
         return LineString(result)
 
-    multi = False
-    polygon = False
-    ring = None
+    # --- 1. Recursive handling for Multi-geometries ---
+    if geometry.geom_type == 'MultiLineString':
+        geoms = [smooth_gaussian(geometry, sigma, sample, densify) for g in geometry.geoms]
+        return MultiLineString(geoms)
 
-    interiors = []
+    if geometry.geom_type == 'MultiPolygon':
+        geoms = [smooth_gaussian(geometry, sigma, sample, densify) for g in geometry.geoms]
+        return MultiPolygon(geoms)
 
-    geomtype = geometry.geom_type
-    if geomtype == 'LineString':
-        ring = geometry
-    elif geomtype == 'LinearRing':
-        polygon = True
-        ring = geometry
-    elif geomtype == 'Polygon':
-        polygon = True
-        ring = geometry.exterior
-        i = list(geometry.interiors)
-        if len(i) > 0:
-            for interior in i:
-                interiors.append(smooth_gaussian(interior, sigma, sample, densify).exterior)
-    elif geomtype == 'MultiLineString':
-        result = []
-        for simple in geometry.geoms:
-            result.append(smooth_gaussian(simple, sigma, sample, densify))
-        return MultiLineString(result)
-    elif geomtype == 'MultiPolygon':
-        result = []
-        for simple in geometry.geoms:
-            result.append(smooth_gaussian(simple, sigma, sample, densify))
-        return MultiPolygon(result)
-    else:
-        raise Exception("{0} geometry cannot be smoothed.".format(geomtype))
+    # --- 2. Handling Polygons ---
+    if geometry.geom_type == 'Polygon':
+        # Simplify the exterior ring
+        simplified_exterior = smooth_gaussian(geometry.exterior, sigma, sample, densify)
+        
+        # VALIDITY CHECK: A LinearRing must have at least 4 coordinates
+        if len(simplified_exterior.coords) < 4:
+            # Option A: Return an empty geometry (it will be filtered out in the main loop)
+            return Polygon() 
+            # Option B: return geom (if you want to keep the original instead of deleting it)
+        
+        # Ensure it's a LinearRing (closed)
+        exterior_ring = LinearRing(simplified_exterior.coords)
 
-    coords = list(ring.coords)
+        # Simplify interior rings (holes)
+        simplified_interiors = []
+        for interior in geometry.interiors:
+            s_int = smooth_gaussian(geometry, sigma, sample, densify)
+            # Only keep holes that are still large enough to be rings
+            if len(s_int.coords) >= 4:
+                simplified_interiors.append(LinearRing(s_int.coords))
+        
+        poly = Polygon(exterior_ring, simplified_interiors)
+        
+        # Final topological repair
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+        return poly
+
+    # --- 3. Core Linear Logic (for LineString, LinearRing, etc.) ---
+    if geometry.geom_type not in ['LineString', 'LinearRing']:
+        raise ValueError(f'{geometry.geom_type} geometry type cannot be simplified.')
+
+    coords = list(geometry.coords)
 
     if sample is None:
         distances = []
@@ -129,7 +141,7 @@ def smooth_gaussian(geometry, sigma=30, sample=None, densify=True):
         sample = avg
 
     # First resample the line, making sure there is a maximum distance between two consecutive vertices
-    resampled = resample_line(ring, sample)
+    resampled = resample_line(geometry, sample)
 
     # Calculate the interval (number of vertex to take into consideration when smoothing)
     interval = round(4 * sigma / sample)
@@ -155,7 +167,7 @@ def smooth_gaussian(geometry, sigma=30, sample=None, densify=True):
     rline = list(resampled.coords)
     length = len(rline)
 
-    if polygon:
+    if geometry.geom_type == 'LinearRing':
         extended = LineString(rline[-interval:] + rline + rline[:interval])
     else:
         # Extend the line at its first and last points with central inversion
@@ -201,16 +213,11 @@ def smooth_gaussian(geometry, sigma=30, sample=None, densify=True):
                 final_coords.append(point)
     
     result = None
-    if polygon:
+    if geometry.geom_type == 'LinearRing':
         final_coords.append(final_coords[0])
-        if len(interiors) > 0:
-            result = Polygon(final_coords, interiors)
-        else:
-            result = Polygon(final_coords)
     else:
         # Replace first and last vertex by the line's original ones
         final_coords[0] = Point(coords[0])
         final_coords[-1] = Point(coords[-1])
-        result = LineString(final_coords)
-    
-    return result
+
+    return LineString(final_coords)
