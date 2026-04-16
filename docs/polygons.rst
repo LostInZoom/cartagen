@@ -18,6 +18,17 @@ Simplification
     boundaries_raposo
     boundaries_li_openshaw
 
+Patches
+-------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    generalise_area_patches
+
 Collapsing
 ----------
 

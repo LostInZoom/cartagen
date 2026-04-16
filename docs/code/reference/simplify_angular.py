@@ -11,40 +11,40 @@ line = loads('LINESTRING (290682.99807003745809197 5645165.06180777028203011, 29
 
 fig = plt.figure(1, (16, 6))
 
-threhsolds = [100, 250, 500]
+threhsolds = [10, 15, 30]
 
 sub1 = fig.add_subplot(131)
 sub1.set_aspect('equal')
-sub1.set_title(f'a) Threshold = {threhsolds[0]}', pad=10, family='sans-serif')
+sub1.set_title(f'a) Angle = {threhsolds[0]}', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_visvalingam_whyatt(line, threhsolds[0]).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_angular(line, threhsolds[0]).coords)[:, :2])
 sub1.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub1.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub1.autoscale_view()
 
 sub2 = fig.add_subplot(132)
 sub2.set_aspect('equal')
-sub2.set_title(f'b) Threshold = {threhsolds[1]}', pad=10, family='sans-serif')
+sub2.set_title(f'b) Angle = {threhsolds[1]}', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_visvalingam_whyatt(line, threhsolds[1]).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_angular(line, threhsolds[1]).coords)[:, :2])
 sub2.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub2.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub2.autoscale_view()
 
 sub3 = fig.add_subplot(133)
 sub3.set_aspect('equal')
-sub3.set_title(f'c) Threshold = {threhsolds[2]}', pad=10, family='sans-serif')
+sub3.set_title(f'c) Angle = {threhsolds[2]}', pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)
 
 path1 = Path(numpy.asarray(line.coords)[:, :2])
-path2 = Path(numpy.asarray(c4.simplify_visvalingam_whyatt(line, threhsolds[2]).coords)[:, :2])
+path2 = Path(numpy.asarray(c4.simplify_angular(line, threhsolds[2]).coords)[:, :2])
 sub3.add_patch(PathPatch(path1, facecolor="none", edgecolor='gray', linewidth=1))
 sub3.add_patch(PathPatch(path2, facecolor="none", edgecolor='red', linewidth=1))
 sub3.autoscale_view()

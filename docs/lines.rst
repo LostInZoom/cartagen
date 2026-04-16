@@ -13,11 +13,13 @@ Simplification
     :nosignatures:
     :toctree: reference/
 
+    simplify_angular
     simplify_douglas_peucker
     simplify_lang
     simplify_li_openshaw
     simplify_raposo
     simplify_reumann_witkam
+    simplify_topographic
     simplify_visvalingam_whyatt
     simplify_whirlpool
 
@@ -35,6 +37,7 @@ Smoothing
     smooth_gaussian
     smooth_platre
     smooth_taubin
+    smooth_wma
 
 Displacement
 ------------
