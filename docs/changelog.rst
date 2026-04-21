@@ -27,7 +27,7 @@ Changelog
    #. New line simplification algorithm :func:`simplify_reumann_witkam <cartagen.simplify_reumann_witkam>`.
    #. New line displacement algorithm :func:`beams_displacement <cartagen.beams_displacement>`.
    #. New line displacement algorithm :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
-   #. New buildings algorithm :func:`building_amalgamation <cartagen.building_amalgamation>` to merge two buildings.
+   #. New buildings algorithm :func:`amalgamate_buildings <cartagen.amalgamate_buildings>` to merge two buildings.
    #. New line simplification algorithms designed to work on polygon boundaries and keep their topology:
 
       - :func:`boundaries_douglas_peucker <cartagen.boundaries_douglas_peucker>`
