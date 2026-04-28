@@ -1,4 +1,5 @@
 from cartagen.algorithms.network.branching_crossroads import collapse_branching_crossroads
 from cartagen.algorithms.network.dead_ends import eliminate_dead_ends
 from cartagen.algorithms.network.dual_carriageways import collapse_dual_carriageways
+from cartagen.algorithms.network.junctions import collapse_junctions
 from cartagen.algorithms.network.roundabouts import collapse_roundabouts

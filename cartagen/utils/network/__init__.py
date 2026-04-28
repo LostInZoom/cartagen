@@ -1,1 +1,1 @@
-from cartagen.utils.network.graph import make_planar
+from cartagen.utils.network.graph import make_planar, dissolve_network

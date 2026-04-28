@@ -41,6 +41,7 @@ Collapsing
     :nosignatures:
     :toctree: reference/
 
+    collapse_junctions
     collapse_roundabouts
     collapse_branching_crossroads
     collapse_dual_carriageways
