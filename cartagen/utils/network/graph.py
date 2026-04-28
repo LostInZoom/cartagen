@@ -214,3 +214,83 @@ def create_graph(roads, cost=None):
         graph.nodes[node]['coords'] = nodes[node]
 
     return graph
+
+def dissolve_network(network):
+    """
+    Removes degree-2 nodes within the line network.
+
+    Simplifies a road network by removing degree-2 nodes and merging 
+    connected LineStrings, preserving attributes from the longest segment.
+    """
+    # Ensure we are working with a copy and calculate length for comparison
+    network = network.copy()
+    if 'tmp_length' not in network.columns:
+        network['tmp_length'] = network.geometry.length
+
+    # 1. Build an undirected graph
+    G = nx.MultiGraph()
+
+    for idx, row in network.iterrows():
+        geom = row.geometry
+        if geom.is_empty:
+            continue
+            
+        # Get start and end points as coordinates (keys for nodes)
+        start, end = geom.coords[0], geom.coords[-1]
+        
+        # Add edge with all attributes
+        attrs = row.to_dict()
+        G.add_edge(start, end, key=idx, **attrs)
+
+    # 2. Identify degree-2 nodes
+    # We use a list because the graph will change during iteration
+    nodes_to_simplify = [n for n, deg in G.degree() if deg == 2]
+
+    for node in nodes_to_simplify:
+        # Check if it's still degree 2 (it might have been modified in a previous step)
+        if G.degree(node) != 2:
+            continue
+
+        # Get the two connected edges
+        edges = list(G.edges(node, data=True, keys=True))
+        (u1, v1, k1, d1) = edges[0]
+        (u2, v2, k2, d2) = edges[1]
+
+        # Ensure we aren't merging a self-loop
+        if v1 == v2: 
+            continue
+
+        # Merge geometries
+        merged_geom = linemerge([d1['geometry'], d2['geometry']])
+        
+        # If linemerge fails to create a single LineString, skip
+        if not isinstance(merged_geom, LineString):
+            continue
+
+        # Determine which attribute set to keep (the longest section)
+        if d1['tmp_length'] >= d2['tmp_length']:
+            new_attrs = d1.copy()
+        else:
+            new_attrs = d2.copy()
+            
+        # Update geometry and length in the new attribute set
+        new_attrs['geometry'] = merged_geom
+        new_attrs['tmp_length'] = merged_geom.length
+
+        # Find the "other" ends of the two edges to form the new edge
+        neighbor_a = v1 if u1 == node else u1
+        neighbor_b = v2 if u2 == node else u2
+
+        # Remove old edges and node, add new merged edge
+        G.remove_node(node)
+        G.add_edge(neighbor_a, neighbor_b, **new_attrs)
+
+    # 3. Convert back to GeoDataFrame
+    simplified_edges = []
+    for u, v, data in G.edges(data=True):
+        simplified_edges.append(data)
+
+    new_gdf = gpd.GeoDataFrame(simplified_edges, crs=network.crs)
+    
+    # Drop the temporary length column if it wasn't there before
+    return new_gdf.drop(columns=['tmp_length'])
