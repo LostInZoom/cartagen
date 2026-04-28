@@ -40,6 +40,7 @@ dependencies = [
     "geopandas",
     "matplotlib",
     "networkx",
+    "scipy",
 ]
 
 [project.urls]
