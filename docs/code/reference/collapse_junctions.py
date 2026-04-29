@@ -71,7 +71,7 @@ centers = [
 ]
 
 # Création de la figure (Format vertical 8x12 comme demandé)
-fig = plt.figure(figsize=(24, 12))
+fig = plt.figure(figsize=(12, 24))
 
 # On définit une grille de 3 lignes et 2 colonnes
 gs = fig.add_gridspec(6, 2, height_ratios=[2, 1, 1, 2, 1, 1])
