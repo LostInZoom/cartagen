@@ -1,0 +1,2 @@
+from cartagen.algorithms.buildings.squaring.least_square import square_polygon_ls
+from cartagen.algorithms.buildings.squaring.naive import square_polygon_naive
