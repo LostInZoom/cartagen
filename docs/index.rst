@@ -27,7 +27,7 @@ CartAGen
       <h1>CartAGen</h1>
       <div class="doc-release">
 
-|release|
+|release v|
 
 .. raw:: html
 
