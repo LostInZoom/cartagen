@@ -7,6 +7,8 @@ Changelog
 ===
 
 - **New features**:
+   #. New network collapsing algorithm :func:`collapse_junctions <cartagen.collapse_junctions>`.
+   #. New line displacement algorithm :func:`propagation_network <cartagen.propagation_network>`.
    #. New line smoothing algorithm :func:`smooth_wma <cartagen.smooth_wma>`.
    #. New line simplification algorithm :func:`simplify_angular <cartagen.simplify_angular>`.
    #. New line simplification algorithm :func:`simplify_topographic <cartagen.simplify_topographic>`.
