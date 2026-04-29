@@ -19,20 +19,21 @@ CartAGen
 .. raw:: html
 
    </div>
-
-.. raw:: html
-
-   <br>
-   <div class="doc-title">
-      <h1>CartAGen</h1>
-      <div class="doc-release">
-
-|release v|
-
-.. raw:: html
-
-      </div>
    </div>
+
+.. container:: doc-title-container
+
+   .. container:: doc-title
+
+      CartAGen
+
+   .. container:: doc-release
+
+      |release|
+
+.. raw:: html
+
+   <div align="center">
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 

@@ -50,13 +50,30 @@ figure figcaption p {
     text-align: center;
 }
 
-.doc-title {
+.doc-title-container {
+    margin-top: 1rem;
     display: flex;
     justify-content: center;
+    align-items: baseline;
     gap: .4rem;
 }
 
+.doc-title {
+    font-size: 3rem;
+    line-height: 3rem;
+    gap: .4rem;
+}
+
+.doc-title > p {
+    margin: 0;
+}
+
 .doc-release {
-    align-self: center;
     opacity: .6;
+    font-size: 1.2rem;
+    line-height: 3rem;
+}
+
+.doc-release > p {
+    margin: 0;
 }

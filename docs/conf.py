@@ -22,7 +22,7 @@ rtd_version = os.environ.get("READTHEDOCS_VERSION")
 if rtd_version == "main":
     release = "next release"
 else:
-    release = f'version {cartagen.__version__.split("+")[0]}'
+    release = f'{cartagen.__version__.split("+")[0]}'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
