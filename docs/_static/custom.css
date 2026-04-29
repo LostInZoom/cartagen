@@ -33,6 +33,13 @@ nav.bd-links li > a:hover {
     text-decoration: none;
 }
 
+.navbar-brand .version {
+    font-size: 0.75em;
+    opacity: 0.6;
+    display: block;
+    line-height: 1;
+}
+
 .search-button-field {
     border: none;
 }
