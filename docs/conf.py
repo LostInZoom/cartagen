@@ -20,11 +20,9 @@ author = 'Guillaume Touya, Justin Berli, Azelle Courtial, Paul Bourcier'
 rtd_version = os.environ.get("READTHEDOCS_VERSION")
 
 if rtd_version == "main":
-    version = "dev"
-    release = "dev"
+    release = "next release"
 else:
-    version = cartagen.__version__.split("+")[0]
-    release = cartagen.__version__.split("+")[0]
+    release = f'version {cartagen.__version__.split("+")[0]}'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

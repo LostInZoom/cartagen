@@ -23,7 +23,10 @@ CartAGen
 .. raw:: html
 
    <br>
-   <h1>CartAGen</h1>
+   <div class="doc-title">
+      <h1>CartAGen</h1>
+      <div class="doc-release">|release|</div>
+   </div>
 
 A Python library for cartogaphic generalisation using Shapely and GeoPandas
 

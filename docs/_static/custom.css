@@ -49,3 +49,14 @@ nav.bd-links li > a:hover {
 figure figcaption p {
     text-align: center;
 }
+
+.doc-title {
+    display: flex;
+    justify-content: center;
+    gap: .4rem;
+}
+
+.doc-release {
+    align-self: center;
+    opacity: .6;
+}
