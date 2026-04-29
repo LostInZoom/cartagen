@@ -57,7 +57,7 @@ html_theme_options = {
     "logo": {
         "image_dark": "img/logo.png",
         "image_light": "img/logo.png",
-        "text": "CartAGen {0}".format(release),
+        "text": "CartAGen<br>{0}".format(release),
     }
 }
 
