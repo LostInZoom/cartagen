@@ -23,8 +23,22 @@ Simplification
     simplify_visvalingam_whyatt
     simplify_whirlpool
 
-Smoothing
----------
+Smoothing (filtering)
+---------------------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    smooth_gaussian
+    smooth_platre
+    smooth_taubin
+    smooth_wma
+
+Smoothing (interpolation)
+-------------------------
 
 .. currentmodule:: cartagen
 
@@ -34,10 +48,6 @@ Smoothing
 
     smooth_catmull_rom
     smooth_chaikin
-    smooth_gaussian
-    smooth_platre
-    smooth_taubin
-    smooth_wma
 
 Displacement
 ------------
