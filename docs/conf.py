@@ -20,8 +20,8 @@ author = 'Guillaume Touya, Justin Berli, Azelle Courtial, Paul Bourcier'
 rtd_version = os.environ.get("READTHEDOCS_VERSION")
 
 if rtd_version == "main":
-    version = "next release"
-    release = "next release"
+    version = "dev"
+    release = "dev"
 else:
     version = cartagen.__version__.split("+")[0]
     release = cartagen.__version__.split("+")[0]
