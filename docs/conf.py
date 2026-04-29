@@ -58,7 +58,7 @@ html_theme_options = {
         "image_dark": "img/logo.png",
         "image_light": "img/logo.png",
         "text": f"""
-            CartAGen
+            <span class="title">CartAGen</span>
             <span class="version">{release}</span>
         """
     }
