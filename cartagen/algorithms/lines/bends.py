@@ -55,7 +55,6 @@ def accordion(line, width, exaggeration=1.0, sigma=15.0, sample=None):
 
     # Detect individual bends inside the smoothed line
     bs = BendSeries(line, sigma, sample)
-    print(len(bs.get_bends()))
 
     # from cartagen.utils.debug import plot_debug
     # plot_debug(*[b.get_geom() for b in bs.get_bends()])

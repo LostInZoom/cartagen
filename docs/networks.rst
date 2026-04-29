@@ -58,3 +58,4 @@ Tools
 
     network_faces
     make_planar
+    dissolve_network
