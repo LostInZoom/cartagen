@@ -15,7 +15,16 @@ import cartagen
 project = 'cartagen'
 copyright = f'{datetime.datetime.now().year}, IGN, Univ Gustave Eiffel'
 author = 'Guillaume Touya, Justin Berli, Azelle Courtial, Paul Bourcier'
-release = cartagen.__version__.split("+")[0]
+
+# Détecter la version RTD
+rtd_version = os.environ.get("READTHEDOCS_VERSION")
+
+if rtd_version == "main":
+    version = "next release"
+    release = "next release"
+else:
+    version = cartagen.__version__.split("+")[0]
+    release = cartagen.__version__.split("+")[0]
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
