@@ -1,5 +1,9 @@
+numpy
+shapely
+geopandas
 matplotlib
-cartagen
+networkx
+scipy
 sphinx-book-theme
 sphinx-remove-toctrees
 sphinxcontrib-bibtex
