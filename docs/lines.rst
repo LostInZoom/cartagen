@@ -50,3 +50,4 @@ Displacement
 
     beams_displacement
     propagation_crow_flies
+    propagation_network
