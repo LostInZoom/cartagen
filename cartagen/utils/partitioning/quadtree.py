@@ -1,5 +1,110 @@
 from shapely.geometry import Polygon, LineString
 
+def partition_quadtree(objects, max_points=1, max_depth=None):
+    """
+    Partition objects using a quadtree.
+
+    This algorithm inserts the centroids (or surface points) of the provided
+    objects into a quadtree built over the extent of the dataset, then collects
+    the leaf cells and assigns each object to the leaf it was placed in.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        The objects to partition. Supports Point, LineString, and Polygon
+        geometries.
+    max_points : int, optional
+        Maximum number of points a quadtree node can hold before it
+        subdivides. Lower values produce finer partitions.
+        Defaults to 1.
+    max_depth : int, optional
+        Maximum depth the quadtree is allowed to reach. Nodes at this depth
+        will not subdivide further, even if they exceed ``max_points``.
+        If set to None, depth is unlimited.
+        Defaults to None.
+
+    Returns
+    -------
+    partition : tuple
+        A tuple containing two elements:
+
+        #. A list of lists of index ordered by the quadtree leaf cells
+        #. A list of the geometry of the quadtree leaf cells
+
+    See Also
+    --------
+    partition_grid :
+        Partition objects using a grid of a given shape.
+    partition_networks :
+        Partition objects using one or multiple networks.
+
+    Examples
+    --------
+    >>> points = gpd.GeoDataFrame(geometry=[Point(1, 1), Point(3, 3)])
+    >>> partition_quadtree(points, max_points=1)
+    ([[0], [1]], [<POLYGON (...)>, <POLYGON (...)>])
+    """
+    xmin, ymin, xmax, ymax = objects.total_bounds
+
+    # The quadtree envelope must be square for correct subdivision
+    side = max(xmax - xmin, ymax - ymin)
+    cx, cy = (xmin + xmax) / 2, (ymin + ymax) / 2
+    half = side / 2
+    envelope = Polygon([
+        (cx - half, cy - half),
+        (cx + half, cy - half),
+        (cx + half, cy + half),
+        (cx - half, cy + half),
+    ])
+
+    tree = PointSetQuadTree(envelope, max_points=max_points)
+
+    # Build centroid proxies — store original index alongside geometry
+    centroids = []
+    for i, row in objects.iterrows():
+        geom = row["geometry"]
+        if geom.geom_type == "Polygon":
+            centroids.append((i, geom.point_on_surface()))
+        else:
+            centroids.append((i, geom.centroid))
+
+    # Insert synthetic GeoDataFrame-like dicts so the tree accepts them
+    for orig_idx, point in centroids:
+        tree.insert({"geometry": point, "_orig_idx": orig_idx})
+
+    # Collect every leaf node envelope, respecting max_depth
+    def _collect_leaves(node):
+        """Recursively yield leaf PointSetQuadTree nodes."""
+        if not node.divided or (max_depth is not None and node.depth >= max_depth):
+            yield node
+        else:
+            for child in (node.nw, node.ne, node.se, node.sw):
+                yield from _collect_leaves(child)
+
+    leaves = list(_collect_leaves(tree))
+
+    # Build the partition: one entry per leaf, preserving leaf order
+    # When max_depth is set, a capped node may contain multiple points,
+    # so all of them are gathered recursively from its subtree.
+    def _collect_points(node):
+        """Recursively collect all points in a node's subtree."""
+        pts = list(node.points)
+        if node.divided:
+            for child in (node.nw, node.ne, node.se, node.sw):
+                pts.extend(_collect_points(child))
+        return pts
+
+    index_lists = []
+    geometries = []
+    for leaf in leaves:
+        points = _collect_points(leaf)
+        indices = [pt["_orig_idx"] for pt in points]
+        if indices:  # skip empty leaves
+            index_lists.append(indices)
+            geometries.append(leaf.envelope)
+
+    return (index_lists, geometries)
+
 class PointSetQuadTree():
 
     """A class implementing a point set quadtree."""

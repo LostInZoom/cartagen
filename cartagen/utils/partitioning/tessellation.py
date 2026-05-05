@@ -35,6 +35,8 @@ def partition_grid(objects, width, height=None, shape='square'):
     --------
     tessellate :
         Create a tessellation of cells of a given shape.
+    partition_quadtree :
+        Partition objects using a quadtree.
     partition_networks :
         Partition objects using one or multiple networks.
 

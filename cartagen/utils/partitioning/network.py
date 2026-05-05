@@ -25,6 +25,8 @@ def network_faces(*networks, convex_hull=True):
     --------
     partition_networks :
         Partition objects using one or multiple networks.
+    partition_quadtree :
+        Partition objects using a quadtree.
 
     Notes
     -----

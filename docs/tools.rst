@@ -13,8 +13,9 @@ Partitioning
     :nosignatures:
     :toctree: reference/
 
-    partition_networks
     partition_grid
+    partition_quadtree
+    partition_networks
 
 Miscellaneous
 -------------
