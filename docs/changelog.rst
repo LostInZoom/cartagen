@@ -7,6 +7,7 @@ Changelog
 ===
 
 - **New features**:
+   #. New partitioning method :func:`partition_quadtree <cartagen.partition_quadtree>`.
    #. New network collapsing algorithm :func:`collapse_junctions <cartagen.collapse_junctions>`.
    #. New line displacement algorithm :func:`propagation_network <cartagen.propagation_network>`.
    #. New line smoothing algorithm :func:`smooth_wma <cartagen.smooth_wma>`.
