@@ -1,3 +1,5 @@
+from warnings import warn
+
 import shapely, itertools
 import numpy as np
 from shapely.geometry import LineString
@@ -188,6 +190,9 @@ class SkeletonTIN:
     def __init__(self, polygon, threshold_range=(0.7, 1.4)):
         # Stores polygon for future use
         self.polygon = polygon
+
+        if not shapely.is_valid(polygon):
+            warn("The provided polygon is not valid, skeletonization will not run properly.")
 
         # Stores future nodes and edges of the triangulation
         self.nodes = []
