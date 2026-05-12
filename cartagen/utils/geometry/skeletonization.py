@@ -653,42 +653,61 @@ class SkeletonTIN:
             else:
                 raise Exception('There was a problem during the skeletonization.')
 
-        start = None
-        virtual = None
+        # If the triangulation only contains one triangle
+        if len(self.__triangles) == 1:
+            # Get all the nodes making the triangle
+            nodes = list({x for l in [self.edges[e] for e in self.__triangles[0]] for x in l})
 
-        # Loop through the triangles and break the loop when we find the first ear triangle,
-        # i.e. the first triangle to have only one virtual edge
-        for index, triangle in enumerate(self.__triangles):
-            nb_virtual = 0
-            for edge in triangle:
-                for t in self.__triangles:
-                    for e in t:
-                        if t != triangle and e == edge:
-                            # Retrieve the virtual edge index
-                            virtual = edge
-                            nb_virtual += 1
-            if nb_virtual == 1:
-                start = index
-                break
+            # Calculate center of the triangle
+            center = self.__retrieve_center(nodes, threshold_range)
 
-        # If an ear triangle was found, starting the skeletonization
-        if start is not None and virtual is not None:
-            # Retrieve the two object edges of the triangle
-            tedge = [self.edges[e] for e in self.__triangles[start] if e != virtual]
+            # Add the center as interior point and joint
+            self.interiors.append(center)
+            self.joints.append(center)
 
-            # Retrieve the common node of those two edges and add it to the list of joints
-            node = self.nodes[set.intersection(set(tedge[0]), *itertools.islice(tedge, 1, None)).pop()]
-            self.joints.append(shapely.Point(node))
-            self.entries.append(shapely.Point(node))
-            
-            # Creating the joint, i.e. the point located in the middle of the virtual edge
-            joint = self.__calculate_joint(virtual, node)
+            # For each nodes of the triangle, add it as entry and create a bone connected to the center
+            for node in nodes:
+                self.entries.append(shapely.Point(self.nodes[node]))
+                self.bones.append(shapely.LineString([self.nodes[node], center]))
 
-            # Removes the triangle from the list
-            self.__triangles.pop(start)
+        # Here, the triangulation should contain more than one triangle
+        else:
+            start = None
+            virtual = None
 
-            # Starts the recursive bone creation
-            recursive_bone_growth(virtual, joint)
+            # Loop through the triangles and break the loop when we find the first ear triangle,
+            # i.e. the first triangle to have only one virtual edge
+            for index, triangle in enumerate(self.__triangles):
+                nb_virtual = 0
+                for edge in triangle:
+                    for t in self.__triangles:
+                        for e in t:
+                            if t != triangle and e == edge:
+                                # Retrieve the virtual edge index
+                                virtual = edge
+                                nb_virtual += 1
+                if nb_virtual == 1:
+                    start = index
+                    break
+
+            # If an ear triangle was found, starting the skeletonization
+            if start is not None and virtual is not None:
+                # Retrieve the two object edges of the triangle
+                tedge = [self.edges[e] for e in self.__triangles[start] if e != virtual]
+
+                # Retrieve the common node of those two edges and add it to the list of joints
+                node = self.nodes[set.intersection(set(tedge[0]), *itertools.islice(tedge, 1, None)).pop()]
+                self.joints.append(shapely.Point(node))
+                self.entries.append(shapely.Point(node))
+                
+                # Creating the joint, i.e. the point located in the middle of the virtual edge
+                joint = self.__calculate_joint(virtual, node)
+
+                # Removes the triangle from the list
+                self.__triangles.pop(start)
+
+                # Starts the recursive bone creation
+                recursive_bone_growth(virtual, joint)
 
     def __delaunay_triangulation(self, polygon):
         """
