@@ -11,22 +11,6 @@ from cartagen.algorithms.propagation.network import propagation_network, propaga
 from cartagen.utils.lines.smoothing.gaussian import smooth_gaussian
 from cartagen.utils.lines.smoothing.platre import smooth_platre
 
-def __chain_line(lines):
-    if len(lines) == 0:
-        return []
-
-    if len(lines) == 1:
-        return lines[0]
-
-    line = []
-    for i, l in enumerate(lines):
-        if i == 0 or i == len(lines) - 1:
-            line.extend(l.coords)
-        else:
-            line.extend(l.coords[1:-1])
-    
-    return LineString(line)
-
 def galbe(
     network: gpd.GeoDataFrame,
     width: float,
@@ -113,6 +97,8 @@ def galbe(
         network = network.copy()
     
     final_modifications = []
+
+    vectors_export = []
     
     for idx, row in network.iterrows():
         line = row.geometry
@@ -156,7 +142,10 @@ def galbe(
                 print('accordion')
 
                 # Try accordion first (destructive)
-                accordion_result = accordion(part, width, exaggeration)
+                accordion_result, vectors = accordion(part, width, exaggeration)
+
+                vectors_export.extend(vectors)
+                # plot_debug(part, accordion_result)
                 
                 # Check Hausdorff distance
                 temp = processed_parts.copy()
@@ -212,4 +201,22 @@ def galbe(
             final_modifications.append((idx, final_line))
             network.at[idx, 'geometry'] = final_line
     
+    gpd.GeoDataFrame(geometry=vectors_export, crs=3857).to_file('test/vectors.geojson')
+
     return network
+
+def __chain_line(lines):
+    if len(lines) == 0:
+        return []
+
+    if len(lines) == 1:
+        return lines[0]
+
+    line = []
+    for i, l in enumerate(lines):
+        if i == 0 or i == len(lines) - 1:
+            line.extend(l.coords)
+        else:
+            line.extend(l.coords[1:-1])
+    
+    return LineString(line)
