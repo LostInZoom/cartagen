@@ -1,5 +1,5 @@
 ﻿cartagen.polygon_orientation
-====================
+============================
 
 .. currentmodule:: cartagen
 

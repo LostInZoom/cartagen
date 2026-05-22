@@ -497,11 +497,12 @@ def polygon_orientation(polygon, method='mbr'):
         else:
             raise Exception('{0} method not supported.'.format(method))
 
-def surfacic_distance(polygon1: Polygon, polygon2: Polygon):
+def surfacic_distance(polygon1, polygon2):
     """
-    Calculate the surfacic distance between 2 polygons.
+    Calculate the surfacic distance between two polygons.
 
     The surfacic distance is a distance between 0 and 1 using the intersection over union principle.
+    0 means the two polygons share the same footprint. 1 means the two polygons doesn't overlap.
 
     Parameters
     ----------
@@ -513,10 +514,6 @@ def surfacic_distance(polygon1: Polygon, polygon2: Polygon):
     Returns
     -------
     float
-
-    References
-    ----------
-    .. footbibliography::
 
     Examples
     --------

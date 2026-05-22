@@ -57,6 +57,7 @@ Measures
     polygon_compactness
     polygon_concavity
     polygon_orientation
+    surfacic_distance
 
 Miscellaneous
 -------------
