@@ -13,7 +13,8 @@ Simplification
     :nosignatures:
     :toctree: reference/
 
-    simplify_building
+    simplify_building_morphological
+    simplify_building_ruas
 
 Regularization
 --------------
@@ -37,8 +38,9 @@ Squaring
     :nosignatures:
     :toctree: reference/
 
-    square_polygon_naive
     square_polygon_ls
+    square_polygon_naive
+    square_polygon_orientation
 
 Building blocks
 ---------------

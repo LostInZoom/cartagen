@@ -37,7 +37,7 @@ for building in buildings:
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='black'))
     
 for building in buildings:
-    generalized = c4.simplify_building(building, 5.0)
+    generalized = c4.simplify_building_ruas(building, 5.0)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='red', linewidth=1.5))
 

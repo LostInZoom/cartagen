@@ -24,7 +24,7 @@ fig = plt.figure(1, (12, 10))
 
 sub1 = fig.add_subplot(111)
 sub1.set_aspect('equal')
-sub1.set_title('edge_threshold=5.0', pad=10, family='sans-serif')
+sub1.set_title('tolerance=3.0', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
@@ -32,7 +32,7 @@ for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
 
-    generalized = c4.simplify_building(building, 5.0)
+    generalized = c4.simplify_building_morphological(building, 3)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 

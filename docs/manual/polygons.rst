@@ -21,7 +21,7 @@ flat, right, or at 45 degrees, using:
 If you want to modify further the geometry of the building, you can use simplification algorithms,
 such as:
 
-- :func:`Building simplification <cartagen.simplify_building>` :footcite:p:`ruas:1999`
+- :func:`Building simplification <cartagen.simplify_building_ruas>` :footcite:p:`ruas:1999`
 
 .. plot:: code/manual/buildings_simplification.py
 
