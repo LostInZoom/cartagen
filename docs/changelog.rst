@@ -3,10 +3,23 @@
 Changelog
 #########
 
+1.3
+===
+
+- **New features**:
+
+   #. New function to calculate the surfacic distance between two polygons :func:`surfacic_distance <cartagen.surfacic_distance>`.
+
+- **Changes**:
+
+   #. :func:`orientation <cartagen.polygon_orientation>` renamed to :func:`polygon_orientation <cartagen.polygon_orientation>`
+      to avoid confusion with the Shapely function.
+
 1.2
 ===
 
 - **New features**:
+
    #. New partitioning method :func:`partition_quadtree <cartagen.partition_quadtree>`.
    #. New network collapsing algorithm :func:`collapse_junctions <cartagen.collapse_junctions>`.
    #. New line displacement algorithm :func:`propagation_network <cartagen.propagation_network>`.
@@ -19,6 +32,7 @@ Changelog
 ===
 
 - **New features**:
+
    #. New building regularization algorithm :func:`regularize_building_fer <cartagen.regularize_building_fer>`.
    #. New building typification algorithm :func:`typify_buildings_matching <cartagen.typify_buildings_matching>`.
    #. New line smoothing algorithm :func:`smooth_catmull_rom <cartagen.smooth_catmull_rom>`.
@@ -39,6 +53,7 @@ Changelog
       - :func:`boundaries_li_openshaw <cartagen.boundaries_li_openshaw>`
 
 - **Improvements**:
+
    #. Renamed :func:`gaussian_smoothing <cartagen.smooth_gaussian>` to :func:`smooth_gaussian <cartagen.smooth_gaussian>`.
    #. Optimization of the :func:`coalescence_splitting <cartagen.coalescence_splitting>` algorithm
       along with all its related algorithms using numpy arrays.
@@ -52,6 +67,7 @@ Changelog
    #. Optimized :func:`inflexion_points <cartagen.inflexion_points>` algorithm.
 
 - **Bug Fixes**:
+
    #. Fixed the :func:`collapse_dual_carriageways <cartagen.collapse_dual_carriageways>` algorithm to treat
       polygons connected by their short side.
    #. Fixed the :func:`LeastSquaresMethod <cartagen.LeastSquaresMethod>`, some matrices were wrongly built.
