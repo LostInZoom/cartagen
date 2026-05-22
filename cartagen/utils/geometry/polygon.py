@@ -389,7 +389,7 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     else:
         return bounding_rectangle
 
-def orientation(polygon, method='mbr'):
+def polygon_orientation(polygon, method='mbr'):
     """
     Calculate the orientation of a polygon.
 
@@ -429,7 +429,7 @@ def orientation(polygon, method='mbr'):
     Examples
     --------
     >>> polygon = Polygon([(0, 0), (0, 2), (1, 2), (1, 0), (0, 0)])
-    >>> orientation(polygon)
+    >>> polygon_orientation(polygon)
     1.5707963267948966
     """
 

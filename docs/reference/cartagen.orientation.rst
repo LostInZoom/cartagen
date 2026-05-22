@@ -1,8 +1,8 @@
-﻿cartagen.orientation
+﻿cartagen.polygon_orientation
 ====================
 
 .. currentmodule:: cartagen
 
-.. autofunction:: orientation
+.. autofunction:: polygon_orientation
 
-.. plot:: code/reference/orientation.py
+.. plot:: code/reference/polygon_orientation.py

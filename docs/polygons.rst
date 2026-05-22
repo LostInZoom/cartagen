@@ -56,7 +56,7 @@ Measures
     polygon_elongation
     polygon_compactness
     polygon_concavity
-    orientation
+    polygon_orientation
 
 Miscellaneous
 -------------

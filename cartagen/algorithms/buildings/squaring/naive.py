@@ -1,7 +1,7 @@
 import numpy as np
 from shapely.geometry import Polygon, Point
 
-from cartagen.utils.geometry.polygon import orientation
+from cartagen.utils.geometry.polygon import polygon_orientation
 from cartagen.utils.math.vector import Vector2D
 
 def square_polygon_naive(polygon, orient='primary', angle_tolerance=8.0, correct_tolerance=0.6, remove_flat=True):
@@ -68,7 +68,7 @@ def square_polygon_naive(polygon, orient='primary', angle_tolerance=8.0, correct
     correct_tolerance = correct_tolerance * np.pi / 180
 
     # Calculate the orientation using SWO
-    o = orientation(polygon, orient)
+    o = polygon_orientation(polygon, orient)
     vo = Vector2D.from_angle(o, 1)
 
     points = list(polygon.exterior.coords)[:-1]
