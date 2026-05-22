@@ -50,9 +50,11 @@ def square_polygon_naive(polygon, orient='primary', angle_tolerance=8.0, correct
 
     See Also
     --------
+    square_polygon_orientation :
+        Squares a building by forcing it into an orthogonal coordinate system.
     square_polygon_ls :
         Squares a polygon using the method of least squares.
-    orientation :
+    polygon_orientation :
         Calculate the orientation of a polygon.
 
     References

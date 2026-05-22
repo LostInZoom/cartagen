@@ -9,11 +9,15 @@ Changelog
 - **New features**:
 
    #. New function to calculate the surfacic distance between two polygons :func:`surfacic_distance <cartagen.surfacic_distance>`.
+   #. New polygon squaring algorithm :func:`square_polygon_orientation <cartagen.square_polygon_orientation>`.
+   #. New building simplification algorithm :func:`simplify_building_morphological <cartagen.simplify_building_morphological>`.
 
 - **Changes**:
 
    #. :func:`orientation <cartagen.polygon_orientation>` renamed to :func:`polygon_orientation <cartagen.polygon_orientation>`
       to avoid confusion with the Shapely function.
+   #. :func:`simplify_building <cartagen.simplify_building_ruas>` renamed to :func:`simplify_building_ruas <cartagen.simplify_building_ruas>`
+      as new building simplification are added.
 
 1.2
 ===
