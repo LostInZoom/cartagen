@@ -1,0 +1,2 @@
+from cartagen.algorithms.buildings.simplification.morphological import simplify_building_morphological
+from cartagen.algorithms.buildings.simplification.ruas import simplify_building_ruas

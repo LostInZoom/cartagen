@@ -2,7 +2,7 @@ from math import atan2, pi, sqrt
 from shapely.geometry import Polygon, Point, LinearRing
 from cartagen.utils.geometry.segment import get_segment_list_polygon
 
-def simplify_building(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180):
+def simplify_building_ruas(building, edge_threshold, parallel_limit=20*pi/180, orthogonal_limit=20*pi/180):
     """
     Simplify buildings by removing edges.
     
@@ -39,7 +39,7 @@ def simplify_building(building, edge_threshold, parallel_limit=20*pi/180, orthog
     Examples
     --------
     >>> building = Polygon([(0, 0), (0, 10), (2, 10), (2, 9), (10, 9), (10, 0), (0, 0)])
-    >>> simplify_building(building, 2.5)
+    >>> simplify_building_ruas(building, 2.5)
     <POLYGON ((0 0, 0 9.5, 10 9.5, 10 0, 0 0))>
     """
 
