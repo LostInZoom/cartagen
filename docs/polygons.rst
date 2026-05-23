@@ -68,6 +68,7 @@ Miscellaneous
     :nosignatures:
     :toctree: reference/
 
+    remove_flat_vertices
     enclosing_rectangle
     close_polygon
     open_polygon

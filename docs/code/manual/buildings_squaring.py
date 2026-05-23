@@ -18,32 +18,44 @@ fig = plt.figure(1, (12, 5))
 
 #############################################################
 
-sub1 = fig.add_subplot(121)
+sub1 = fig.add_subplot(131)
 sub1.set_aspect('equal')
 sub1.set_title('a) Least square squaring', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
-sub2 = fig.add_subplot(122)
+sub2 = fig.add_subplot(132)
 sub2.set_aspect('equal')
 sub2.set_title('b) Naive squaring', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
+sub3 = fig.add_subplot(133)
+sub3.set_aspect('equal')
+sub3.set_title('c) Orthogonal squaring', pad=10, family='sans-serif')
+sub3.axes.get_xaxis().set_visible(False)
+sub3.axes.get_yaxis().set_visible(False)
+
 for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
     sub2.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
+    sub3.add_patch(PathPatch(poly, facecolor="lightgray", edgecolor='none'))
     
 for building in buildings:
     generalized = c4.square_polygon_ls(building)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
-    generalized = c4.square_polygon_naive(building, orient='swo', remove_flat=False)
+    generalized = c4.square_polygon_naive(building, orientation='swo', remove_flat=False)
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
+    generalized = c4.square_polygon_orthogonal(building)
+    poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
+    sub3.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
+
 sub1.autoscale_view()
 sub2.autoscale_view()
+sub3.autoscale_view()
 plt.show()

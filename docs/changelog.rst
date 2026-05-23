@@ -9,8 +9,13 @@ Changelog
 - **New features**:
 
    #. New function to calculate the surfacic distance between two polygons :func:`surfacic_distance <cartagen.surfacic_distance>`.
-   #. New polygon squaring algorithm :func:`square_polygon_orientation <cartagen.square_polygon_orientation>`.
+   #. New polygon squaring algorithm :func:`square_polygon_orthogonal <cartagen.square_polygon_orthogonal>`.
    #. New building simplification algorithm :func:`simplify_building_morphological <cartagen.simplify_building_morphological>`.
+   #. New polygon treatment algorithm :func:`remove_flat_vertices <cartagen.remove_flat_vertices>`.
+
+- **Improvements**:
+
+   #. Fixed :func:`square_polygon_naive <cartagen.square_polygon_naive>` to prevent vertices deletion.
 
 - **Changes**:
 

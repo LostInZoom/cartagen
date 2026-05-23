@@ -4,5 +4,5 @@ from cartagen.utils.geometry.skeletonization import skeletonize_artificial, skel
 from cartagen.utils.geometry.spinalization import spinalize_polygon, spinalize_polygons
 from cartagen.utils.geometry.polygon import (
     polygon_compactness, polygon_concavity, polygon_elongation,
-    enclosing_rectangle, polygon_orientation, surfacic_distance
+    enclosing_rectangle, polygon_orientation, surfacic_distance, remove_flat_vertices
 )

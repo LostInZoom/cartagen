@@ -46,10 +46,10 @@ def square_polygon_ls(
 
     See Also
     --------
-    square_polygon_orientation :
+    square_polygon_orthogonal :
         Squares a building by forcing it into an orthogonal coordinate system.
     square_polygon_naive:
-        Squares a polygon according to the statistical weighted orientation (SWO).
+        Squares a polygon according to its orientation, vertex by vertex.
 
     Notes
     -----

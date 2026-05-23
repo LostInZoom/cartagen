@@ -40,7 +40,7 @@ Squaring
 
     square_polygon_ls
     square_polygon_naive
-    square_polygon_orientation
+    square_polygon_orthogonal
 
 Building blocks
 ---------------
