@@ -33,8 +33,5 @@ for building in buildings:
     poly = Path.make_compound_path(Path(numpy.asarray(generalized.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in generalized.interiors])
     sub1.add_patch(PathPatch(poly, facecolor="none", edgecolor='red', linewidth=1.5))
 
-    for p in generalized.boundary.coords:
-        sub1.plot(p[0], p[1], linestyle="", marker='o', color="red")
-
 sub1.autoscale_view()
 plt.show()
