@@ -1,1 +1,2 @@
 from cartagen.algorithms.buildings.typification.matching import typify_buildings_matching
+from cartagen.algorithms.buildings.typification.burghardt_cecconi import typify_buildings_burghardt_cecconi
