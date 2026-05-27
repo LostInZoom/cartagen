@@ -1,5 +1,4 @@
 from matplotlib import pyplot as plt
-from matplotlib import gridspec
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 
@@ -112,16 +111,13 @@ buildings = [
 ]
 
 gdf = gpd.GeoDataFrame(geometry=buildings, crs=3857)
-typified1 = c4.typify_buildings_matching(gdf, 25000, 50000, 0.5)
-typified2 = c4.typify_buildings_burghardt_cecconi(gdf, 25000, 50000, 0.5)
+typified = c4.typify_buildings_burghardt_cecconi(gdf, 25000, 50000)
 
-fig = plt.figure(1, (12, 10))
-gs = gridspec.GridSpec(2, 4)
+fig = plt.figure(1, (12, 6))
 
 #############################################################
 
-sub1 = fig.add_subplot(gs[0, 1:3])
-sub1.set_title('Original buildings')
+sub1 = fig.add_subplot(121)
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
@@ -131,27 +127,14 @@ for building in buildings:
 
 sub1.autoscale_view()
 
-sub2 = fig.add_subplot(gs[1, 0:2])
-sub2.set_title('a) Matching-based typification')
+sub2 = fig.add_subplot(122)
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-for building in typified1.geometry:
+for building in typified.geometry:
     poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
     sub2.add_patch(PathPatch(poly, facecolor="grey", edgecolor='none'))
 
 sub2.autoscale_view()
 
-sub3 = fig.add_subplot(gs[1, 2:4])
-sub3.set_title('b) Burghardt-Cecconi Delaunay-based typification')
-sub3.axes.get_xaxis().set_visible(False)
-sub3.axes.get_yaxis().set_visible(False)
-
-for building in typified2.geometry:
-    poly = Path.make_compound_path(Path(numpy.asarray(building.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in building.interiors])
-    sub3.add_patch(PathPatch(poly, facecolor="grey", edgecolor='none'))
-
-sub3.autoscale_view()
-
-plt.tight_layout()
 plt.show()

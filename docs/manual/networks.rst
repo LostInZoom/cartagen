@@ -115,3 +115,15 @@ at the end of the process.
 .. plot:: code/manual/network_comparison.py
 
     The original network (left) and the network after generalisation (right).
+
+Complex junctions
+-----------------
+
+For now, only one algorithm is designed to work on complex junctions, 
+:func:`collapse_junctions <cartagen.collapse_junctions>`. It is mostly used
+on highway interchanges, but it can lead to weird output and may not be suited for
+every use cases.
+
+.. plot:: code/manual/network_complex.py
+
+    The original network (left) and the network after generalisation (right) and smoothing.

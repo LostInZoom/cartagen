@@ -34,6 +34,8 @@ def smooth_platre(geometry, sigma=2, curvature=0.05):
         Smooth a line or a polygon and attenuate its inflexion points.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
+    smooth_topographic :
+        Smooth a line or polygon and mimic hand-made cartographic generalization.
     smooth_wma :
         Smooth a line or polygon using a low-pass filter.
 

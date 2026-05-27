@@ -17,9 +17,10 @@ line = loads('LINESTRING (290682.99807003745809197 5645165.06180777028203011, 29
 a = [1, 2, 3, 5]
 b = [0.05, 0.05, 0.05, 0.05]
 
-fig = plt.figure(1, (10, 10))
+fig = plt.figure(1, (12, 8))
 
 sub1 = fig.add_subplot(221)
+sub1.set_aspect('equal')
 sub1.set_title(f'sigma={a[0]} curvature={b[0]}', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
@@ -34,6 +35,7 @@ sub1.autoscale_view()
 #############################################################################
 
 sub2 = fig.add_subplot(222)
+sub2.set_aspect('equal')
 sub2.set_title(f'sigma={a[1]} curvature={b[1]}', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
@@ -48,6 +50,7 @@ sub2.autoscale_view()
 #############################################################################
 
 sub3 = fig.add_subplot(223)
+sub3.set_aspect('equal')
 sub3.set_title(f'sigma={a[2]} curvature={b[2]}', pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
 sub3.axes.get_yaxis().set_visible(False)
@@ -62,6 +65,7 @@ sub3.autoscale_view()
 #############################################################################
 
 sub4 = fig.add_subplot(224)
+sub4.set_aspect('equal')
 sub4.set_title(f'sigma={a[3]} curvature={b[3]}', pad=10, family='sans-serif')
 sub4.axes.get_xaxis().set_visible(False)
 sub4.axes.get_yaxis().set_visible(False)
@@ -73,4 +77,5 @@ sub4.add_patch(PathPatch(path, facecolor="none", edgecolor='red', linewidth=1))
 
 sub4.autoscale_view()
 
+plt.tight_layout()
 plt.show()

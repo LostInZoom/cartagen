@@ -49,6 +49,8 @@ def smooth_chaikin(geometry, iterations=3, keep_ends=True):
         Smooth a line and preserve the integrity of sharp turns.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
+    smooth_topographic :
+        Smooth a line or polygon and mimic hand-made cartographic generalization.
     smooth_wma :
         Smooth a line or polygon using a low-pass filter.
 

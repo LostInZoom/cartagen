@@ -1,9 +1,9 @@
 from cartagen.utils.lines.smoothing.wma import smooth_wma
 from cartagen.utils.lines.simplification.angular import simplify_angular
 
-def simplify_topographic(geometry, iterations=2, angle=10.0, weights=[1.0, 2.0, 1.0]):
+def smooth_topographic(geometry, iterations=2, angle=10.0, weights=[1.0, 2.0, 1.0]):
     """
-    Simplify a line or polygon and mimic hand-made cartographic generalization.
+    Smooth a line or polygon and mimic hand-made cartographic generalization.
 
     This algorithm combines both a low-pass filter using weighted moving average (WMA), and
     a high-pass filter using an angular threshold. It is suitable to smooth topographic features
@@ -15,9 +15,9 @@ def simplify_topographic(geometry, iterations=2, angle=10.0, weights=[1.0, 2.0, 
     Parameters
     ----------
     geometry : LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
-        The geometry to simplify.
+        The geometry to smooth.
         If an open line is provided, the endpoints are preserved.
-        If a closed ring or polygon is provided, the simplification wraps around.
+        If a closed ring or polygon is provided, the smoothing wraps around.
     iterations : int, optional
         Number of low-pass filter passes before thinning. Default is 2.
     angle : float, optional
@@ -32,22 +32,18 @@ def simplify_topographic(geometry, iterations=2, angle=10.0, weights=[1.0, 2.0, 
 
     See Also
     --------
-    simplify_angular :
-        Simplify a line or polygon by removing vertexes with small angles.
-    simplify_douglas_peucker :
-        Simplify a line or polygon using a distance-based selection.
-    simplify_lang :
-        Simplify a line or polygon using a look-ahead distance-based selection.
-    simplify_li_openshaw :
-        Simplify a line or a polygon using a regular grid.
-    simplify_raposo :
-        Simplify a line or a polygon using an hexagonal tessellation.
-    simplify_reumann_witkam :
-        Simplify a line or polygon using a directional distance-based selection.
-    simplify_visvalingam_whyatt :
-        Simplify a line or polygon using an area-based selection.
-    simplify_whirlpool :
-        Simplify a line or polygon using an epsilon-circle based selection.
+    smooth_catmull_rom :
+        Smooth a line or polygon and preserve vertexes.
+    smooth_chaikin :
+        Smooth a line or polygon by cutting corners.
+    smooth_gaussian :
+        Smooth a line or a polygon and attenuate its inflexion points.
+    smooth_platre :
+        Smooth a line and preserve the integrity of sharp turns.
+    smooth_taubin :
+        Smooth a line or polygon and prevent shrinkage.
+    smooth_wma :
+        Smooth a line or polygon using a low-pass filter.
 
     Examples
     --------

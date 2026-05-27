@@ -42,6 +42,18 @@ Squaring
     square_polygon_naive
     square_polygon_orthogonal
 
+Typification
+------------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    typify_buildings_matching
+    typify_buildings_burghardt_cecconi
+
 Building blocks
 ---------------
 
@@ -55,4 +67,3 @@ Building blocks
     amalgamate_buildings_morphological
     boffet_areas
     random_displacement
-    typify_buildings_matching

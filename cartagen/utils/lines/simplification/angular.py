@@ -44,8 +44,6 @@ def simplify_angular(geometry, angle=10.0):
         Simplify a line or a polygon using an hexagonal tessellation.
     simplify_reumann_witkam :
         Simplify a line or polygon using a directional distance-based selection.
-    simplify_topographic :
-        Simplify a line or polygon and mimic hand-made cartographic generalization.
     simplify_visvalingam_whyatt :
         Simplify a line or polygon using an area-based selection.
     simplify_whirlpool :

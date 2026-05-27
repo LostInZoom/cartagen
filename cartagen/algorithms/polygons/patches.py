@@ -7,7 +7,7 @@ import random
 from shapely import affinity
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString, LinearRing, Polygon, MultiPolygon, GeometryCollection
 
-from cartagen.utils.lines.simplification.topographic import simplify_topographic
+from cartagen.utils.lines.smoothing.topographic import smooth_topographic
 
 def generalise_area_patches(polygons, scaling, initial_scale=25000, final_scale=50000, level=1, closeness=None, max_reselect_iterations=5, area_tolerance=0.2):
     """
@@ -306,7 +306,7 @@ def generalise_area_patches(polygons, scaling, initial_scale=25000, final_scale=
     # ------------------------------------------------------------------
     # 13. Simplify contours
     # ------------------------------------------------------------------
-    polygons['geometry'] = polygons.geometry.apply(simplify_topographic)
+    polygons['geometry'] = polygons.geometry.apply(smooth_topographic)
     polygons['geometry'] = polygons.geometry.apply(ensure_valid)
     polygons = polygons[~polygons.geometry.is_empty].copy()
 

@@ -82,13 +82,6 @@ and recreate the building blocks.
 
     Morphological amalgamation of buildings into building blocks
 
-In dense suburban areas, you might want to use :func:`building typification <cartagen.typify_buildings_matching>` :footcite:p:`li:2005`
-to enhance the legibility of the map.
-
-.. plot:: code/manual/buildings_typification.py
-
-    Building typification in dense suburban areas
-
 Urban areas
 ~~~~~~~~~~~
 
@@ -101,3 +94,16 @@ This can be done using the algorithm to calculate
 .. plot:: code/manual/buildings_boffet.py
 
     Boffet areas with a small gaussian smoothing applied to the result
+
+Typification
+~~~~~~~~~~~~
+
+In dense suburban areas, you might want to use typification
+to enhance the legibility of the map. We currently have two typification algorithms:
+
+- :func:`Matching-based typification <cartagen.typify_buildings_matching>` :footcite:p:`li:2005`
+- :func:`Burghardt-Cecconi Delauney-based typification <cartagen.typify_buildings_burghardt_cecconi>` :footcite:p:`burghardt:2007`
+
+.. plot:: code/manual/buildings_typification.py
+
+    Building typification in dense urban areas

@@ -41,6 +41,8 @@ def smooth_wma(geometry, iterations=1, weights=[1.0, 2.0, 1.0]):
         Smooth a line and preserve the integrity of sharp turns.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
+    smooth_topographic :
+        Smooth a line or polygon and mimic hand-made cartographic generalization.
 
     Examples
     --------

@@ -12,6 +12,7 @@ Changelog
    #. New polygon squaring algorithm :func:`square_polygon_orthogonal <cartagen.square_polygon_orthogonal>`.
    #. New building simplification algorithm :func:`simplify_building_morphological <cartagen.simplify_building_morphological>`.
    #. New polygon treatment algorithm :func:`remove_flat_vertices <cartagen.remove_flat_vertices>`.
+   #. New building typification algorithm :func:`typify_buildings_burghardt_cecconi <cartagen.typify_buildings_burghardt_cecconi>`.
 
 - **Improvements**:
 
@@ -23,6 +24,8 @@ Changelog
       to avoid confusion with the Shapely function.
    #. :func:`simplify_building <cartagen.simplify_building_ruas>` renamed to :func:`simplify_building_ruas <cartagen.simplify_building_ruas>`
       as new building simplification are added.
+   #. :func:`simplify_topographic <cartagen.smooth_topographic>` renamed to :func:`smooth_topographic <cartagen.smooth_topographic>`
+      as it is more representative of its nature.
 
 1.2
 ===
@@ -34,7 +37,7 @@ Changelog
    #. New line displacement algorithm :func:`propagation_network <cartagen.propagation_network>`.
    #. New line smoothing algorithm :func:`smooth_wma <cartagen.smooth_wma>`.
    #. New line simplification algorithm :func:`simplify_angular <cartagen.simplify_angular>`.
-   #. New line simplification algorithm :func:`simplify_topographic <cartagen.simplify_topographic>`.
+   #. New line simplification algorithm :func:`simplify_topographic <cartagen.smooth_topographic>`.
    #. New area patches generalisation algorithm :func:`generalise_area_patches <cartagen.generalise_area_patches>`.
 
 1.1

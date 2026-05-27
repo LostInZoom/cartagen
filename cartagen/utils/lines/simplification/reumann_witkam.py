@@ -47,8 +47,6 @@ def simplify_reumann_witkam(geometry, tolerance):
         Simplify a line or a polygon using a regular grid.
     simplify_raposo :
         Simplify a line or a polygon using an hexagonal tessellation.
-    simplify_topographic :
-        Simplify a line or polygon and mimic hand-made cartographic generalization.
     simplify_visvalingam_whyatt :
         Simplify a line or polygon using an area-based selection.
     simplify_whirlpool :

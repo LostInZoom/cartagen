@@ -863,7 +863,7 @@ for g in generalized:
         s = c4.smooth_gaussian(g, 5, 20)
         # s = g
         poly = Path.make_compound_path(Path(numpy.asarray(s.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in s.interiors])
-        sub2.add_patch(PathPatch(poly, facecolor="gray", edgecolor='none'))
+        sub2.add_patch(PathPatch(poly, facecolor="lightgrey", edgecolor='red'))
 
 sub1.autoscale()
 xlim, ylim = sub1.get_xlim(), sub1.get_ylim()
