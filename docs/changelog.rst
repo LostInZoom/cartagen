@@ -8,82 +8,82 @@ Changelog
 
 - **New features**:
 
-   #. New function to calculate the surfacic distance between two polygons :func:`surfacic_distance <cartagen.surfacic_distance>`.
-   #. New polygon squaring algorithm :func:`square_polygon_orthogonal <cartagen.square_polygon_orthogonal>`.
-   #. New building simplification algorithm :func:`simplify_building_morphological <cartagen.simplify_building_morphological>`.
-   #. New polygon treatment algorithm :func:`remove_flat_vertices <cartagen.remove_flat_vertices>`.
-   #. New building typification algorithm :func:`typify_buildings_burghardt_cecconi <cartagen.typify_buildings_burghardt_cecconi>`.
-   #. New line smoothing algorithm :func:`smooth_snake <cartagen.smooth_snake>`.
+  #. New function to calculate the surfacic distance between two polygons :func:`surfacic_distance <cartagen.surfacic_distance>`.
+  #. New polygon squaring algorithm :func:`square_polygon_orthogonal <cartagen.square_polygon_orthogonal>`.
+  #. New building simplification algorithm :func:`simplify_building_morphological <cartagen.simplify_building_morphological>`.
+  #. New polygon treatment algorithm :func:`remove_flat_vertices <cartagen.remove_flat_vertices>`.
+  #. New building typification algorithm :func:`typify_buildings_burghardt_cecconi <cartagen.typify_buildings_burghardt_cecconi>`.
+  #. New line smoothing algorithm :func:`smooth_snake <cartagen.smooth_snake>`.
 
 - **Improvements**:
 
-   #. Fixed :func:`square_polygon_naive <cartagen.square_polygon_naive>` to prevent vertices deletion.
+  #. Fixed :func:`square_polygon_naive <cartagen.square_polygon_naive>` to prevent vertices deletion.
 
 - **Changes**:
 
-   #. :func:`orientation <cartagen.polygon_orientation>` renamed to :func:`polygon_orientation <cartagen.polygon_orientation>`
-      to avoid confusion with the Shapely function.
-   #. :func:`simplify_building <cartagen.simplify_building_ruas>` renamed to :func:`simplify_building_ruas <cartagen.simplify_building_ruas>`
-      as new building simplification are added.
-   #. :func:`simplify_topographic <cartagen.smooth_topographic>` renamed to :func:`smooth_topographic <cartagen.smooth_topographic>`
-      as it is more representative of its nature.
+  #. :func:`orientation <cartagen.polygon_orientation>` renamed to :func:`polygon_orientation <cartagen.polygon_orientation>`
+     to avoid confusion with the Shapely function.
+  #. :func:`simplify_building <cartagen.simplify_building_ruas>` renamed to :func:`simplify_building_ruas <cartagen.simplify_building_ruas>`
+     as new building simplification are added.
+  #. :func:`simplify_topographic <cartagen.smooth_topographic>` renamed to :func:`smooth_topographic <cartagen.smooth_topographic>`
+     as it is more representative of its nature.
 
 1.2
 ===
 
 - **New features**:
 
-   #. New partitioning method :func:`partition_quadtree <cartagen.partition_quadtree>`.
-   #. New network collapsing algorithm :func:`collapse_junctions <cartagen.collapse_junctions>`.
-   #. New line displacement algorithm :func:`propagation_network <cartagen.propagation_network>`.
-   #. New line smoothing algorithm :func:`smooth_wma <cartagen.smooth_wma>`.
-   #. New line simplification algorithm :func:`simplify_angular <cartagen.simplify_angular>`.
-   #. New line simplification algorithm :func:`simplify_topographic <cartagen.smooth_topographic>`.
-   #. New area patches generalisation algorithm :func:`generalise_area_patches <cartagen.generalise_area_patches>`.
+  #. New partitioning method :func:`partition_quadtree <cartagen.partition_quadtree>`.
+  #. New network collapsing algorithm :func:`collapse_junctions <cartagen.collapse_junctions>`.
+  #. New line displacement algorithm :func:`propagation_network <cartagen.propagation_network>`.
+  #. New line smoothing algorithm :func:`smooth_wma <cartagen.smooth_wma>`.
+  #. New line simplification algorithm :func:`simplify_angular <cartagen.simplify_angular>`.
+  #. New line simplification algorithm :func:`simplify_topographic <cartagen.smooth_topographic>`.
+  #. New area patches generalisation algorithm :func:`generalise_area_patches <cartagen.generalise_area_patches>`.
 
 1.1
 ===
 
 - **New features**:
 
-   #. New building regularization algorithm :func:`regularize_building_fer <cartagen.regularize_building_fer>`.
-   #. New building typification algorithm :func:`typify_buildings_matching <cartagen.typify_buildings_matching>`.
-   #. New line smoothing algorithm :func:`smooth_catmull_rom <cartagen.smooth_catmull_rom>`.
-   #. New line smoothing algorithm :func:`smooth_chaikin <cartagen.smooth_chaikin>`.
-   #. New line smoothing algorithm :func:`smooth_taubin <cartagen.smooth_taubin>`.
-   #. New line smoothing algorithm :func:`smooth_platre <cartagen.smooth_platre>`.
-   #. New line simplification algorithm :func:`simplify_whirlpool <cartagen.simplify_whirlpool>`.
-   #. New line simplification algorithm :func:`simplify_lang <cartagen.simplify_lang>`.
-   #. New line simplification algorithm :func:`simplify_reumann_witkam <cartagen.simplify_reumann_witkam>`.
-   #. New line displacement algorithm :func:`beams_displacement <cartagen.beams_displacement>`.
-   #. New line displacement algorithm :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
-   #. New buildings algorithm :func:`amalgamate_buildings <cartagen.amalgamate_buildings>` to merge two buildings.
-   #. New line simplification algorithms designed to work on polygon boundaries and keep their topology:
+  #. New building regularization algorithm :func:`regularize_building_fer <cartagen.regularize_building_fer>`.
+  #. New building typification algorithm :func:`typify_buildings_matching <cartagen.typify_buildings_matching>`.
+  #. New line smoothing algorithm :func:`smooth_catmull_rom <cartagen.smooth_catmull_rom>`.
+  #. New line smoothing algorithm :func:`smooth_chaikin <cartagen.smooth_chaikin>`.
+  #. New line smoothing algorithm :func:`smooth_taubin <cartagen.smooth_taubin>`.
+  #. New line smoothing algorithm :func:`smooth_platre <cartagen.smooth_platre>`.
+  #. New line simplification algorithm :func:`simplify_whirlpool <cartagen.simplify_whirlpool>`.
+  #. New line simplification algorithm :func:`simplify_lang <cartagen.simplify_lang>`.
+  #. New line simplification algorithm :func:`simplify_reumann_witkam <cartagen.simplify_reumann_witkam>`.
+  #. New line displacement algorithm :func:`beams_displacement <cartagen.beams_displacement>`.
+  #. New line displacement algorithm :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
+  #. New buildings algorithm :func:`amalgamate_buildings <cartagen.amalgamate_buildings>` to merge two buildings.
+  #. New line simplification algorithms designed to work on polygon boundaries and keep their topology:
 
-      - :func:`boundaries_douglas_peucker <cartagen.boundaries_douglas_peucker>`
-      - :func:`boundaries_visvalingam_whyatt <cartagen.boundaries_visvalingam_whyatt>`
-      - :func:`boundaries_raposo <cartagen.boundaries_raposo>`
-      - :func:`boundaries_li_openshaw <cartagen.boundaries_li_openshaw>`
+     - :func:`boundaries_douglas_peucker <cartagen.boundaries_douglas_peucker>`
+     - :func:`boundaries_visvalingam_whyatt <cartagen.boundaries_visvalingam_whyatt>`
+     - :func:`boundaries_raposo <cartagen.boundaries_raposo>`
+     - :func:`boundaries_li_openshaw <cartagen.boundaries_li_openshaw>`
 
 - **Improvements**:
 
-   #. Renamed :func:`gaussian_smoothing <cartagen.smooth_gaussian>` to :func:`smooth_gaussian <cartagen.smooth_gaussian>`.
-   #. Optimization of the :func:`coalescence_splitting <cartagen.coalescence_splitting>` algorithm
-      along with all its related algorithms using numpy arrays.
-   #. Handle MultiLineString input on line simplification algorithms.
-   #. Optimize tesselation algorithm, now the spatial index is only calculated once.
-   #. Enhanced :func:`visvalingam_whyatt <cartagen.simplify_visvalingam_whyatt>` using an external code made by
-      `Elliot Hallmark. <https://github.com/Permafacture/Py-Visvalingam-Whyatt>`_
-   #. Update :func:`strokes_rivers <cartagen.strokes_rivers>` to facilitate their generalization.
-   #. Optimized :func:`accordion <cartagen.accordion>` algorithm.
-   #. Optimized :func:`schematization <cartagen.schematization>` algorithm.
-   #. Optimized :func:`inflexion_points <cartagen.inflexion_points>` algorithm.
+  #. Renamed :func:`gaussian_smoothing <cartagen.smooth_gaussian>` to :func:`smooth_gaussian <cartagen.smooth_gaussian>`.
+  #. Optimization of the :func:`coalescence_splitting <cartagen.coalescence_splitting>` algorithm
+     along with all its related algorithms using numpy arrays.
+  #. Handle MultiLineString input on line simplification algorithms.
+  #. Optimize tesselation algorithm, now the spatial index is only calculated once.
+  #. Enhanced :func:`visvalingam_whyatt <cartagen.simplify_visvalingam_whyatt>` using an external code made by
+     `Elliot Hallmark. <https://github.com/Permafacture/Py-Visvalingam-Whyatt>`_
+  #. Update :func:`strokes_rivers <cartagen.strokes_rivers>` to facilitate their generalization.
+  #. Optimized :func:`accordion <cartagen.accordion>` algorithm.
+  #. Optimized :func:`schematization <cartagen.schematization>` algorithm.
+  #. Optimized :func:`inflexion_points <cartagen.inflexion_points>` algorithm.
 
 - **Bug Fixes**:
 
-   #. Fixed the :func:`collapse_dual_carriageways <cartagen.collapse_dual_carriageways>` algorithm to treat
-      polygons connected by their short side.
-   #. Fixed the :func:`LeastSquaresMethod <cartagen.LeastSquaresMethod>`, some matrices were wrongly built.
+  #. Fixed the :func:`collapse_dual_carriageways <cartagen.collapse_dual_carriageways>` algorithm to treat
+     polygons connected by their short side.
+  #. Fixed the :func:`LeastSquaresMethod <cartagen.LeastSquaresMethod>`, some matrices were wrongly built.
 
 1.0.2
 =====
