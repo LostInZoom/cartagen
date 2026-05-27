@@ -40,6 +40,11 @@ def typify_buildings_matching(buildings, initial_scale=25000, final_scale=50000,
     -------
     GeoDataFrame of Polygon or MultiPolygon
         Typified buildings with transferred attributes
+
+    See Also
+    --------
+    typify_buildings_burghardt_cecconi :
+        Typify buildings using the Burghardt-Cecconi algorithm.
     
     References
     ----------
