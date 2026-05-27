@@ -6,6 +6,7 @@ Simplification
 
 Multiple algorithms for line simplification are available, including:
 
+- :func:`Angular <cartagen.simplify_angular>` :footcite:p:`mcmaster:1987`
 - :func:`Douglas-Peucker <cartagen.simplify_douglas_peucker>` :footcite:p:`douglas:1973`
 - :func:`Lang <cartagen.simplify_lang>`  :footcite:p:`lang:1969`
 - :func:`Li-Openshaw <cartagen.simplify_li_openshaw>`  :footcite:p:`li:1993`
@@ -33,11 +34,15 @@ Multiple algorithms for polyline smoothing are available, including:
 - :func:`Gaussian smoothing <cartagen.smooth_gaussian>` :footcite:p:`babaud:1986` :footcite:p:`plazanet:1996`
 - :func:`PLATRE smoothing <cartagen.smooth_platre>` :footcite:p:`fritsch:1998`
 - :func:`Taubin smoothing <cartagen.smooth_taubin>` :footcite:p:`taubin:1995`
+- :func:`Topographic smoothing <cartagen.smooth_topographic>`
+- :func:`Weighted Moving Average (WMA) smoothing <cartagen.smooth_wma>`
 
 The gaussian smoothing is the most well-known smoothing algorithm for polylines, it attenuates
 inflexions in the line but isn't specialized in anything. On the other hand, PLATRE is designed
 to preserve sharp turns and attenuate minor bends while Taubin is used to prevent shrinkage of bends
 that is characteristic of the gaussian smoothing.
+Topographic smoothing is a meta-algorithm that starts with a WMA smoothing followed by an angular simplification, this
+creates a hand-drawn older style of line generalization.
 
 .. plot:: code/manual/lines_smoothing.py
 

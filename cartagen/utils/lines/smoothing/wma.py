@@ -29,6 +29,11 @@ def smooth_wma(geometry, iterations=1, weights=[1.0, 2.0, 1.0]):
     LineString, Polygon, MultiLineString, MultiPolygon, LinearRing
         Smoothed geometry of the same type as input.
 
+    Notes
+    -----
+    This algorithm can also become a simple moving average smoothing algorithm
+    if you set the weights to [1, 1, 1].
+
     See Also
     --------
     smooth_catmull_rom :

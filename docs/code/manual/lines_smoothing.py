@@ -16,7 +16,7 @@ line = loads('LINESTRING (290682.99807003745809197 5645165.06180777028203011, 29
 
 fig = plt.figure(1, (12, 12))
 
-sub1 = fig.add_subplot(221)
+sub1 = fig.add_subplot(321)
 sub1.set_aspect('equal')
 sub1.set_title(f'Gaussian smoothing', pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
@@ -31,7 +31,7 @@ sub1.autoscale_view()
 
 #############################################################################
 
-sub2 = fig.add_subplot(222)
+sub2 = fig.add_subplot(322)
 sub2.set_aspect('equal')
 sub2.set_title(f'PLATRE smoothing', pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
@@ -46,7 +46,7 @@ sub2.autoscale_view()
 
 #############################################################################
 
-sub3 = fig.add_subplot(223)
+sub3 = fig.add_subplot(323)
 sub3.set_aspect('equal')
 sub3.set_title(f'Taubin smoothing', pad=10, family='sans-serif')
 sub3.axes.get_xaxis().set_visible(False)
@@ -61,7 +61,7 @@ sub3.autoscale_view()
 
 #############################################################################
 
-sub4 = fig.add_subplot(224)
+sub4 = fig.add_subplot(324)
 sub4.set_aspect('equal')
 sub4.set_title(f'Topographic smoothing', pad=10, family='sans-serif')
 sub4.axes.get_xaxis().set_visible(False)
@@ -73,6 +73,21 @@ path = Path(numpy.asarray(c4.smooth_topographic(line, 10).coords)[:, :2])
 sub4.add_patch(PathPatch(path, facecolor="none", edgecolor='red', linewidth=1))
 
 sub4.autoscale_view()
+
+#############################################################################
+
+sub5 = fig.add_subplot(325)
+sub5.set_aspect('equal')
+sub5.set_title(f'WMA smoothing', pad=10, family='sans-serif')
+sub5.axes.get_xaxis().set_visible(False)
+sub5.axes.get_yaxis().set_visible(False)
+
+path = Path(numpy.asarray(line.coords)[:, :2])
+sub5.add_patch(PathPatch(path, facecolor="none", edgecolor='gray', linewidth=1))
+path = Path(numpy.asarray(c4.smooth_wma(line, 8).coords)[:, :2])
+sub5.add_patch(PathPatch(path, facecolor="none", edgecolor='red', linewidth=1))
+
+sub5.autoscale_view()
 
 plt.tight_layout()
 plt.show()
