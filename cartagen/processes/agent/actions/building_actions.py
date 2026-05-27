@@ -1,6 +1,6 @@
 from cartagen.processes.agent.actions.generalisation_action import GeneralisationAction
 from cartagen.algorithms.buildings.simplification.ruas import simplify_building_ruas
-from cartagen.algorithms.buildings.squaring.least_square import Squarer
+from cartagen.algorithms.buildings.squaring.least_square import square_polygon_ls
 from cartagen.utils.geometry.polygon import enclosing_rectangle
 from shapely import affinity
 from shapely.geometry import Polygon
@@ -62,7 +62,5 @@ class SquaringAction(GeneralisationAction):
     def compute(self):
         """Compute the action, i.e. triggers the algorithm."""
         geom = self.agent.feature['geometry']
-        squarer = Squarer()
-        new_points = squarer.square([geom])
-        new_geom = Polygon(squarer.get_shapes_from_new_points([geom],new_points)[0])
+        new_geom = square_polygon_ls(geom)
         self.agent.feature['geometry'] = new_geom
