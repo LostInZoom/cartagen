@@ -35,12 +35,10 @@ def smooth_gaussian(geometry, sigma=30, sample=None, densify=True):
 
     See Also
     --------
-    smooth_catmull_rom :
-        Smooth a line or polygon and preserve vertexes.
-    smooth_chaikin :
-        Smooth a line or polygon by cutting corners.
     smooth_platre :
         Smooth a line and preserve the integrity of sharp turns.
+    smooth_snake :
+        Smooth a line or polygon using the snake method.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
     smooth_topographic :

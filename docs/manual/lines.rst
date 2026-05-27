@@ -33,14 +33,16 @@ Multiple algorithms for polyline smoothing are available, including:
 
 - :func:`Gaussian smoothing <cartagen.smooth_gaussian>` :footcite:p:`babaud:1986` :footcite:p:`plazanet:1996`
 - :func:`PLATRE smoothing <cartagen.smooth_platre>` :footcite:p:`fritsch:1998`
+- :func:`Snake smoothing <cartagen.smooth_snake>` :footcite:p:`burghardt:2005`
 - :func:`Taubin smoothing <cartagen.smooth_taubin>` :footcite:p:`taubin:1995`
-- :func:`Topographic smoothing <cartagen.smooth_topographic>`
-- :func:`Weighted Moving Average (WMA) smoothing <cartagen.smooth_wma>`
+- :func:`Topographic smoothing <cartagen.smooth_topographic>` :footcite:p:`muller:1992`
+- :func:`Weighted Moving Average (WMA) smoothing <cartagen.smooth_wma>` :footcite:p:`mcmaster:1987`
 
 The gaussian smoothing is the most well-known smoothing algorithm for polylines, it attenuates
 inflexions in the line but isn't specialized in anything. On the other hand, PLATRE is designed
 to preserve sharp turns and attenuate minor bends while Taubin is used to prevent shrinkage of bends
-that is characteristic of the gaussian smoothing.
+that is characteristic of the gaussian smoothing. Snake smoothing treats the geometry as an elastic snake optimizing an energy functional,
+you can modify internal constraints and external forces to best suit the context of your data.
 Topographic smoothing is a meta-algorithm that starts with a WMA smoothing followed by an angular simplification, this
 creates a hand-drawn older style of line generalization.
 

@@ -33,6 +33,7 @@ Smoothing (filtering)
 
     smooth_gaussian
     smooth_platre
+    smooth_snake
     smooth_taubin
     smooth_topographic
     smooth_wma

@@ -6,7 +6,8 @@ def smooth_wma(geometry, iterations=1, weights=[1.0, 2.0, 1.0]):
     """
     Smooth a line or polygon using a low-pass filter.
 
-    This algorithm applies a weighted moving average (WMA) window over the vertices.
+    This algorithm described in McMaster :footcite:p:`mcmaster:1987` for a generalization purpose
+    applies a weighted moving average (WMA) window over the vertices.
     The default weights `[1, 2, 1]` heavily weight the central point to suppress
     unwanted short-wavelength noise while minimizing overall geometric shrinkage.
     
@@ -36,14 +37,12 @@ def smooth_wma(geometry, iterations=1, weights=[1.0, 2.0, 1.0]):
 
     See Also
     --------
-    smooth_catmull_rom :
-        Smooth a line or polygon and preserve vertexes.
-    smooth_chaikin :
-        Smooth a line or polygon by cutting corners.
     smooth_gaussian :
         Smooth a line or a polygon and attenuate its inflexion points.
     smooth_platre :
         Smooth a line and preserve the integrity of sharp turns.
+    smooth_snake :
+        Smooth a line or polygon using the snake method.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
     smooth_topographic :

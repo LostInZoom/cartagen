@@ -39,14 +39,12 @@ def smooth_taubin(geometry, iterations=10, smoothing=0.5, inflation=-0.53):
 
     See Also
     --------
-    smooth_catmull_rom :
-        Smooth a line or polygon and preserve vertexes.
-    smooth_chaikin :
-        Smooth a line or polygon by cutting corners.
     smooth_gaussian :
         Smooth a line or a polygon and attenuate its inflexion points.
     smooth_platre :
         Smooth a line and preserve the integrity of sharp turns.
+    smooth_snake :
+        Smooth a line or polygon using the snake method.
     smooth_topographic :
         Smooth a line or polygon and mimic hand-made cartographic generalization.
     smooth_wma :

@@ -5,7 +5,8 @@ def smooth_topographic(geometry, iterations=2, angle=10.0, weights=[1.0, 2.0, 1.
     """
     Smooth a line or polygon and mimic hand-made cartographic generalization.
 
-    This algorithm combines both a low-pass filter using weighted moving average (WMA), and
+    This algorithm described in Müller and Wang :footcite:p:`muller:1992`
+    combines both a low-pass filter using weighted moving average (WMA), and
     a high-pass filter using an angular threshold. It is suitable to smooth topographic features
     such as rivers, coastlines, lakes, *etc.* and simplify it to mimic hand-made generalization.
     
@@ -32,14 +33,12 @@ def smooth_topographic(geometry, iterations=2, angle=10.0, weights=[1.0, 2.0, 1.
 
     See Also
     --------
-    smooth_catmull_rom :
-        Smooth a line or polygon and preserve vertexes.
-    smooth_chaikin :
-        Smooth a line or polygon by cutting corners.
     smooth_gaussian :
         Smooth a line or a polygon and attenuate its inflexion points.
     smooth_platre :
         Smooth a line and preserve the integrity of sharp turns.
+    smooth_snake :
+        Smooth a line or polygon using the snake method.
     smooth_taubin :
         Smooth a line or polygon and prevent shrinkage.
     smooth_wma :
