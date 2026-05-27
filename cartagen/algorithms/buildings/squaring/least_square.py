@@ -208,7 +208,7 @@ class Squarer:
                 cross = np.cross(v1n, v2n).item(0)
                 if (np.abs(dot) <= rTol):
                     self.indicesRight.append(t)
-                elif (cross <= fTol):
+                elif (np.abs(dot) >= np.cos(fTol)):  # angle proche de 0° ou 180°
                     self.indicesFlat.append(t)
                 #elif (dot <= hrTol1 and dot >= hrTol2):
                 #    self.indicesHrAig.append(t)
