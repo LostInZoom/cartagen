@@ -1,345 +1,95 @@
 from cartagen.utils.geometry.topo_map import TopoMap
-from cartagen.utils.lines import simplify_visvalingam_whyatt, simplify_douglas_peucker, simplify_raposo, simplify_li_openshaw
 from cartagen.utils.geometry.polygon import surfacic_distance
 
-def boundaries_douglas_peucker(polygons, threshold, preserve_topology=True):
+def generalize_boundaries(polygons, algorithm, *args, **kwargs):
     """
-    Simplify polygon boundaries with Douglas-Peucker.
+    Generalize shared polygon boundaries while strictly preserving topology.
 
-    Applies the Ramer-Douglas-Peucker :footcite:p:`ramer:1972` :footcite:p:`douglas:1973` algorithm to the boundaries of polygons.
-    As most polygons share a boundary with another polygon, the simplification is only applied to the common line,
-    so that no topological disconnection is created between adjacent polygons.
+    This function applies a simplification or smoothing algorithm to a set of
+    adjacent polygons. By isolating and processing only the shared boundary segments
+    (lines) before reconstructing the polygons, it prevents gaps, overlaps, or 
+    topological disconnections from forming between neighboring features.
 
     Parameters
     ----------
     polygons : GeoDataFrame of Polygon
-        The polygon forming the set of boundaries to simplifiy.
-    threshold : float
-        The distance threshold to remove the vertex from the line.
-    preserve_topology : bool, optional
-        If set to True, the algorithm will prevent invalid geometries
-        from being created (checking for collapses, ring-intersections, etc).
-        The trade-off is computational expensivity.
+        The input layer containing adjacent polygons to be generalized.
+    algorithm : callable
+        The simplification or smoothing function to apply to the boundaries.
+    *args : tuple
+        Additional positional arguments forwarded to the `algorithm`.
+    **kwargs : dict
+        Additional keyword arguments forwarded to the `algorithm`.
 
     Returns
     -------
     GeoDataFrame of Polygon
-
-    Warning
-    -------
-    This algorithm cannot create MultiPolygon, so having input MultiPolygon can cause matching problems.
-
-    See Also
-    --------
-    simplify_douglas_peucker :
-        Distance-based line simplification.
-    boundaries_visvalingam_whyatt :
-        Apply the Visvalingam-Whyatt line simplification to the boundaries of polygons.
-    boundaries_raposo :
-        Apply the Raposo line simplification to the boundaries of polygons.
-    boundaries_li_openshaw :
-        Apply the Li-Openshaw line simplification to the boundaries of polygons.
-
-    References
-    ----------
-    .. footbibliography::
     """
-
     polygons_simplified = polygons.copy()
     polygons_to_search = []
 
+    # 1. EXTRACTION : Flatten MultiPolygons into simple Polygons for TopoMap
     for index, feature in polygons.iterrows():
-        polygons_to_search.append(feature['geometry'])
+        geom = feature['geometry']
+        if geom.geom_type == 'MultiPolygon':
+            polygons_to_search.extend(list(geom.geoms))
+        else:
+            polygons_to_search.append(geom)
 
-    # first create a TopoMap
+    # First, create the TopoMap
     tm = TopoMap(snap_tolerance=1e-9, build_infinite_face=True)
     tm.build_from_polygons(polygons_to_search)
 
-
-    # then loop on all arcs of the TopoMap
+    # 2. GENERALIZATION : Apply the custom algorithm to each shared arc
     for aid, arc in tm.arcs.items():
         geom = arc.geom
-        simplified = simplify_douglas_peucker(geom, threshold, preserve_topology)
+        # Forwarding the geometry along with all extra arguments
+        simplified = algorithm(geom, *args, **kwargs)
         tm.arcs[aid].geom = simplified
 
-    # update the TopoMap with the simplified arcs
+    # Update the TopoMap with the generalized arcs
     tm.clear_faces()
-    tm.build_faces()# we need to rebuild the faces from scratch, as some arcs may have been removed
+    # Rebuild the faces from scratch as some arcs may have changed or been removed
+    tm.build_faces() 
 
-    # then match the simplified faces of the TopoMap with the initial polygons
+    # Dictionary to collect all resulting faces belonging to each original row index
+    matched_geometries = {idx: [] for idx in polygons_simplified.index}
+
+    # 3. MATCHING : Match the new faces back to the original polygons
     for face in tm.faces:
         poly = tm.faces[face].polygon
-        # check if it is the infinite face
-        if poly == None:
+        if poly is None:
             continue
+            
         intersection = polygons_simplified.sindex.query(poly)
-        # find the intersecting polygon with the smallest surfacic distance
         dist_min = 1.5
         match = None
+        
         for idx in intersection:
-            candidate = polygons_simplified.iloc[idx].geometry
-            dist = surfacic_distance(poly, candidate)
-            if dist < dist_min:
-                dist_min = dist
-                match = idx
+            candidate_geom = polygons_simplified.iloc[idx].geometry
+            
+            if candidate_geom.geom_type == 'MultiPolygon':
+                for part in candidate_geom.geoms:
+                    dist = surfacic_distance(poly, part)
+                    if dist < dist_min:
+                        dist_min = dist
+                        match = idx
+            else:
+                dist = surfacic_distance(poly, candidate_geom)
+                if dist < dist_min:
+                    dist_min = dist
+                    match = idx
         
         if match is not None:
-            polygons_simplified.at[match, 'geometry'] = poly
+            matched_geometries[match].append(poly)
     
-    return polygons_simplified
-
-def boundaries_visvalingam_whyatt(polygons, threshold):
-    """
-    Simplify polygon boundaries with Visvalingam-Whyatt.
-
-    Applies the Visvalingam-Whyatt :footcite:p:`visvalingam:1993` algorithm to the boundaries of the given polygons.
-    As most polygons share a boundary with another polygon, the simplification is only applied to the common line,
-    so that no topological disconnection is created between adjacent polygons.
-
-    Parameters
-    ----------
-    polygons : GeoDataFrame of Polygon
-        Polygons forming the set of boundaries to simplify.
-    threshold : float
-        The minimum triangle area to keep a vertex in the line.
-        Higher values = more points kept (less aggressive simplification).
-
-    Returns
-    -------
-    GeoDataFrame of Polygon
-
-    Warning
-    -------
-    This algorithm cannot create MultiPolygon, unlike :func:`hull_swinging_arm`.
-    Using a length too low can produce an invalid geometry.
-
-    See Also
-    --------
-    simplify_visvalingam_whyatt :
-        Area-based line simplification.
-    boundaries_raposo :
-        Apply the Raposo line simplification to the boundaries of polygons.
-    boundaries_douglas_peucker :
-        Apply the Douglas-Peucker line simplification to the boundaries of polygons.
-    boundaries_li_openshaw :
-        Apply the Li-Openshaw line simplification to the boundaries of polygons.
-
-    References
-    ----------
-    .. footbibliography::
-    """
-
-    polygons_simplified = polygons.copy()
-    polygons_to_search = []
-
-    for index, feature in polygons.iterrows():
-        polygons_to_search.append(feature['geometry'])
-
-    # first create a TopoMap
-    tm = TopoMap(snap_tolerance=1e-9, build_infinite_face=True)
-    tm.build_from_polygons(polygons_to_search)
-
-
-    # then loop on all arcs of the TopoMap
-    for aid, arc in tm.arcs.items():
-        geom = arc.geom
-        simplified = simplify_visvalingam_whyatt(geom, threshold=threshold)
-        tm.arcs[aid].geom = simplified
-
-    # update the TopoMap with the simplified arcs
-    tm.clear_faces()
-    tm.build_faces()# we need to rebuild the faces from scratch, as some arcs may have been removed
-
-    # then match the simplified faces of the TopoMap with the initial polygons
-    for face in tm.faces:
-        poly = tm.faces[face].polygon
-        # check if it is the infinite face
-        if poly == None:
-            continue
-        intersection = polygons_simplified.sindex.query(poly)
-        # find the intersecting polygon with the smallest surfacic distance
-        dist_min = 1.5
-        match = None
-        for idx in intersection:
-            candidate = polygons_simplified.iloc[idx].geometry
-            dist = surfacic_distance(poly, candidate)
-            if dist < dist_min:
-                dist_min = dist
-                match = idx
-        
-        if match is not None:
-            polygons_simplified.at[match, 'geometry'] = poly
-    
-    return polygons_simplified
-
-def boundaries_raposo(polygons, initial_scale, final_scale, centroid=True, tobler=False):
-    """
-    Simplify polygon boundaries with Raposo.
-
-    Applies the Raposo :footcite:p:`raposo:2013` algorithm to the boundaries of polygons.
-    As most polygons share their boundaries with another polygon, the simplification is only applied to the common line,
-    so that no topological disconnection is created between adjacent polygons.
-
-    Parameters
-    ----------
-    polygons : GeoDataFrame of Polygon
-        The polygon forming the set of boundaries to simplifiy.
-    initial_scale : float
-        Initial scale of the provided line (25000.0 for 1:25000 scale).
-    final_scale : float
-        Final scale of the simplified line.
-    centroid : bool, optional
-        If true, uses the center of the hexagonal cells as the new vertex,
-        if false, the center is projected on the nearest point in the initial line.
-    tobler : bool, optional
-        If True, compute cell resolution based on Tobler’s formula, else uses Raposo's formula
-
-    Returns
-    -------
-    GeoDataFrame of Polygon
-
-    Warning
-    -------
-    This algorithm cannot create MultiPolygon, so having input MultiPolygon can cause matching problems.
-
-    See Also
-    --------
-    simplify_raposo :
-        Hexagon-based line simplification.
-    boundaries_douglas_peucker :
-        Apply the Douglas-Peucker line simplification to the boundaries of polygons.
-    boundaries_visvalingam_whyatt :
-        Apply the Visvalingam-Whyatt line simplification to the boundaries of polygons.
-    boundaries_li_openshaw :
-        Apply the Li-Openshaw line simplification to the boundaries of polygons.
-
-    References
-    ----------
-    .. footbibliography::
-    """
-
-    polygons_simplified = polygons.copy()
-    polygons_to_search = []
-
-    for index, feature in polygons.iterrows():
-        polygons_to_search.append(feature['geometry'])
-
-    # first create a TopoMap
-    tm = TopoMap(snap_tolerance=1e-9, build_infinite_face=True)
-    tm.build_from_polygons(polygons_to_search)
-
-
-    # then loop on all arcs of the TopoMap
-    for aid, arc in tm.arcs.items():
-        geom = arc.geom
-        simplified = simplify_raposo(geom, initial_scale, final_scale, centroid, tobler)
-        tm.arcs[aid].geom = simplified
-
-    # update the TopoMap with the simplified arcs
-    tm.clear_faces()
-    tm.build_faces()# we need to rebuild the faces from scratch, as some arcs may have been removed
-
-    # then match the simplified faces of the TopoMap with the initial polygons
-    for face in tm.faces:
-        poly = tm.faces[face].polygon
-        # check if it is the infinite face
-        if poly == None:
-            continue
-        intersection = polygons_simplified.sindex.query(poly)
-        # find the intersecting polygon with the smallest surfacic distance
-        dist_min = 1.5
-        match = None
-        for idx in intersection:
-            candidate = polygons_simplified.iloc[idx].geometry
-            dist = surfacic_distance(poly, candidate)
-            if dist < dist_min:
-                dist_min = dist
-                match = idx
-        
-        if match is not None:
-            polygons_simplified.at[match, 'geometry'] = poly
-    
-    return polygons_simplified
-
-
-def boundaries_li_openshaw(polygons, cell_size):
-    """
-    Simplify polygon boundaries with Li-Openshaw.
-
-    Applies the Li-Openshaw :footcite:p:`li:1993` algorithm to the boundaries of the polygons. As most polygons share a boundary
-    with another polygon, the simplification is only applied to the common line, so that no topological disconnection is
-    created between adjacent polygons.
-
-    Parameters
-    ----------
-    polygons : GeoDataFrame of Polygon
-        The polygon forming the set of boundaries to simplifiy.
-    cell_size : float
-        The size of the regular grid used to divide the line.
-
-    Returns
-    -------
-    GeoDataFrame of Polygon
-
-    Warning
-    -------
-    This algorithm cannot create MultiPolygon, so having input MultiPolygon can cause matching problems.
-
-    See Also
-    --------
-    simplify_li_openshaw :
-        Square grid-based line simplification.
-    boundaries_douglas_peucker :
-        Applies the Douglas-Peucker line simplification to the boundaries of polygons.
-    boundaries_visvalingam_whyatt :
-        Applies the Visvalingam-Whyatt line simplification to the boundaries of polygons.
-    boundaries_raposo :
-        Applies the Raposo line simplification to the boundaries of polygons.
-
-    References
-    ----------
-    .. footbibliography::
-    """
-
-    polygons_simplified = polygons.copy()
-    polygons_to_search = []
-
-    for index, feature in polygons.iterrows():
-        polygons_to_search.append(feature['geometry'])
-
-    # first create a TopoMap
-    tm = TopoMap(snap_tolerance=1e-9, build_infinite_face=True)
-    tm.build_from_polygons(polygons_to_search)
-
-
-    # then loop on all arcs of the TopoMap
-    for aid, arc in tm.arcs.items():
-        geom = arc.geom
-        simplified = simplify_li_openshaw(geom, cell_size)
-        tm.arcs[aid].geom = simplified
-
-    # update the TopoMap with the simplified arcs
-    tm.clear_faces()
-    tm.build_faces()# we need to rebuild the faces from scratch, as some arcs may have been removed
-
-    # then match the simplified faces of the TopoMap with the initial polygons
-    for face in tm.faces:
-        poly = tm.faces[face].polygon
-        # check if it is the infinite face
-        if poly == None:
-            continue
-        intersection = polygons_simplified.sindex.query(poly)
-        # find the intersecting polygon with the smallest surfacic distance
-        dist_min = 1.5
-        match = None
-        for idx in intersection:
-            candidate = polygons_simplified.iloc[idx].geometry
-            dist = surfacic_distance(poly, candidate)
-            if dist < dist_min:
-                dist_min = dist
-                match = idx
-        
-        if match is not None:
-            polygons_simplified.at[match, 'geometry'] = poly
+    # 4. RECONSTRUCTION : Rebuild Polygons or MultiPolygons for the GeoDataFrame
+    for idx, geoms in matched_geometries.items():
+        if not geoms:
+            continue 
+        elif len(geoms) == 1:
+            polygons_simplified.at[idx, 'geometry'] = geoms[0]
+        else:
+            polygons_simplified.at[idx, 'geometry'] = MultiPolygon(geoms)
     
     return polygons_simplified

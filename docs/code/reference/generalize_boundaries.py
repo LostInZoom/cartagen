@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from matplotlib import gridspec
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 
@@ -14,13 +15,18 @@ polygons = [
     loads('POLYGON ((2458558.67553026648238301 6177394.29184130672365427, 2520364.54684949433431029 6131885.84035125561058521, 2528124.79632917419075966 6087278.42942925076931715, 2460134.88632154325023293 6052532.3817491652444005, 2407452.62929050298407674 5941133.58206644840538502, 2340153.03057832270860672 5831148.03518426697701216, 2250901.53267085319384933 5800799.796680080704391, 2181421.70078387716785073 5807911.88544869143515825, 2096127.98763698199763894 5765758.80827368516474962, 2096126.50766928563825786 5765757.95812190324068069, 2054519.47430377569980919 5741889.31820260360836983, 1962570.00974992499686778 5772623.55225606728345156, 1879352.98308350634761155 5841556.9635159932076931, 1843986.03437998471781611 5861446.44341410044580698, 1822356.28045590617693961 5916212.98435185104608536, 1803631.58656684262678027 5918012.90224720165133476, 1840586.25124989869073033 6023441.2183494558557868, 1819025.52845536242239177 6059224.15690211486071348, 1881717.29927042033523321 6059549.04954236466437578, 1890167.86004554736427963 6127424.98463182244449854, 1946807.90183716453611851 6084834.17564896773546934, 1987846.90835162531584501 6066759.6873060492798686, 2081286.2947848211042583 6087072.57074050977826118, 2090248.83643740555271506 6120468.96252772491425276, 2134480.53269332181662321 6125404.35667907632887363, 2188692.9797626081854105 6151325.22547416016459465, 2200727.40667994366958737 6140641.90748390555381775, 2253001.22952784225344658 6161524.39819812495261431, 2279106.50168408406898379 6201009.10541653726249933, 2315589.45364858116954565 6211276.64375811535865068, 2434806.21437268331646919 6160252.62019212543964386, 2458558.67553026648238301 6177394.29184130672365427))')
 ]
 
-simplified = c4.boundaries_douglas_peucker(gpd.GeoDataFrame(geometry=polygons), 20000)
+gdf = gpd.GeoDataFrame(geometry=polygons)
 
-fig = plt.figure(1, (6, 10))
+simplified = c4.generalize_boundaries(gdf, c4.smooth_snake, 5, 0.1, 0.1, 1.0, 0.8)
+simplified = c4.generalize_boundaries(gdf, c4.smooth_snake, 5, 0.1, 0.1, 1.0, 0.8)
+simplified = c4.generalize_boundaries(gdf, c4.smooth_snake, 5, 0.1, 0.1, 1.0, 0.8)
 
-sub1 = fig.add_subplot(211)
+fig = plt.figure(1, (12, 12))
+gs = gridspec.GridSpec(3, 4)
+
+sub1 = fig.add_subplot(gs[0, 1:3])
 sub1.set_aspect('equal')
-sub1.set_title("a) Original", pad=10, family='sans-serif')
+sub1.set_title("a) Original polygons", pad=10, family='sans-serif')
 sub1.axes.get_xaxis().set_visible(False)
 sub1.axes.get_yaxis().set_visible(False)
 
@@ -28,17 +34,59 @@ for polygon in polygons:
     poly1 = Path.make_compound_path(Path(numpy.asarray(polygon.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in polygon.interiors])
     sub1.add_patch(PathPatch(poly1, facecolor="lightgrey", edgecolor='black'))
 
-sub2 = fig.add_subplot(212)
+generalized = c4.generalize_boundaries(gdf, c4.simplify_douglas_peucker, 20000)
+
+sub2 = fig.add_subplot(gs[1, 0:2])
 sub2.set_aspect('equal')
-sub2.set_title("b) Simplified", pad=10, family='sans-serif')
+sub2.set_title("b) Douglas-Peucker simplification", pad=10, family='sans-serif')
 sub2.axes.get_xaxis().set_visible(False)
 sub2.axes.get_yaxis().set_visible(False)
 
-for polygon in simplified.geometry:
+for polygon in generalized.geometry:
     poly1 = Path.make_compound_path(Path(numpy.asarray(polygon.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in polygon.interiors])
-    sub2.add_patch(PathPatch(poly1, facecolor="lightgrey", edgecolor='black'))
+    sub2.add_patch(PathPatch(poly1, facecolor="lightgrey", edgecolor='red'))
+
+generalized = c4.generalize_boundaries(gdf, c4.simplify_raposo, 1_000_000, 2_000_000)
+
+sub3 = fig.add_subplot(gs[1, 2:4])
+sub3.set_aspect('equal')
+sub3.set_title("c) Raposo simplification", pad=10, family='sans-serif')
+sub3.axes.get_xaxis().set_visible(False)
+sub3.axes.get_yaxis().set_visible(False)
+
+for polygon in generalized.geometry:
+    poly1 = Path.make_compound_path(Path(numpy.asarray(polygon.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in polygon.interiors])
+    sub3.add_patch(PathPatch(poly1, facecolor="lightgrey", edgecolor='red'))
+
+generalized = c4.generalize_boundaries(gdf, c4.smooth_gaussian, 5000, 2000)
+
+sub4 = fig.add_subplot(gs[2, 0:2])
+sub4.set_aspect('equal')
+sub4.set_title("d) Gaussian smoothing", pad=10, family='sans-serif')
+sub4.axes.get_xaxis().set_visible(False)
+sub4.axes.get_yaxis().set_visible(False)
+
+for polygon in generalized.geometry:
+    poly1 = Path.make_compound_path(Path(numpy.asarray(polygon.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in polygon.interiors])
+    sub4.add_patch(PathPatch(poly1, facecolor="lightgrey", edgecolor='red'))
+
+generalized = c4.generalize_boundaries(gdf, c4.smooth_snake, 5, 0.1, 0.1, 1.0, 0.6)
+
+sub5 = fig.add_subplot(gs[2, 2:4])
+sub5.set_aspect('equal')
+sub5.set_title("e) Snake smoothing", pad=10, family='sans-serif')
+sub5.axes.get_xaxis().set_visible(False)
+sub5.axes.get_yaxis().set_visible(False)
+
+for polygon in generalized.geometry:
+    poly1 = Path.make_compound_path(Path(numpy.asarray(polygon.exterior.coords)[:, :2]),*[Path(numpy.asarray(ring.coords)[:, :2]) for ring in polygon.interiors])
+    sub5.add_patch(PathPatch(poly1, facecolor="lightgrey", edgecolor='red'))
 
 sub1.autoscale_view()
 sub2.autoscale_view()
+sub3.autoscale_view()
+sub4.autoscale_view()
+sub5.autoscale_view()
 
+plt.tight_layout()
 plt.show()

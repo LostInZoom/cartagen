@@ -4,8 +4,8 @@
 Polygons
 ========
 
-Simplification
---------------
+Boundaries
+----------
 
 .. currentmodule:: cartagen
 
@@ -13,10 +13,7 @@ Simplification
     :nosignatures:
     :toctree: reference/
 
-    boundaries_douglas_peucker
-    boundaries_visvalingam_whyatt
-    boundaries_raposo
-    boundaries_li_openshaw
+    generalize_boundaries
 
 Patches
 -------

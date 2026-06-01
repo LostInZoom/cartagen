@@ -15,6 +15,7 @@ Changelog
   #. New building typification algorithm :func:`typify_buildings_burghardt_cecconi <cartagen.typify_buildings_burghardt_cecconi>`.
   #. New line smoothing algorithm :func:`smooth_snake <cartagen.smooth_snake>`.
   #. New line simplification algorithm :func:`simplify_wang_muller<cartagen.simplify_wang_muller>`.
+  #. New meta-algorithm :func:`generalize_boundaries<cartagen.generalize_boundaries>` to apply line generalization algorithm to polygon while keeping topology.
 
 - **Improvements**:
 
@@ -28,6 +29,9 @@ Changelog
      as new building simplification are added.
   #. :func:`simplify_topographic <cartagen.smooth_topographic>` renamed to :func:`smooth_topographic <cartagen.smooth_topographic>`
      as it is more representative of its nature.
+  #. Removed :func:`boundaries_douglas_peucker <cartagen.boundaries_douglas_peucker>`, :func:`boundaries_visvalingam_whyatt <cartagen.boundaries_visvalingam_whyatt>`, 
+     :func:`boundaries_raposo <cartagen.boundaries_raposo>` and :func:`boundaries_li_openshaw <cartagen.boundaries_li_openshaw>` as it is now replaced by
+     :func:`generalize_boundaries<cartagen.generalize_boundaries>`.
 
 1.2
 ===
