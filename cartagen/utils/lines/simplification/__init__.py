@@ -5,4 +5,5 @@ from cartagen.utils.lines.simplification.li_openshaw import simplify_li_openshaw
 from cartagen.utils.lines.simplification.raposo import simplify_raposo
 from cartagen.utils.lines.simplification.reumann_witkam import simplify_reumann_witkam
 from cartagen.utils.lines.simplification.visvalingam_whyatt import simplify_visvalingam_whyatt
+from cartagen.utils.lines.simplification.wang_muller import simplify_wang_muller
 from cartagen.utils.lines.simplification.whirlpool import simplify_whirlpool

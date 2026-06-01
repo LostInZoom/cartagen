@@ -14,6 +14,7 @@ Changelog
   #. New polygon treatment algorithm :func:`remove_flat_vertices <cartagen.remove_flat_vertices>`.
   #. New building typification algorithm :func:`typify_buildings_burghardt_cecconi <cartagen.typify_buildings_burghardt_cecconi>`.
   #. New line smoothing algorithm :func:`smooth_snake <cartagen.smooth_snake>`.
+  #. New line simplification algorithm :func:`simplify_wang_muller<cartagen.simplify_wang_muller>`.
 
 - **Improvements**:
 

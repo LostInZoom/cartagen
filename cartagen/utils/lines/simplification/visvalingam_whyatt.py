@@ -48,6 +48,8 @@ def simplify_visvalingam_whyatt(geometry, threshold=None, number=None, ratio=Non
         Simplify a line or a polygon using an hexagonal tessellation.
     simplify_reumann_witkam :
         Simplify a line or polygon using a directional distance-based selection.
+    simplify_wang_muller :
+        Simplify a line or polygon using a bend-reduction method.
     simplify_whirlpool :
         Simplify a line or polygon using an epsilon-circle based selection.
 

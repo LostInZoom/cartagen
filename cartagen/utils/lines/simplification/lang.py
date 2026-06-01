@@ -49,6 +49,8 @@ def simplify_lang(geometry, tolerance, look_ahead=5):
         Simplify a line or polygon using a directional distance-based selection.
     simplify_visvalingam_whyatt :
         Simplify a line or polygon using an area-based selection.
+    simplify_wang_muller :
+        Simplify a line or polygon using a bend-reduction method.
     simplify_whirlpool :
         Simplify a line or polygon using an epsilon-circle based selection.
 
