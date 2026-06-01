@@ -24,6 +24,14 @@ def generalize_boundaries(polygons, algorithm, *args, **kwargs):
     Returns
     -------
     GeoDataFrame of Polygon
+
+    Example
+    -------
+    >>> poly1 = Polygon([(0, 0), (5, 0), (5, 2.5), (6, 2.5), (5, 5), (0, 5)])
+    >>> poly2 = Polygon([(5, 0), (10, 0), (10, 5), (5, 5), (6, 2.5), (5, 2.5)])
+    >>> gdf = gpd.GeoDataFrame(geometry=[poly1, poly2])
+    >>> list(c4.generalize_boundaries(gdf, c4.simplify_douglas_peucker, 5.0).geometry)
+    [ <POLYGON ((5 5, 5 0, 0 0, 5 5))>, <POLYGON ((5 0, 10 0, 10 5, 5 5, 6 2.5, 5 2.5, 5 0))> ]
     """
     polygons_simplified = polygons.copy()
     polygons_to_search = []
