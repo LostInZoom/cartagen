@@ -20,6 +20,7 @@ Simplification
     simplify_raposo
     simplify_reumann_witkam
     simplify_visvalingam_whyatt
+    simplify_wang_muller
     simplify_whirlpool
 
 Smoothing (filtering)
