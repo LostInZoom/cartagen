@@ -3,6 +3,11 @@
 Changelog
 #########
 
+1.4
+===
+
+Upcoming changes...
+
 1.3
 ===
 
