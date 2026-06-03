@@ -6,3 +6,4 @@ from cartagen.utils.geometry.polygon import (
     polygon_compactness, polygon_concavity, polygon_elongation,
     enclosing_rectangle, polygon_orientation, surfacic_distance, remove_flat_vertices
 )
+from cartagen.utils.geometry.vertices import remove_flat_vertices

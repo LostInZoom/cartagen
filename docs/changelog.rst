@@ -6,7 +6,9 @@ Changelog
 1.4
 ===
 
-Upcoming changes...
+- **Improvements**:
+
+  #. Adapt :func:`remove_flat_vertices <cartagen.remove_flat_vertices>` to input all geometry types.
 
 1.3
 ===
