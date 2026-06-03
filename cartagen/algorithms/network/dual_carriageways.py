@@ -288,7 +288,7 @@ def collapse_dual_carriageways(roads, carriageways, propagate_attributes=None, s
             
             # Calculate the skeleton
             skeleton = SkeletonTIN(face)
-            skeleton.add_incoming_lines(incoming)
+            skeleton.add_incoming_lines(gpd.GeoDataFrame(incoming))
             skeleton.create_network()
             skeleton.blend(attributes, sigma=sigma, blend_smoothing=blend_smoothing)
             skeletons.append(gpd.GeoDataFrame(skeleton.blended, crs=crs))

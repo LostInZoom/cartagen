@@ -47,7 +47,7 @@ for n in network:
 original = gpd.GeoDataFrame(original)
 selection = c4.detect_dual_carriageways(original)
 generalized1 = c4.collapse_dual_carriageways(original, selection)
-generalized2 = c4.collapse_dual_carriageways(original, selection, sigma=3)
+generalized2 = c4.collapse_dual_carriageways(original, selection, sigma=3, blend_smoothing=True)
 
 for o in original.geometry:
     path1 = Path(numpy.asarray(o.coords)[:, :2])
