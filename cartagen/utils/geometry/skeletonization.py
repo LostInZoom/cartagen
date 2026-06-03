@@ -304,8 +304,8 @@ class SkeletonTIN:
         """
         entries = []
         boundary = list(self.polygon.boundary.coords)
-        self.incoming = lines
-        externals = [ i['geometry'] for i in lines ]
+        self.incoming = lines.to_dict('records')
+        externals = [ i for i in lines.geometry ]
 
         # Loop through provided lines
         for line in externals:
