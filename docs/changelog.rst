@@ -44,7 +44,7 @@ Changelog
   #. New line smoothing algorithm :func:`smooth_wma <cartagen.smooth_wma>`.
   #. New line simplification algorithm :func:`simplify_angular <cartagen.simplify_angular>`.
   #. New line simplification algorithm :func:`simplify_topographic <cartagen.smooth_topographic>`.
-  #. New area patches generalisation algorithm :func:`generalise_area_patches <cartagen.generalise_area_patches>`.
+  #. New area patches generalisation algorithm :func:`generalize_area_patches <cartagen.generalize_area_patches>`.
 
 1.1
 ===

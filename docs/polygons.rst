@@ -24,7 +24,7 @@ Patches
     :nosignatures:
     :toctree: reference/
 
-    generalise_area_patches
+    generalize_area_patches
 
 Collapsing
 ----------

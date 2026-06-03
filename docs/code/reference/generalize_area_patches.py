@@ -42,7 +42,7 @@ polygons = [
 ]
 
 areas = gpd.GeoDataFrame(geometry=polygons, crs=3857)
-patches = c4.generalise_area_patches(areas, 10, 50000, 100000)
+patches = c4.generalize_area_patches(areas, 10, 50000, 100000)
 
 import matplotlib.gridspec as gridspec
 fig = plt.figure(1, (12, 12))

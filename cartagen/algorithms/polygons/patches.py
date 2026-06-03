@@ -9,7 +9,7 @@ from shapely.geometry import Point, MultiPoint, LineString, MultiLineString, Lin
 
 from cartagen.utils.lines.smoothing.topographic import smooth_topographic
 
-def generalise_area_patches(polygons, scaling, initial_scale=25000, final_scale=50000, level=1, closeness=None, max_reselect_iterations=5, area_tolerance=0.2):
+def generalize_area_patches(polygons, scaling, initial_scale=25000, final_scale=50000, level=1, closeness=None, max_reselect_iterations=5, area_tolerance=0.2):
     """
     Generalise area patches using enlargement and contraction. 
 
