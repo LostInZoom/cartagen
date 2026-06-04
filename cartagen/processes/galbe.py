@@ -12,20 +12,12 @@ from cartagen.utils.lines.smoothing.gaussian import smooth_gaussian
 from cartagen.utils.lines.smoothing.platre import smooth_platre
 
 def galbe(
-    network: gpd.GeoDataFrame,
-    width: float,
-    exaggeration: float = 1.0,
-    legibility_factor: float = 1.7,
-    sigma_smooth: float = 5,
-    sigma_platre: float = 1,
-    curvature_platre: float = 0.05,
-    hausdorff_threshold: Optional[float] = 100.0,
-    sample: Optional[int] = None,
-    propagation_distance: Optional[float] = None,
-    damping: float = 0.1,
-    tolerance: float = 1e-6,
-    inplace: bool = False
-) -> gpd.GeoDataFrame:
+    network, width, exaggeration=1.0, legibility_factor=1.7,
+    sigma_smooth=5, sigma_platre=1, curvature_platre=0.05,
+    hausdorff_threshold=100.0, sample=None,
+    propagation_distance=None, damping=0.1,
+    tolerance=1e-6, inplace=False
+):
     """
     Generalize sinuous mountain roads.
     
@@ -142,11 +134,8 @@ def galbe(
                 print('accordion')
 
                 # Try accordion first (destructive)
-                accordion_result, vectors = accordion(part, width, exaggeration)
+                accordion_result = accordion(part, width, exaggeration)
 
-                vectors_export.extend(vectors)
-                # plot_debug(part, accordion_result)
-                
                 # Check Hausdorff distance
                 temp = processed_parts.copy()
                 propagation_network(temp, part_idx, accordion_result, propagation_distance, damping, tolerance, inplace=True)
@@ -189,6 +178,7 @@ def galbe(
         # Step 4: Apply light Platre smoothing to remove artifacts from chaining
         final_line = smooth_platre(chained_line, sigma=sigma_platre, curvature=curvature_platre)
         
+        # Réactivez ce block pour revenir en arrière en cas d'erreur topologique
         # # Step 5: Check for self-intersection (topology error)
         # if not final_line.is_simple:
         #     print('topology_error')
@@ -201,8 +191,6 @@ def galbe(
             final_modifications.append((idx, final_line))
             network.at[idx, 'geometry'] = final_line
     
-    gpd.GeoDataFrame(geometry=vectors_export, crs=3857).to_file('test/vectors.geojson')
-
     return network
 
 def __chain_line(lines):

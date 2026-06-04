@@ -1,0 +1,2 @@
+The issue is with the accordion algorithm. There is an issue with the translation vector that spread the bend series.
+Sometimes, the vector is inverted at the summit of a bend and the bend then collapses on itself, thus, the topological errors.
