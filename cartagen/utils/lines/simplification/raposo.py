@@ -1,3 +1,5 @@
+import warnings
+
 from shapely.ops import transform, nearest_points
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
 
@@ -91,7 +93,7 @@ def simplify_raposo(geometry, initial_scale, final_scale, centroid=True, tobler=
         
         # VALIDITY CHECK: A LinearRing must have at least 4 coordinates
         if len(simplified_exterior.coords) < 4:
-            # Option A: Return an empty geometry (it will be filtered out in the main loop)
+            warnings.warn("Simplification resulted in fewer than 4 points for the exterior ring. Returning empty polygon.")
             return Polygon() 
             # Option B: return geom (if you want to keep the original instead of deleting it)
         
@@ -187,5 +189,10 @@ def simplify_raposo(geometry, initial_scale, final_scale, centroid=True, tobler=
             final_coords.append(final_coords[0])
     elif coords_2d[-1] != final_coords[-1]:
         final_coords.append(coords_2d[-1])
-        
+
+    if len(final_coords) < 2:
+        # If simplification results in too few points, return original geometry
+        warnings.warn("Simplification resulted in fewer than 2 points. Returning original geometry. A cell resolution larger than the polygon size may cause this.")
+        return geometry
+
     return LineString(final_coords)
