@@ -4,6 +4,7 @@
 # --------------------------------------------------------
 
 import math
+import warnings
 import numpy as np
 from shapely.geometry import (LineString, MultiLineString, Polygon, MultiPolygon, LinearRing, Point)
 from shapely.ops import unary_union, polygonize
@@ -97,6 +98,7 @@ def simplify_wang_muller(geometry, tolerance):
 
         # A valid LinearRing requires at least 4 coordinates (3 unique + closing point)
         if len(simplified_ext) < 4:
+            warnings.warn("Simplification resulted in fewer than 4 points for the exterior ring. Returning empty polygon.")
             return Polygon()
 
         exterior_ring = LinearRing(simplified_ext)
@@ -121,6 +123,7 @@ def simplify_wang_muller(geometry, tolerance):
         coords = list(geometry.coords)
         simplified = _simplify_coords(coords, is_closed=True, tolerance=tolerance)
         if len(simplified) < 4:
+            warnings.warn("Simplification resulted in fewer than 4 points for the linear ring. Returning empty linear ring.")
             return LinearRing()
         return LinearRing(simplified)
 
@@ -214,6 +217,8 @@ class _RbGeom:
     @property
     def linestring(self):
         """Return the current geometry as a Shapely LineString."""
+        if len(self.coords) < 2:
+            return LineString()
         return LineString(self.coords)
 
     def length(self):
