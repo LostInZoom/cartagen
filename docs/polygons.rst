@@ -25,6 +25,7 @@ Patches
     :toctree: reference/
 
     generalize_area_patches
+    detect_polygon_patches_structures
 
 Collapsing
 ----------
