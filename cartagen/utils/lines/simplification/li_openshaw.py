@@ -1,6 +1,7 @@
 import shapely
 import numpy as np
 import geopandas as gpd
+import warnings
 from shapely.geometry import LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
 
 from cartagen.utils.partitioning import partition_grid
@@ -147,5 +148,10 @@ def simplify_li_openshaw(geometry, cell_size, preserve_extremities=True):
             simplified.insert(0, tuple(coords[0]))
         if simplified[-1] != tuple(coords[-1]):
             simplified.append(tuple(coords[-1]))
+    
+    if len(simplified) < 2:
+        # If simplification results in too few points, return original geometry
+        warnings.warn("Simplification resulted in fewer than 2 points. Returning original geometry. A cell_size larger than the polygon size may cause this.")
+        return geometry
     
     return LineString(simplified)
