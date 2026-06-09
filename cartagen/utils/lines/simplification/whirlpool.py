@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, LinearRing
 
@@ -71,6 +73,7 @@ def simplify_whirlpool(geometry, threshold):
         # VALIDITY CHECK: A LinearRing must have at least 4 coordinates
         if len(simplified_exterior.coords) < 4:
             # Option A: Return an empty geometry (it will be filtered out in the main loop)
+            warnings.warn("Simplification resulted in fewer than 4 points for the exterior ring. Returning empty polygon.")
             return Polygon() 
             # Option B: return geom (if you want to keep the original instead of deleting it)
         
@@ -116,5 +119,10 @@ def simplify_whirlpool(geometry, threshold):
     # On s'assure que le dernier point de la ligne originale est conservé pour la forme
     if tuple(coords[-1]) not in simplified_coords:
         simplified_coords.append(coords[-1])
+
+    if len(simplified_coords) < 2:
+        # If simplification results in too few points, return original geometry
+        warnings.warn("Simplification resulted in fewer than 2 points. Returning original geometry. The threshold may be too high for this polygon.")
+        return geometry
 
     return LineString(simplified_coords)
