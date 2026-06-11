@@ -82,6 +82,12 @@ following template:
       .. footbibliography::
       """
 
+**Adding new Algorithm to the Qgis Plug-In**
+If there's an algorithm in CartAgen and you want to see in the Qgis Plug-In, you can add it by forking the GitHub repository of the QGis Plug-In. 
+You then choose the group in wich it fits. 
+To write the code needed to use the algorithm in QGis, you can use this `module. <cartagen\docs\_static\creation class qgis.py>`_
+
+
 Contributors
 ============
 
