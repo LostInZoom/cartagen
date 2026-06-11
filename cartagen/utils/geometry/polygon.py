@@ -110,6 +110,8 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
     and the fitting rectangle (usually the minimum area) can
     be retrieved.
 
+    This algorithm removes the inner rings of the polygon.
+
     Parameters
     ----------
     polygon : Polygon
@@ -158,7 +160,7 @@ def enclosing_rectangle(polygon, mode='hull', property='minimum area'):
         raise Exception('Chosen property for bounding rectangle not handled: {0}.'.format(property))
 
     # Retrieve the boundary list of coordinates
-    boundary = polygon.boundary
+    boundary = polygon.exterior
 
     if shapely.is_ccw(boundary):
         boundary.reverse()
@@ -444,7 +446,7 @@ def polygon_orientation(polygon, method='mbr'):
             mbr = polygon
 
         # list its vertexes
-        coords = list(mbr.boundary.coords)
+        coords = list(mbr.exterior.coords)
 
         length = 0
         longest = None
