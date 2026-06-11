@@ -1,6 +1,6 @@
 import shapely
 import numpy as np
-from shapely import Point, Polygon, LineString
+from shapely import Point, Polygon, MultiPolygon
 
 from cartagen.utils.geometry.angle import angle_2_pts
 from cartagen.utils.geometry.polygon import enclosing_rectangle
@@ -43,7 +43,8 @@ def regularize_building_regression(polygon, sigma):
     -----
     This algorithm always squares the provided polygon, this can create
     strange results when using on polygons that are not supposed to be square.
-
+    This algorithm removes the inner rings of the polygon, so it is not adapted for regularizing buildings with inner courtyard for example.
+    
     References
     ----------
     .. footbibliography::
@@ -277,7 +278,7 @@ def regularize_building_regression(polygon, sigma):
     extent = mbr_coords[:-1]
 
     # Get rotated polygon vertexes
-    coords = list(rotated_polygon.boundary.coords)[:-1]
+    coords = list(rotated_polygon.exterior.coords)[:-1]
 
     # Reorder the polygon vertex so it starts
     # in the lower left corner of the mbr
