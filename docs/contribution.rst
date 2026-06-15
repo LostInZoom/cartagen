@@ -4,7 +4,7 @@ Contribution
 ############
 
 In the spirit of open-source development, you are encouraged to enhance this Python
-library with you own contributions by forking the `GitHub repository. <https://github.com/LostInZoom/cartagen>`_
+library with your own contributions by forking the `GitHub repository. <https://github.com/LostInZoom/cartagen>`_
 You can contribute in different ways, either by implementing new algorithms, resolving known bugs,
 proposing enhancements for already-present algorithms, *etc.*
 
@@ -18,8 +18,8 @@ Here are some guidelines to help you implement your generalisation algorithms in
 As a general rule of thumb, we ask you to:
 
 #. Use GeoPandas GeoDataFrame as input and output if your algorithm relies on attributes
-   or need multiple geometries as context for generalisation. But please never relies on
-   column names or specific CRS.
+   or need multiple geometries as context for generalisation. But please never rely on
+   specific column names or specific CRS.
 
 #. Use Shapely Geometry types as input and output if your algorithm relies on single geometries, try to
    anticipate input geometry types to avoid breakage (MultiGeometry for example).
@@ -30,6 +30,8 @@ As a general rule of thumb, we ask you to:
 #. If your algorithm can be decomposed into multiple functions which have their place as standalone algorithms,
    implement both of them separately. For example, :func:`partition_grid <cartagen.partition_grid>` relies on
    :func:`tessellate <cartagen.tessellate>`, thus, those two functions have been implemented separately.
+
+#. Please comment your code as much as possible, preferably in English.
 
 As you might have seen if you've taken a look at the repository, algorithms are not
 developped homogeneously throughout the library, this is because different people

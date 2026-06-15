@@ -65,11 +65,16 @@ final scale of the map.
 
 At large scale, maybe we need to keep the individual buildings without modifying their geometry and the
 space inside the building block is enough for the buildings to be moved. Thus,
-we can use the :func:`random displacement <cartagen.random_displacement>` algorithm.
+we can use the :func:`random displacement <cartagen.random_displacement>` algorithm, or the 
+:func:`simulated annealing displacement <cartagen.displacement_buildings_simulated_annealing>` algorithm.
 
 .. plot:: code/manual/buildings_displacement.py
-
+    
     Random displacement of buildings inside the building block
+
+.. plot:: code/manual/buildings_displacement2.py
+    
+    Displacement of buildings inside the building block with a simulated annealing algorithm
 
 Still at large scale, sometimes there is not enough space inside the building block to move
 the buildings around. It often is the case in urban areas, where buildings are touching each other.

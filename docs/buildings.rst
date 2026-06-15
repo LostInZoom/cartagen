@@ -67,3 +67,4 @@ Building blocks
     amalgamate_buildings_morphological
     boffet_areas
     random_displacement
+    displacement_buildings_simulated_annealing
