@@ -117,8 +117,13 @@ def spinalize_polygon(polygon, densify=None, sigma=None, entries=None, structura
     lines = []
     for v in voronoi:
         l = shapely.intersection(polygon, v)
-        if len(l.coords) > 0:
-            lines.append({'geometry': l})
+        if l.geom_type == 'LineString':
+            if len(l.coords) > 0:
+                lines.append({'geometry': l})
+        elif l.geom_type == 'MultiLineString':
+            for p in l.geoms:
+                if len(p.coords) > 0:
+                    lines.append({'geometry': p})
 
     graph = create_graph(gpd.GeoDataFrame(lines))
     nodes = graph.nodes
