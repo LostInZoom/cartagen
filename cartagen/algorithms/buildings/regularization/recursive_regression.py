@@ -386,10 +386,15 @@ def regularize_building_regression(polygon, sigma):
     
     # Add the intersection between the last and first segment
     # as the first vertex of the polygon
-    intersections.insert(0, intersections[-1])
+    if len(intersections) > 0:
+        intersections.insert(0, intersections[-1])
     # Create the polygon, applying a buffer of 0 make the geometry
     # valid as sometimes the polygon may be self intersecting
     unrotated = Polygon(intersections).buffer(0)
+
+    # if the polygon is empty, return the original polygon
+    if unrotated.is_empty:
+        return polygon
 
     # Rotate the polygon back its original position
     return shapely.affinity.rotate(unrotated, original_angle, origin=mbr_coords[0], use_radians=True)
