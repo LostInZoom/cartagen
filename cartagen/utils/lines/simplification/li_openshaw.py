@@ -59,11 +59,11 @@ def simplify_li_openshaw(geometry, cell_size, preserve_extremities=True):
     """
     # --- 1. Recursive handling for Multi-geometries ---
     if geometry.geom_type == 'MultiLineString':
-        geoms = [simplify_li_openshaw(geometry, cell_size, preserve_extremities) for g in geometry.geoms]
+        geoms = [simplify_li_openshaw(g, cell_size, preserve_extremities) for g in geometry.geoms]
         return MultiLineString(geoms)
 
     if geometry.geom_type == 'MultiPolygon':
-        geoms = [simplify_li_openshaw(geometry, cell_size, preserve_extremities) for g in geometry.geoms]
+        geoms = [simplify_li_openshaw(g, cell_size, preserve_extremities) for g in geometry.geoms]
         return MultiPolygon(geoms)
 
     # --- 2. Handling Polygons ---

@@ -72,11 +72,11 @@ def simplify_visvalingam_whyatt(geometry, threshold=None, number=None, ratio=Non
 
     # --- 1. Recursive handling for Multi-geometries ---
     if geometry.geom_type == 'MultiLineString':
-        geoms = [simplify_visvalingam_whyatt(geometry, threshold, number, ratio) for g in geometry.geoms]
+        geoms = [simplify_visvalingam_whyatt(g, threshold, number, ratio) for g in geometry.geoms]
         return MultiLineString(geoms)
 
     if geometry.geom_type == 'MultiPolygon':
-        geoms = [simplify_visvalingam_whyatt(geometry, threshold, number, ratio) for g in geometry.geoms]
+        geoms = [simplify_visvalingam_whyatt(g, threshold, number, ratio) for g in geometry.geoms]
         return MultiPolygon(geoms)
 
     # --- 2. Handling Polygons ---

@@ -66,11 +66,11 @@ def simplify_lang(geometry, tolerance, look_ahead=5):
     """
     # --- 1. Recursive handling for Multi-geometries ---
     if geometry.geom_type == 'MultiLineString':
-        geoms = [simplify_lang(geometry, tolerance, look_ahead) for g in geometry.geoms]
+        geoms = [simplify_lang(g, tolerance, look_ahead) for g in geometry.geoms]
         return MultiLineString(geoms)
 
     if geometry.geom_type == 'MultiPolygon':
-        geoms = [simplify_lang(geometry, tolerance, look_ahead) for g in geometry.geoms]
+        geoms = [simplify_lang(g, tolerance, look_ahead) for g in geometry.geoms]
         return MultiPolygon(geoms)
 
     # --- 2. Handling Polygons ---

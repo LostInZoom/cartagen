@@ -66,11 +66,11 @@ def simplify_reumann_witkam(geometry, tolerance):
     """
     # --- 1. Recursive handling for Multi-geometries ---
     if geometry.geom_type == 'MultiLineString':
-        geoms = [simplify_reumann_witkam(geometry, tolerance) for g in geometry.geoms]
+        geoms = [simplify_reumann_witkam(g, tolerance) for g in geometry.geoms]
         return MultiLineString(geoms)
 
     if geometry.geom_type == 'MultiPolygon':
-        geoms = [simplify_reumann_witkam(geometry, tolerance) for g in geometry.geoms]
+        geoms = [simplify_reumann_witkam(g, tolerance) for g in geometry.geoms]
         return MultiPolygon(geoms)
 
     # --- 2. Handling Polygons ---
