@@ -63,54 +63,33 @@ def accordion(line, width, exaggeration=1.0, sigma=15.0, sample=None):
     distorted = []
     
     for b in bs.bends:
-        # Get the translation vector
-        v = __get_vector(b, width * exaggeration)
-
-        # If the vector could not be found, keep the original bend
-        if v is None:
-            distorted.append(b.bend)
-            continue
-
-        # Retrieve bend coordinates
+        # Get the bend coordinates
         coords = list(b.bend.coords)
-        
-        # Vérifier qu'il y a assez de points
+
         if len(coords) < 2:
             distorted.append(b.bend)
             continue
-        
-        # Précalculer les Points
+
         points = [Point(c) for c in coords]
         start, end = points[0], points[-1]
 
-        # Calculate the vector formed by the start and end point of the bend
+        # Keep the existing intersection-based eligibility check
+        if __get_vector(b, width * exaggeration) is None:
+            distorted.append(b.bend)
+            continue
+
+        # Build the normal from the bend chord
         vab = Vector2D.from_points(start, end)
+        v = Vector2D.from_point(Point(-vab.y, vab.x))
 
-        # Calculate the scalar product between the translation vector
-        # and the vector formed by the start and end point of the bend
-        scalar = v.scalar_product(vab)
-
-        inverted = False
-
-        # If the scalar product is negative, inverse the translation vector
-        if scalar < 0:
-            v = v.opposite()
-
-        # Calculate the summit
+        # Select the side containing the bend summit
         summit = b.get_bend_summit()
-
-        # Calculate the vector formed by the start and the summit of the bend
         vas = Vector2D.from_points(start, summit)
 
-        # Calculate the vector product of vas and vab
-        product = vas.product(vab)
-
-        # Check that the closed bend is clockwise
-        clockwise = not shapely.is_ccw(LineString(coords + [coords[0]]))
-
-        # Inverse the vector by comparing product and clockwise flag
-        if (clockwise and product > 0) or (not clockwise and product < 0):
+        if vab.product(vas) < 0:
             v = v.opposite()
+
+        v = v.change_norm(width * exaggeration)
 
         # Calculer la longueur totale et les distances entre points
         length = b.bend.length
