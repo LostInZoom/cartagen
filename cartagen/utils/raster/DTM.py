@@ -3,9 +3,30 @@ from scipy.ndimage import convolve
 
 def compute_curvature_and_slope(dem, cellsize):
     """
-    Computes approximations of curvature (profile/plan) and slope.
-    Based on finite differences (Wilson & Gallant, 2000).
+    Computes approximations of the curvature (profile/plan) and the slope in an input DEM.
+    Based on finite differences by Wilson & Gallant :footcite:p:`wilson:2000`.
+            
+    Parameters
+    ----------
+    dem : numpy.ndarray
+        The input DEM array.
+    cellsize : float
+        The cell size of the DEM.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the curvature and slope arrays.
+   
+    See Also
+    --------
+    calculate_hillshade : Calculate the hillshade of a DEM.
+    
+    References
+    ----------
+    .. footbibliography::
     """
+
     # Gradients horizontaux et verticaux (premières dérivées)
     zy, zx = np.gradient(dem, cellsize)
     
@@ -26,6 +47,33 @@ def compute_curvature_and_slope(dem, cellsize):
     return laplacien, pente
 
 def calculate_hillshade(dem, azimuth, altitude, cell_size=1.0):
+    """
+    Computes the hillshade of an input DEM based on pure numpy operations.
+    Uses the standard Horn formula (as used by ArcGIS/QGIS).
+                
+    Parameters
+    ----------
+    dem : numpy.ndarray
+        The input DEM array.
+    azimuth : float
+        The azimuth angle of the light source in degrees.
+    altitude : float
+        The altitude angle of the light source in degrees.
+    cell_size : float
+        The cell size of the hillshade array.
+    
+    Returns
+    -------
+    numpy array
+        A hillshade array representing the shaded relief of the DEM.
+       
+    See Also
+    --------
+    compute_curvature_and_slope : Calculate the curvature and slope of a DEM.
+        
+    References
+    ----------
+    """
     """
     Calcule l'ombrage analytique d'un MNT en utilisant des opérations Numpy pures.
     Formule standard de Horn (utilisée par ArcGIS/QGIS).
