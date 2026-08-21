@@ -1,4 +1,8 @@
-from typing import List, Dict, Literal, Tuple
+from typing import List, Dict, Tuple
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 import numpy as np
 import shapely
 from shapely import Point, LineString

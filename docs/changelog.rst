@@ -6,9 +6,29 @@ Changelog
 1.4
 ===
 
+- **New features**:
+
+ #. New function to generalize mountain roads combining several algorithms, based on S. Mustière's GALBE :func:`galbe <cartagen.galbe>`.
+ #. New function to displace buildings with a simulated annealing algorithm, based on (Ware et al., 2003) :func:`displacement_buildings_simulated_annealing <cartagen.displacement_buildings_simulated_annealing>`.
+ #. New module to help developers to add cartagen algorithms into the QGIS plugin.
+ #. New data enrichment function to detect area-patch structures, based on the work By S. Steiniger :func:`detect_polygon_patches_structures <cartagen.detect_polygon_patches_structures>`.
+ #. New function with the introduction of the Elastic Beams from M. Bader (Univ. Zurich) to displace lines :func:`beams_displacement <cartagen.beams_displacement>`.
+ #. The first terrain generalisation algorithms are now available in CartAGen.
+ #. New functions for the propagation of transformations along a network :func:`propagation_network <cartagen.propagation_network>` and :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
+
 - **Improvements**:
 
   #. Adapt :func:`remove_flat_vertices <cartagen.remove_flat_vertices>` to input all geometry types.
+  #. Fixed :func:`regularize_building_regression <cartagen.regularize_building_regression>` to avoid crashes when regularizing buildings (issue #36).
+  #. Fixed :func:`spinalize_polygon <cartagen.spinalize_polygon>` (issue #46).
+  #. Fixed :func:`accordion <cartagen.accordion>` (issue #38).
+  #. Fixed all line simplification algorithms that were crashing when inputing multi-part geometries (issue #48).
+  #. Fixed :func:`regularize_building_rectangle <cartagen.regularize_building_rectangle>` (and a few other functions) to input polygon with holes(issue #35).
+  #. Fixed :func:`simplify_raposo <cartagen.simplify_raposo>` to avoid crashes when inputing a geometry too small for the given output scale with Tobler=true (issue #42).
+  #. Fixed :func:`simplify_whirlpool <cartagen.simplify_whirlpool>` to avoid crashes when inputing a geometry too small for the given parameters (issue #41).
+  #. Fixed :func:`simplify_wang_muller <cartagen.simplify_wang_muller>` to avoid crashes when inputing a geometry too small for the given parameters (issue #40).
+  #. Fixed :func:`simplify_li_openshaw <cartagen.simplify_li_openshaw>` to avoid crashes when inputing a geometry too small for the given parameters (issue #39).
+  #. Fixed :func:`collapse_dual_carriageways <cartagen.collapse_dual_carriageways>` to avoid crashes when there are three connected dual carriageways in a row.
 
 1.3
 ===

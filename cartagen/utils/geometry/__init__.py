@@ -7,3 +7,4 @@ from cartagen.utils.geometry.polygon import (
     enclosing_rectangle, polygon_orientation, surfacic_distance
 )
 from cartagen.utils.geometry.vertices import remove_flat_vertices
+from cartagen.utils.geometry.conversion import multi_to_simple, convert_3d_to_2d

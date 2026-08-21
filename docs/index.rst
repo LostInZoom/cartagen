@@ -179,4 +179,5 @@ Enrich your cartographic data
    networks
    bends
    processes
+   terrain
    tools

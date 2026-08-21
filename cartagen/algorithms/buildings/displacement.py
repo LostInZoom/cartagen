@@ -222,7 +222,7 @@ def displacement_buildings_simulated_annealing(
     ----------
     polygons : GeoDataFrame of Polygon
         The buildings to displace.
-    networks : list of GeoDataFrame of LineString, optional
+    networks : list of LineString, optional
         A list of networks the polygons need to be moved away from.
         If left to None, polygons will only be moved away from each other.
     d_min1 : float, optional

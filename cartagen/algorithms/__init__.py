@@ -5,3 +5,4 @@ from cartagen.algorithms.network import *
 from cartagen.algorithms.points import *
 from cartagen.algorithms.polygons import *
 from cartagen.algorithms.propagation import *
+from cartagen.algorithms.terrain import *
