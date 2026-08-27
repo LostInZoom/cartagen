@@ -88,9 +88,9 @@ following template:
 Adding new Algorithm to the Qgis Plug-In
 ============
 If you are interested in a CartAgen algorithm and would like to see it integrated into the QGIS plugin, you can add it!
-Start by creating a fork of the QGIS plugin’s `GitHub repository.<https://github.com/LostInZoom/cartagen-qgis>`_
+Start by creating a fork of the QGIS plugin’s `GitHub repository. <https://github.com/LostInZoom/cartagen-qgis>`_
 Then choose the relevant algorithm group (points, buildings, movement, etc.).
-To write the code required to use the algorithm in QGIS, you can use this `module <https://raw.githubusercontent.com/LostInZoom/cartagen/refs/heads/main/docs/_static/creation_class_qgis.py>`_
+To write the code required to use the algorithm in QGIS, you can use this :download:`module <https://raw.githubusercontent.com/LostInZoom/cartagen/refs/heads/main/docs/_static/creation_class_qgis.py>`_
 It makes it easier to add the algorithm by generating part of the Python code.
 The function provided takes as input a copy-and-paste from the documentation of the existing function.
 Once you have written your code, don’t forget to edit the `__init.py__` file in your algorithm’s group, as well as the `provider.py` file, in order to ‘activate’ the algorithm.
