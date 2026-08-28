@@ -15,6 +15,7 @@ Changelog
  #. New function with the introduction of the Elastic Beams from M. Bader (Univ. Zurich) to displace lines :func:`beams_displacement <cartagen.beams_displacement>`.
  #. The first terrain generalisation algorithms are now available in CartAGen.
  #. New functions for the propagation of transformations along a network :func:`propagation_network <cartagen.propagation_network>` and :func:`propagation_crow_flies <cartagen.propagation_crow_flies>`.
+ #. Two new algorithms to select the important roads in a road network :func:`mesh_density_selection <cartagen.mesh_density_selection>` and :func:`street_selection <cartagen.street_selection>`.
 
 - **Improvements**:
 

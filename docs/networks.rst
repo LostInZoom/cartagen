@@ -32,6 +32,18 @@ Continuity
     strokes_roads
     strokes_rivers
 
+Selection
+----------
+
+.. currentmodule:: cartagen
+
+.. autosummary::
+    :nosignatures:
+    :toctree: reference/
+
+    street_selection
+    mesh_density_selection
+
 Collapsing
 ----------
 
