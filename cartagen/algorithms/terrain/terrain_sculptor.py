@@ -1,7 +1,7 @@
 import numpy as np
 import rasterio
 from scipy.ndimage import uniform_filter, gaussian_filter
-from cartagen.utils.raster.DTM import compute_curvature_and_slope
+from cartagen.utils.raster.DTM import calculate_curvature_and_slope
 
 def sculpt_dtm(input_path, output_path, 
                     base_filter_size=15, 
@@ -68,7 +68,7 @@ def sculpt_dtm(input_path, output_path,
     # --- ÉTAPE 2 : Détection des structures par courbure ---
     # On lisse le MNT d'origine avant de calculer les courbures pour enlever le bruit
     dem_pre_courbure = uniform_filter(dem, size=curvature_filter_size)
-    courbure, _ = compute_curvature_and_slope(dem_pre_courbure, cellsize)
+    courbure, _ = calculate_curvature_and_slope(dem_pre_courbure, cellsize)
     
     # --- ÉTAPE 3 : Modèles exagérés et creusés ---
     # On crée une surface accentuée vers le haut (crêtes) et vers le bas (vallées)
@@ -88,7 +88,7 @@ def sculpt_dtm(input_path, output_path,
     
     # --- ÉTAPE 5 : Recombinaison finale via la Pente (Slope mask) ---
     # Calcul de la pente sur le modèle lissé pour séparer plaine et montagne
-    _, pente_lisse = compute_curvature_and_slope(dem_lisse, cellsize)
+    _, pente_lisse = calculate_curvature_and_slope(dem_lisse, cellsize)
     # Filtre passe-bas sur la pente pour adoucir la transition (Figure 3G)
     pente_lisse_floue = gaussian_filter(pente_lisse, sigma=5)
     
