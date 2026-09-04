@@ -4,6 +4,8 @@ geopandas
 matplotlib
 networkx
 scipy
+rasterio
+scikit-image
 sphinx-book-theme
 sphinx-remove-toctrees
 sphinxcontrib-bibtex
