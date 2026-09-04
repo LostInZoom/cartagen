@@ -42,6 +42,7 @@ dependencies = [
     "networkx",
     "scipy",
     "rasterio",
+    "scikit-image",
 ]
 
 [project.urls]
