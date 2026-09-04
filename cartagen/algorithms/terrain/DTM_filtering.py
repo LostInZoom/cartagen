@@ -87,7 +87,7 @@ def douglas_peucker_3d_DTM(input_path, output_path, epsilon=5.0):
 
     References
     ----------
-    .. figure:: img/douglas_peucker_3d.png
+    .. figure:: ./img/douglas_peucker_3d.png
     .. footbibliography::
     """
     # 1. Lecture du MNT d'origine avec Rasterio
