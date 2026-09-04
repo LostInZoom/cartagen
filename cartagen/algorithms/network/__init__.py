@@ -3,3 +3,4 @@ from cartagen.algorithms.network.dead_ends import eliminate_dead_ends
 from cartagen.algorithms.network.dual_carriageways import collapse_dual_carriageways
 from cartagen.algorithms.network.junctions import collapse_junctions
 from cartagen.algorithms.network.roundabouts import collapse_roundabouts
+from cartagen.algorithms.network.road_selection import mesh_density_selection, street_selection

@@ -13,8 +13,8 @@ DTM generalisation
     :nosignatures:
     :toctree: reference/
 
-    terrain_sculptor
-    douglas_peucker_3d
+    sculpt_dtm
+    douglas_peucker_3d_DTM
 
 DTM tools
 -----
