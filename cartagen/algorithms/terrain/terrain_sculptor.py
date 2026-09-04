@@ -49,7 +49,7 @@ def sculpt_dtm(input_path, output_path,
 
     References
     ----------
-    .. figure:: ./img/terrain_sculptor.png
+    .. figure:: ../img/terrain_sculptor.png
     .. footbibliography::
     """
 
