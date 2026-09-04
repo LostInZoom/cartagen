@@ -1,4 +1,4 @@
-﻿cartagen.douglas_peucker_3d
+﻿cartagen.douglas_peucker_3d_DTM
 =====================
 
 .. currentmodule:: cartagen

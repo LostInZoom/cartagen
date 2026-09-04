@@ -3,6 +3,11 @@
 Changelog
 #########
 
+1.4.2
+===
+- **Improvements**:
+    #. Fixed the documentation problems for several new functions added in 1.4.0 and 1.4.1.
+
 1.4
 ===
 

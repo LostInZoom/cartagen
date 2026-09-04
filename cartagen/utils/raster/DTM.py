@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.ndimage import convolve
 
-def compute_curvature_and_slope(dem, cellsize):
+def calculate_curvature_and_slope(dem, cellsize):
     """
     Computes approximations of the curvature (profile/plan) and the slope in an input DEM.
     Based on finite differences by Wilson & Gallant :footcite:p:`wilson:2000`.
@@ -69,7 +69,7 @@ def calculate_hillshade(dem, azimuth, altitude, cell_size=1.0):
        
     See Also
     --------
-    compute_curvature_and_slope : Calculate the curvature and slope of a DEM.
+    calculate_curvature_and_slope : Calculate the curvature and slope of a DEM.
         
     References
     ----------

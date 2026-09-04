@@ -10,9 +10,9 @@ def sculpt_dtm(input_path, output_path,
                     excavation_factor=1.5, 
                     slope_threshold=0.05):
     """
+    This algorithm generalizes a Digital Terrain Model (DTM) by smoothing the terrain while preserving significant features such as ridges and valleys.
     Implementation of the "Terrain Sculptor" algorithm from Leonowicz *et al.* :footcite:p:`leonowicz:2010`.
-    This algorithm generalizes a Digital Terrain Model (DTM) by smoothing the terrain while preserving significant 
-    features such as ridges and valleys. It uses curvature and slope information to create a more visually appealing 
+    It uses curvature and slope information to create a more visually appealing 
     representation of the terrain.
     
     Parameters
