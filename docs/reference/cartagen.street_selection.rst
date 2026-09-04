@@ -1,8 +1,8 @@
-﻿cartagen.strokes_roads
-======================
+﻿cartagen.street_selection
+=========================
 
 .. currentmodule:: cartagen
 
-.. autofunction:: strokes_roads
+.. autofunction:: street_selection
 
-.. plot:: code/reference/strokes_roads.py
+.. plot:: code/reference/street_selection.py
