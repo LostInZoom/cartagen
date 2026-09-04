@@ -217,6 +217,8 @@ def street_selection(gdf_roads,
                      col_centrality="centrality", 
                      weights=None):
     """
+    Select streets in urban areas based on block aggregation and configurable criteria.
+    
     This algorithm proposed by Touya :footcite:p:`touya:2010`, as an extension of the work 
     from A. Ruas, selects and generalizes the urban road network (i.e. the streets in 
     cities) based on configurable criteria. This algorithm is based on the concept of urban blocks 
@@ -286,6 +288,8 @@ def __compute_mesh_density(gdf_routes):
 
 def mesh_density_selection(gdf_roads, seuil_densite, col_importance=None):
     """
+    Select the important road segments based on mesh density.
+    
     Select the important road segments based on mesh density, following the algorithm by Chen et al. :footcite:p:`chen_selective_2009`
     The algorithm iteratively removes the least important road segments that are located on the boundary of the densest mesh, 
     until all meshes have a density below the specified threshold.
