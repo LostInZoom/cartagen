@@ -20,10 +20,26 @@ Installation
 ============
 
 The plugin is currently available in the `official QGIS plugin repository <https://plugins.qgis.org/plugins/cartagen4qgis/>`_.
-Currently, when loading the plugin, a dialog allows you to automatically install CartAGen Python lib within the current Python
-environment. This is the prefered way. But it can fail you and you may want to tweak the dependencies version to your liking.
+Currently, when the plugin loads, a dialogue box informs you whether you already have the CartAGen Python library or whether you need to install it manually (it was previously possible to install the library directly from this dialogue box, but this feature is no longer available).
+There are various ways to install the CartAGen library, as described below.
 If you are using Linux, **we recommend using the Flatpak version** as its Python environment is isolated from the global Python
 environment.
+
+QGIS Pip Manager plugin
+-----
+
+QGIS Pip Manager is a plugin that makes it easier to manage Python dependencies for QGIS. Once downloaded from the QGIS plugins menu, simply follow these steps:
+1/ Open the QGIS Pip Manager window.
+2/ Click on the "Install" tab.
+3/ Search for "cartagen" in the PyPi search bar. The name, version and description of the CartAGen Python library should appear.
+4/ Click "Install / Update"… and that's it!
+
+.. image:: img/tuto_pip_manager.PNG
+   :alt: Tutorial : Installing the CartAGen library via QGIS Pip manager
+   :align: center
+   :width: 1223px
+
+You can also use the following methods to install the CartAGen Python library for QGIS (depending on your system).
 
 Linux
 -----
