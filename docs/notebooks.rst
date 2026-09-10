@@ -8,7 +8,7 @@ Three are currently available and each of them have a different purpose:
 
 - The `first one <https://mybinder.org/v2/gh/LostInZoom/cartagen-notebooks/HEAD?filepath=tuto_basemap_creation.ipynb>`_
   aims at providing a look on topographic map generalisation as it involves
-  road network simplification, buildings and builsing blocks generalisation
+  road network simplification, buildings and building blocks generalisation
   and much more.
 
 - The `second one <https://mybinder.org/v2/gh/LostInZoom/cartagen-notebooks/HEAD?filepath=tuto_point_dataset_generalisation.ipynb>`_
