@@ -28,7 +28,7 @@ environment.
 QGIS Pip Manager plugin
 -----
 
-`QGIS Pip Manager<https://plugins.qgis.org/plugins/pip_manager/>` is a plugin that makes it easier to manage Python dependencies for QGIS. Once downloaded from the QGIS plugins menu, simply follow these steps:
+`QGIS Pip Manager <https://plugins.qgis.org/plugins/pip_manager/>` is a plugin that makes it easier to manage Python dependencies for QGIS. Once downloaded from the QGIS plugins menu, simply follow these steps:
 
   - 1/ Open the QGIS Pip Manager window.
   - 2/ Click on the "Install" tab.
