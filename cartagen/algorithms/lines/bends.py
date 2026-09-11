@@ -63,33 +63,40 @@ def accordion(line, width, exaggeration=1.0, sigma=15.0, sample=None):
     distorted = []
     
     for b in bs.bends:
-        # Get the bend coordinates
-        coords = list(b.bend.coords)
+        # Get the translation vector
+        v = __get_vector(b, width * exaggeration)
 
+        # If the vector could not be found, keep the original bend
+        if v is None:
+            distorted.append(b.bend)
+            continue
+
+        displacement = v.get_norm()
+
+        # Retrieve bend coordinates
+        coords = list(b.bend.coords)
+        
+        # Vérifier qu'il y a assez de points
         if len(coords) < 2:
             distorted.append(b.bend)
             continue
-
+        
+        # Précalculer les Points
         points = [Point(c) for c in coords]
         start, end = points[0], points[-1]
 
-        # Keep the existing intersection-based eligibility check
-        if __get_vector(b, width * exaggeration) is None:
-            distorted.append(b.bend)
-            continue
-
-        # Build the normal from the bend chord
+        # Build a normal to the bend chord
         vab = Vector2D.from_points(start, end)
         v = Vector2D.from_point(Point(-vab.y, vab.x))
 
-        # Select the side containing the bend summit
+        # Choose the normal pointing away from the bend summit
         summit = b.get_bend_summit()
         vas = Vector2D.from_points(start, summit)
 
-        if vab.product(vas) < 0:
+        if vab.product(vas) > 0:
             v = v.opposite()
 
-        v = v.change_norm(width * exaggeration)
+        v = v.change_norm(displacement)
 
         # Calculer la longueur totale et les distances entre points
         length = b.bend.length
@@ -101,8 +108,10 @@ def accordion(line, width, exaggeration=1.0, sigma=15.0, sample=None):
 
         # Translation avec facteur progressif (décroissant depuis la fin)
         translated = []
+        start_factor = min(displacement / length, 0.5)
         for i, p in enumerate(points):
-            factor = (length - cumulative_from_end[i]) / length
+            progress = (length - cumulative_from_end[i]) / length
+            factor = start_factor + (1.0 - start_factor) * progress
             vdist = v.copy()
             vdist.scalar_multiplication(factor)
             translated.append(vdist.translate(p))
@@ -181,7 +190,11 @@ def __get_vector(bend, width):
 
         # Check that intersection is a point
         if inter.geom_type == 'Point':
-            return v.change_norm(width)
+            distance = base.distance(inter)
+            displacement = width - distance
+            if displacement <= 0:
+                continue
+            return v.change_norm(displacement)
     
     return None
 
