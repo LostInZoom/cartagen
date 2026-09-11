@@ -7,6 +7,7 @@ Changelog
 ===
 - **Improvements**:
     #. Fixed the documentation problems for several new functions added in 1.4.0 and 1.4.1.
+    #. Add tutorial to use QGIS Pip Manager plugin to install the CartAGen library in the documentation. Useful for the CartAGen plugin users that are not familiar with Python.
 
 1.4
 ===
