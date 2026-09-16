@@ -35,7 +35,7 @@ CartAGen
 
    <div align="center">
 
-A Python library for cartogaphic generalisation using Shapely and GeoPandas
+A Python library for cartographic generalisation using Shapely and GeoPandas
 
 .. image:: https://img.shields.io/readthedocs/cartagen?color=306998&style=flat-square
    :alt: Read the Docs
@@ -94,7 +94,7 @@ A Python library for cartogaphic generalisation using Shapely and GeoPandas
 
 |
 
-**CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
+**CartAGen** is an open source Python library dedicated to cartographic generalisation, published under
 the `EUPL-1.2 <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
 It is a port of the `Java application, <https://github.com/IGNF/CartAGen>`_
 originally developed at IGN France.
