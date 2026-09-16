@@ -1,3 +1,8 @@
+
+import geopandas as gpd
+import numpy as np
+from shapely.geometry import Polygon
+
 def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None, same_unit=False):
     """
     Create a heatmap using the kernel density estimation technique (KDE).
