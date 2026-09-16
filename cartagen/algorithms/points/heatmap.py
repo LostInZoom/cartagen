@@ -1,8 +1,4 @@
-import geopandas as gpd
-import numpy as np
-from shapely.geometry import Polygon
-
-def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None):
+def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None, same_unit=False):
     """
     Create a heatmap using the kernel density estimation technique (KDE).
 
@@ -42,6 +38,9 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
     clip : GeoDataFrame of Polygon, optional
         Polygons to clip the resulting heatmap grid.
         Be aware that it can return MultiPolygon.
+    same_unit : bool, optional
+        If the value is True, the values in the output cells do not correspond to a dimensionless density, but are expressed in the same unit as that of the weight column (you must therefore specify a column name).
+        This is the result of dividing the heatmap matrix containing the weight column by the same heatmap matrix without the weight column.
 
     Returns
     -------
@@ -113,33 +112,57 @@ def heatmap(points, cell_size, radius, column=None, method='quartic', clip=None)
         intensity_list = [] # list to store density value of each cell
         for i in range(len(centroids)):
             kde_value_list = []
+            if same_unit == True:
+                kde_value_list_bis = []
             for k in range(len(points_x)):
                 d = np.sqrt((centroids_x[i]-points_x[k])**2+(centroids_y[i]-points_y[k])**2)
                 if d <= lst_radius[k]:
                     p = kernel(d,lst_radius[k])
                     if column is None:
                         kde_value_list.append(p)
-                    else: 
+                    elif column is not None and same_unit==False: 
                         kde_value_list.append(p*lst_values[k])
+                    else:
+                        kde_value_list.append(p*lst_values[k])
+                        kde_value_list_bis.append(p)
 
-            total_density = sum(kde_value_list)
-            intensity_list.append(total_density)
+            if not same_unit or (same_unit and column is None):
+                total_density = sum(kde_value_list)
+                intensity_list.append(total_density)
+            else:
+                try:
+                    intensity_list.append(sum(kde_value_list)/sum(kde_value_list_bis))
+                except:
+                    intensity_list.append(1)
+
     else:
         #density calculation
         intensity_list = [] # list to store density value of each cell
         for i in range(len(centroids)):
             kde_value_list = []
+            if same_unit == True:
+                kde_value_list_bis = []
             for k in range(len(points_x)):
                 d = np.sqrt((centroids_x[i]-points_x[k])**2+(centroids_y[i]-points_y[k])**2)
                 if d <= radius:
                     p = kernel(d,radius)
                     if column is None:
                         kde_value_list.append(p)
-                    else: 
+                    elif column is not None and same_unit==False: 
                         kde_value_list.append(p*lst_values[k])
+                    else:
+                        kde_value_list.append(p*lst_values[k])
+                        kde_value_list_bis.append(p)
 
-            total_density = sum(kde_value_list)
-            intensity_list.append(total_density)
+            if not same_unit or (same_unit and column is None):
+                total_density = sum(kde_value_list)
+                intensity_list.append(total_density)
+            else:
+                try:
+                    total_density = sum(kde_value_list)/sum(kde_value_list_bis)
+                    intensity_list.append(total_density)
+                except:
+                    intensity_list.append(1)
 
     final_grid = gpd.GeoDataFrame({'geometry': polygons,'density':intensity_list}, crs=points.crs)
 
