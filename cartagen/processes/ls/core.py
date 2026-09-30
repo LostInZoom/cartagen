@@ -9,8 +9,9 @@ class LeastSquaresMethod:
     Generalise cartographic features using the method of least squares.
 
     This method was proposed by :footcite:p:`harrie:1999` and uses the method
-    of least squares to move the vertexes of every features (points, lines and polygons)
-    keeping the provided constraints as satisfied as possible.
+    of least squares to move the vertices of every features (points, lines and polygons)
+    keeping the provided constraints as satisfied as possible. The constraints are chosen 
+    to preserve the initial shapes as much as possible.
 
     Parameters
     ----------
@@ -703,7 +704,7 @@ class LeastSquaresMethod:
         v = (pn - pc)
         normv = np.linalg.norm(v)
 
-        return np.cross(u / normu, v / normv), normu, normv
+        return np.linalg.cross(u / normu, v / normv), normu, normv
 
     def __prepare_geometries(self):
         """
@@ -1155,7 +1156,7 @@ class LeastSquaresMethod:
             n1 = np.array(points[l[1]])
             n2 = np.array(points[l[2]])
             # Calculate the distance between the first node and the line formed by the other two
-            linkdistance = np.linalg.norm(np.cross(n2 - n1, n1 - n0)) / np.linalg.norm(n2 - n1)
+            linkdistance = np.linalg.norm(np.linalg.cross(n2 - n1, n1 - n0)) / np.linalg.norm(n2 - n1)
             # Updating the distance
             self.__constraints['links'][i][4] = linkdistance
 

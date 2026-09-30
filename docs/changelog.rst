@@ -3,6 +3,14 @@
 Changelog
 #########
 
+1.5
+===
+- **Improvements**:
+    #. Fixed the least squares functions that had problems due to updates in numpy (issue #54).
+
+- **New features**:
+
+
 1.4.2
 ===
 - **Improvements**:
