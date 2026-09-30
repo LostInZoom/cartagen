@@ -24,10 +24,10 @@
    :alt: GitHub contributors
    :target: https://github.com/LostInZoom/cartagen/graphs/contributors
 
-A Python library for cartogaphic generalisation using Shapely and GeoPandas. In-depth API reference and user manual
+A Python library for cartographic generalisation using Shapely and GeoPandas. In-depth API reference and user manual
 can be found in the `documentation <https://cartagen.readthedocs.io/en/latest/>`_.
 
-**CartAGen** is an open source Python library dedicated to cartogaphic generalisation, published under
+**CartAGen** is an open source Python library dedicated to cartographic generalisation, published under
 the `EUPL-1.2 <https://github.com/IGNF/CartAGen>`_ (European Union Public License).
 It is a port of the `Java application, <https://github.com/IGNF/CartAGen>`_
 originally developed at IGN France.

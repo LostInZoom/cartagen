@@ -17,7 +17,7 @@ Changelog
     #. Fixed the documentation problems for several new functions added in 1.4.0 and 1.4.1.
     #. Fixed the bug with the :func:`accordion <cartagen.accordion>` function that was not working with large width values (issue #51).
     #. Add tutorial to use QGIS Pip Manager plugin to install the CartAGen library in the documentation. Useful for the CartAGen plugin users that are not familiar with Python.
-
+    #. Add a new 'same_unit' parameter in the heatmap() function that enable the values of the output cells to be expressed in the same unit as provided weight column values.
 1.4
 ===
 
